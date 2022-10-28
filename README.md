@@ -8,7 +8,7 @@ To clone this repository:
 4) Write "git clone https://github.com/PeterCalifano/EPOPEA_project_repo.git" and wait. Download of the repository should start
 5) At the end, check that a new folder named as the repository has been created and that it contains all the files
 
-In MATLAB work in the folder of the repository to use git integration. You will immediately see the difference with respect to an usual folder.
+In MATLAB, work in the folder of the repository to use git integration. You will immediately see the difference with respect to an usual folder.
 Legend of the symbols in the "git" column for a file: 
 1) Green circle: Remote and Local origin have the same version 
 2) Blue square: Local origin has one or more modification (even spaces count)

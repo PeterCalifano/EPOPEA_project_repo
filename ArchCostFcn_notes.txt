@@ -1,9 +1,10 @@
 # Development notes for Architecture evaluation codes
 
-# Science Return Value (RSV) can consider:
+# ------------------------------------------------------------------------------
+# SCIENCE RETURN VALUE (RSV) can consider:
 # 1) PR: "Productivity ratio": time spent collecting measurements/mission elapsed time?
 # 2) Differentiation between "orbiter" and "lander". Parameters may be:
-# N_o: number of orbiting modules
+# N_o: number of orbiting modules --> better to specify for each term?
 # N_l: number of landed modules
 # N_cams: number of payload cameras
 # eta_cam: "efficiency" of camera output (scaling for the "quality")
@@ -19,11 +20,13 @@
 #
 
 # If parameters not applicable --> 0
-RSV = C_multimeas*[PR_o*N_o*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_o) +
-      PR_l*N_l*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_l)]
+RSV = C_multimeas*[ PR_o*N_o*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_o) +
+                    PR_l*N_l*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_l) ]
 
 # Each term must be somehow quantified:
-# Q_sam_(o|l) can be a function of plume passages per orbit, scooping capability
+# Q_sam_(o|l) can be a function of plume passages per orbit, time spent in plume, scooping capability
 
+
+# ------------------------------------------------------------------------------
 # Idea for a MC probabilistic analysis:
 # generation of Return Science Value vs Failure event probability (scaling from moderate to mission lost?)

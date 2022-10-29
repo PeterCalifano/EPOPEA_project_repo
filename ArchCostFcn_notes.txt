@@ -1,0 +1,29 @@
+# Development notes for Architecture evaluation codes
+
+# Science Return Value (RSV) can consider:
+# 1) PR: "Productivity ratio": time spent collecting measurements/mission elapsed time?
+# 2) Differentiation between "orbiter" and "lander". Parameters may be:
+# N_o: number of orbiting modules
+# N_l: number of landed modules
+# N_cams: number of payload cameras
+# eta_cam: "efficiency" of camera output (scaling for the "quality")
+# P_ld: probability of Life Detection
+# D_l density of cell organisms presence in the samples (e.g. normalized with respect to the quantity in mL)
+# eta_sens: "efficiency" of sensor output (scaling for the "quality")
+# N_elecsens: number of electrochemical sensors
+# N_indmeas: number of independent measurements
+# PR_o: productivity ratio of orbiting modules
+# PR_l: productivity ratio of landed modules
+# Q_sam_(o|l): quantity of collected samples (for life detection/characterization)
+# C_multimeas: term to weight the ability to do contemporary measurements? Default value = 1
+#
+
+# If parameters not applicable --> 0
+RSV = C_multimeas*[PR_o*N_o*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_o) +
+      PR_l*N_l*(eta_cam*N_cams + eta_sens*N_elecsens + D_l*Q_sam_l)]
+
+# Each term must be somehow quantified:
+# Q_sam_(o|l) can be a function of plume passages per orbit, scooping capability
+
+# Idea for a MC probabilistic analysis:
+# generation of Return Science Value vs Failure event probability (scaling from moderate to mission lost?)

@@ -14,7 +14,7 @@ Legend of the symbols in the "git" column for a file:
 2) Blue square: Local origin has one or more modification (even spaces count)
 3) White circle: Local file only. Remote origin does not contain it: not synched.
 4) Red circle with ! inside: conflict between Remote and Local file during push or pull procedure. Automatic merge has failed.
-5) + sign: after "Add to git" is requested. File staged for commit and push from Local to Remote origin.
+5) Plus sign: after "Add to git" is requested. File staged for commit and push from Local to Remote origin.
 
 Basic commands from MATLAB GUI (and Git Bash):
 1) Right click (RC) --> Source control (SC) --> Add to git to add a file with the white circle (git add <file>) --> Go to (2) to complete

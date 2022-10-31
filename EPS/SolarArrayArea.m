@@ -50,19 +50,26 @@ powerRegulationMethod = 'DET' ; % Assume direct energy transfer for long-lifetim
 
 
 distance_km = linspace( distance_min_km, distance_max_km, distancePoints ) ; % Create vector of distances
-lifetime_years = linspace( lifetime_mindist, lifetime_maxdist, distancePoints ) ;
-A_SA_theoretical = zeros( distancePoints, length(Pd_watt) ) ;
-
+lifetime_years_cruise = linspace( lifetime_mindist, lifetime_maxdist, distancePoints ) ;
+lifetime_years_SaturnSystem = linspace( lifetime_maxdist, lifetime_maxdist + 6, distancePoints ) ;
+A_SA_theoretical_cruise = zeros( distancePoints, length(Pd_watt) ) ;
+A_SA_theoretical_SaturnSystem = zeros() ;
 % Outer loops spans the range given by Pd_watt, inner loop spans mission lifetimes
 for j = 1:length(Pd_watt)
 
+    % CRUISE PHASE
     for k = 1:distancePoints
 
-        A_SA_theoretical(k,j) = SAsizing_theoretical( distance_km(k), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years(k), powerRegulationMethod ) ;
-
+        A_SA_theoretical_cruise(k,j)  = SAsizing_theoretical( distance_km(k), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years_cruise(k), powerRegulationMethod ) ;
+        
     end
 
+    % SATURN SYSTEM PHASE
+    A_SA_theoretical_SaturnSystem = SAsizing_theoretical( distance_km(end), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years_SaturnSystem, powerRegulationMethod ) ;
+
+
 end
+
 
 % Plot Area of solar array in function of distance
 figure() ;
@@ -70,82 +77,13 @@ hold on ; grid on ;
 lgtxt = cell(1,length(Pd_watt)) ;
 for j = 1:length(Pd_watt)
 
-    plot( lifetime_years, A_SA_theoretical(:,j), '-', 'linewidth', 1.5 ) ;
+    plot( lifetime_years_cruise, A_SA_theoretical_cruise(:,j), '-', 'linewidth', 1.5 ) ;
     lgtxt{j} = [ 'PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]' ] ;
 
 end
 xlabel('\textbf{Years after launch}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 ylabel('\textbf{Solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 legend(lgtxt, 'fontsize', 15) ;
-
-
-
-%% LOCAL FUNCTIONS
-% -----------------------------------------------------------------
-
-function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
-
-% INPUTS:
-%   meanDistance_km: is a number indicating the mean distance in KM of the S/C from the sun
-%   Pe_watt: is a number indicating the power required in eclipse
-%   Te: is a number indicating the duration of the eclipse -> units not important as long as they are the same as Td
-%   Pd_watt: is a number indicating the power required in daylight
-%   Td: is a number indicating the duration of daylight -> units not important as long as they are the same as Te
-%   SA_data: is a structure containing data relative to the chosen solar array
-%       Struct contains:
-%                       1)  SA_data.Id - inherent degradation factor
-%                           (typically ~0.77), representing percentage of
-%                           total area that actually generates power, while
-%                           the remainder of the area contains
-%                           interconnections, cables, etc..., between cells
-%                       
-%                       2) SA_data.eta_SA - Conversion efficiency of the solar
-%                          cells (typically ~0.3 for triple junction GaAs, ~0.15 for monocristalline Si)
-%                          
-%                       3) SA_data.alpha_incidence_degrees - Mean solar incidence on solar panel
-%
-%                       4) SA_data.yearlyDegradation_percent - Percentage
-%                          of yearly degradation of solar panels due to
-%                          radiation, etc... (typically 3.75% for GaAs and 2.5% for Si)
-%
-%   lifetime_years is a number indicating after how many years you have the end of life conditions
-%   powerRegulationMethod can be string containing 'DET' or 'PPT'
-
-% Unpack struct and define variables based on inputs
-eta_SA = SA_data.eta_SA ;
-alpha_incidence_degrees = SA_data.alpha_incidence_degrees ;
-Id = SA_data.Id ;
-yearlyDegradation_percent = SA_data.yearlyDegradation_percent ;
-
-switch powerRegulationMethod
-    case 'PPT'
-        error('PPT has not yet been implemented, as it is better for shorter mission durations')
-    case 'DET'
-        Xd = 0.85 ; % Power regulation efficiency factor in daylight for DET
-        Xe = 0.65 ; % Power regulation efficiency factor in eclipse for DET
-end
-
-% Define constants
-AU = 149597870.7 ; % [ km ] - Astronomical unit
-P0_1AU = 1367 ; % [ W/m^2 ] - Sun irradiated power @ 1AU
-
-% Compute Sun irradiated power @ distance of  meanDistance_km
-P_SunIrradiated = P0_1AU * ( AU / meanDistance_km )^2 ;
-
-% Compute area required from solar array, considering daylight and eclipse conditions
-P_SA = ( (Pe_watt*Te/Xe) + (Pd_watt*Td/Xd) ) / Td ; % [W]
-
-% Compute power that the solar array can generate per m^2, at BOL
-P_SA_BOL = eta_SA * P_SunIrradiated * Id * cosd( alpha_incidence_degrees ) ;
-
-% Compute power that the solar array can generate per m^2, at EOL
-P_SA_EOL = P_SA_BOL * ( 1 - yearlyDegradation_percent )^lifetime_years ; % [W/m^2]
-
-% Compute theoretical area of solar array that is required (not considering geometrical properties of cells)
-A_SA_theoretical = P_SA / P_SA_EOL ; % [m^2]
-
-end
-
 
 
 

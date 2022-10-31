@@ -1,5 +1,6 @@
 clearvars ; close all ; clc ;
 
+color = { [0 0.4470 0.7410], [0.8500 0.3250 0.0980], [0.9290 0.6940 0.1250], [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880], [0.3010 0.7450 0.9330], [0.6350 0.0780 0.1840] } ;
 
 %% ELECTRIC PROPULSION: INTERPLANETARY LEG EVALUATION
 
@@ -16,13 +17,13 @@ distance_max_km = distance_Saturn ;               % [km] - Maximum distance from
 distancePoints = 15 ;                             % Number of distances to consider, from distance_min_km to distance_max_km
 
 % Lifetime
-lifetime_mindist = 0.5 ;                           % Assumption: Year at which you reach the distance distance_min_km (very approximate, but is used to represent the trajectory given by MA)
-lifetime_maxdist = 7 ;                             % Assumption: Year at which you reach the distance distance_max_km (very approximate, but is used to represent the trajectory given by MA)
+lifetime_mindist = 0.5 ;                           % Assumption: Year at which you reach the distance distance_min_km (Venus)  (very approximate, but is used to represent the trajectory given by MA)
+lifetime_maxdist = 7 ;                             % Assumption: Year at which you reach the distance distance_max_km (Saturn) (very approximate, but is used to represent the trajectory given by MA)
 
 % Power requirement
 Te = 0 ;                                          % As a first approximation, assume that during interplanetary leg you have no eclipse
 Pe_watt = 0 ;                                     % Can be any number, since this is unused in case with no eclipses
-Pd_watt = [ 4, 6, 8 ] * 1e3 ;                     % [W] - Range of possible NOMINAL power requirements, considering ONLY THE POWER REQUIRED BY THE ELECTRIC PROPULSION SYSTEM 
+Pd_watt = [ 2, 4, 6, 8 ] * 1e3 ;                  % [W] - Range of possible NOMINAL power requirements, considering ONLY THE POWER REQUIRED BY THE ELECTRIC PROPULSION SYSTEM 
 Td = 1 ;                                          % Can be any number, since this is unused in case with no eclipses
 
 % Solar array data

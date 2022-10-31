@@ -1,17 +1,83 @@
 clearvars ; close all ; clc ;
 
+
+%% ELECTRIC PROPULSION: INTERPLANETARY LEG EVALUATION
+
+
 % ONLY CHANGE VARIABLES IN THE BOX BELOW TO OBTAIN SOLAR ARRAY SIZE
 % -----------------------------------------------------------------
 
+% Distances
+distance_Venus = ( 108939000 + 107477000 ) / 2 ;  % [km]
+distance_Saturn = ( 1514.50e6 + 1352.55e6 ) / 2 ; % [km]
+
+distance_min_km = distance_Venus ;                % [km] - Minimum distance from Sun, considers possible venus flyby
+distance_max_km = distance_Saturn ;               % [km] - Maximum distance from Sun,
+distancePoints = 15 ;                             % Number of distances to consider, from distance_min_km to distance_max_km
+
+% Lifetime
+lifetime_mindist = 0.5 ;                           % Assumption: Year at which you reach the distance distance_min_km (very approximate, but is used to represent the trajectory given by MA)
+lifetime_maxdist = 7 ;                             % Assumption: Year at which you reach the distance distance_max_km (very approximate, but is used to represent the trajectory given by MA)
+
+% Power requirement
+Te = 0 ;                                          % As a first approximation, assume that during interplanetary leg you have no eclipse
+Pe_watt = 0 ;                                     % Can be any number, since this is unused in case with no eclipses
+Pd_watt = [ 4, 6, 8 ] * 1e3 ;                     % [W] - Range of possible NOMINAL power requirements, considering ONLY THE POWER REQUIRED BY THE ELECTRIC PROPULSION SYSTEM 
+Td = 1 ;                                          % Can be any number, since this is unused in case with no eclipses
+
+% Solar array data
+%       --> Assuming typical values for triple-junction GaAs solar panels
+%       --> Check function SAsizing_theoretical.m for description of each variable
+SA_data.Id = 0.77 ; % Inherent degradation
+SA_data.eta_SA = 0.3 ; % Solar panel conversion efficiency
+SA_data.alpha_incidence_degrees = 0 ; % Assuming that in the best-case, conditions, you have always a perfect incidence of solar panel surface to Sun
+SA_data.yearlyDegradation_percent = 0.0375 ; % Yearly degradation percentage of solar panel efficiency
+
+
+% Power regulation method
+powerRegulationMethod = 'DET' ; % Assume direct energy transfer for long-lifetime missions
 
 % -----------------------------------------------------------------
 % ONLY CHANGE VARIABLES IN THE BOX ABOVE TO OBTAIN SOLAR ARRAY SIZE
 
-%% ELECTRIC PROPULSION: INTERPLANETARY LEG
-%       --> This section assumes you have no eclipse conditions during
-%           heliocentric interplanetary leg.
+
+
+
+% -----------------------------------------------------------------
+% DO NOT TOUCH BELOW HERE :(
+% -----------------------------------------------------------------
+
+
+distance_km = linspace( distance_min_km, distance_max_km, distancePoints ) ; % Create vector of distances
+lifetime_years = linspace( lifetime_mindist, lifetime_maxdist, distancePoints ) ;
+A_SA_theoretical = zeros( distancePoints, length(Pd_watt) ) ;
+
+% Outer loops spans the range given by Pd_watt, inner loop spans mission lifetimes
+for j = 1:length(Pd_watt)
+
+    for k = 1:distancePoints
+
+        A_SA_theoretical(k,j) = SAsizing_theoretical( distance_km(k), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years(k), powerRegulationMethod ) ;
+
+    end
+
+end
 
 % Plot Area of solar array in function of distance
+figure() ;
+hold on ; grid on ;
+lgtxt = cell(1,length(Pd_watt)) ;
+for j = 1:length(Pd_watt)
+
+    plot( lifetime_years, A_SA_theoretical(:,j), '-', 'linewidth', 1.5 ) ;
+    lgtxt{j} = [ 'PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]' ] ;
+
+end
+xlabel('\textbf{Years after launch}', 'interpreter', 'latex', 'fontsize', 15 ) ;
+ylabel('\textbf{Solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
+legend(lgtxt, 'fontsize', 15) ;
+
+
 
 %% LOCAL FUNCTIONS
 % -----------------------------------------------------------------
@@ -46,7 +112,7 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 
 % Unpack struct and define variables based on inputs
 eta_SA = SA_data.eta_SA ;
-alpha_incidence_degrees = SA_data.alpha_incidence_radians ;
+alpha_incidence_degrees = SA_data.alpha_incidence_degrees ;
 Id = SA_data.Id ;
 yearlyDegradation_percent = SA_data.yearlyDegradation_percent ;
 

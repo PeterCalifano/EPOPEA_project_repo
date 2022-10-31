@@ -51,9 +51,10 @@ clearvars ; close all ; clc ;
 %       --> Found by analyzing past missions as well as real electric 
 %           propulsion technologies
 
-P_required = [ 4.5, 8 ] * 10^3 ; % [ W ] - ONLY for the thrusters, not considering any other subsystems
+P_required = [ 2, 8 ] * 1e3 ; % [ W ] - ONLY for the thrusters, not considering any other subsystems
 
-
+% This order of magnitude has been considered as an input to the function
+% Solar Array Area
 
 
 

@@ -2,24 +2,12 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 
 %% PROTOTYPE
 % A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
+%
 %% DESCRIPTION
-% What the function does
-% -------------------------------------------------------------------------------------------------------------
-%% INPUT
-% in1 [dim] description
-% -------------------------------------------------------------------------------------------------------------
-%% OUTPUT
-% out1 [dim] description
-% -------------------------------------------------------------------------------------------------------------
-%% CHANGELOG
-% Date, User, brief summary of the modification
-% -------------------------------------------------------------------------------------------------------------
-%% DEPENDENCIES
-% -------------------------------------------------------------------------------------------------------------
-%% Future upgrades
-
-
-% INPUTS:
+% Computes required solar array area
+%
+%
+%% INPUTS:
 %   meanDistance_km: is a number indicating the mean distance in KM of the S/C from the sun
 %   Pe_watt: is a number indicating the power required in eclipse
 %   Te: is a number indicating the duration of the eclipse -> units not important as long as they are the same as Td
@@ -44,6 +32,20 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 %
 %   lifetime_years is a number indicating after how many years you have the end of life conditions
 %   powerRegulationMethod can be string containing 'DET' or 'PPT'
+
+%% OUTPUT
+% A_SA_theoretical: theoretical solar array area (not considering geometry of real cells)
+%
+%
+%% CHANGELOG
+% Date, User, brief summary of the modification
+%
+%
+%% DEPENDENCIES
+%
+%
+%% Future upgrades
+
 
 % Unpack struct and define variables based on inputs
 eta_SA = SA_data.eta_SA ;

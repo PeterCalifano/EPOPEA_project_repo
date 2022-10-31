@@ -57,16 +57,15 @@ A_SA_theoretical_SaturnSystem = zeros() ;
 % Outer loops spans the range given by Pd_watt, inner loop spans mission lifetimes
 for j = 1:length(Pd_watt)
 
-    % CRUISE PHASE
     for k = 1:distancePoints
 
+        % CRUISE PHASE
         A_SA_theoretical_cruise(k,j)  = SAsizing_theoretical( distance_km(k), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years_cruise(k), powerRegulationMethod ) ;
-        
+
+        % SATURN SYSTEM PHASE
+        A_SA_theoretical_SaturnSystem(k,j) = SAsizing_theoretical( distance_km(end), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years_SaturnSystem(k), powerRegulationMethod ) ;
+
     end
-
-    % SATURN SYSTEM PHASE
-    A_SA_theoretical_SaturnSystem = SAsizing_theoretical( distance_km(end), Pe_watt, Te, Pd_watt(j), Td, SA_data, lifetime_years_SaturnSystem, powerRegulationMethod ) ;
-
 
 end
 
@@ -77,12 +76,17 @@ hold on ; grid on ;
 lgtxt = cell(1,length(Pd_watt)) ;
 for j = 1:length(Pd_watt)
 
-    plot( lifetime_years_cruise, A_SA_theoretical_cruise(:,j), '-', 'linewidth', 1.5 ) ;
-    lgtxt{j} = [ 'PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]' ] ;
+    plot( lifetime_years_cruise, A_SA_theoretical_cruise(:,j), '-', 'linewidth', 1.5, 'color', color{j} ) ;
+    plot( lifetime_years_SaturnSystem, A_SA_theoretical_SaturnSystem(:,j), '-', 'linewidth', 1.5, 'color', color{j}, 'handlevisibility', 'off' ) ;
+    lgtxt{j} = [ '\textbf{PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]}' ] ;
 
 end
+plot( lifetime_years_cruise(end)*[ 1, 1 ], [ 0, A_SA_theoretical_SaturnSystem(end,end) ], 'k--', 'linewidth', 2 ) ;
 xlabel('\textbf{Years after launch}', 'interpreter', 'latex', 'fontsize', 15 ) ;
-ylabel('\textbf{Solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
+ylabel('\textbf{Required solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
+xlim([lifetime_years_cruise(1),lifetime_years_SaturnSystem(end)]) ;
+text( 2, 2500, '\textbf{Cruise phase}', 'fontsize', 15 ) ;
+text( 8, 2500, '\textbf{Saturn system phase}', 'fontsize', 15 ) ;
 legend(lgtxt, 'fontsize', 15) ;
 
 

@@ -1,12 +1,14 @@
 clearvars ; close all ; clc ;
+set( 0, 'defaultlegendinterpreter', 'latex' ) ;
+set( 0, 'defaulttextinterpreter', 'latex' ) ;
 
 color = { [0 0.4470 0.7410], [0.8500 0.3250 0.0980], [0.9290 0.6940 0.1250], [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880], [0.3010 0.7450 0.9330], [0.6350 0.0780 0.1840] } ;
 
 %% ELECTRIC PROPULSION: INTERPLANETARY LEG EVALUATION
 
 
-% ONLY CHANGE VARIABLES IN THE BOX BELOW TO OBTAIN SOLAR ARRAY SIZE
-% -----------------------------------------------------------------
+% ONLY CHANGE SIZING VARIABLES IN THE BOX BELOW TO OBTAIN SOLAR ARRAY SIZE
+% ------------------------------------------------------------------------
 
 % Distances
 distance_Venus = ( 108939000 + 107477000 ) / 2 ;  % [km]
@@ -38,8 +40,19 @@ SA_data.yearlyDegradation_percent = 0.0375 ; % Yearly degradation percentage of 
 % Power regulation method
 powerRegulationMethod = 'DET' ; % Assume direct energy transfer for long-lifetime missions
 
-% -----------------------------------------------------------------
-% ONLY CHANGE VARIABLES IN THE BOX ABOVE TO OBTAIN SOLAR ARRAY SIZE
+% ------------------------------------------------------------------------
+% ONLY CHANGE SIZING VARIABLES IN THE BOX ABOVE TO OBTAIN SOLAR ARRAY SIZE
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -81,7 +94,10 @@ for j = 1:length(Pd_watt)
     lgtxt{j} = [ '\textbf{PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]}' ] ;
 
 end
+indx = floor(distancePoints/2) ;
 plot( lifetime_years_cruise(end)*[ 1, 1 ], [ 0, A_SA_theoretical_SaturnSystem(end,end) ], 'k--', 'linewidth', 2 ) ;
+plot( [lifetime_years_cruise(indx)*ones(1,length(Pd_watt)), lifetime_years_SaturnSystem(1)*ones(1,length(Pd_watt))], [A_SA_theoretical_cruise(indx, 1:length(Pd_watt)), A_SA_theoretical_SaturnSystem(1,1:length(Pd_watt))], 'ko', 'markersize', 5, 'markerfacecolor', 'k' ) ;
+text( lifetime_years_cruise(indx), A_SA_theoretical_cruise(indx, end) + 100, '' ) ;
 xlabel('\textbf{Years after launch}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 ylabel('\textbf{Required solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 xlim([lifetime_years_cruise(1),lifetime_years_SaturnSystem(end)]) ;

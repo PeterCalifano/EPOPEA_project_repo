@@ -24,28 +24,7 @@ clearvars ; close all ; clc ;
 %   3) Electric thruster assembly
 %
 % ------------------------------------------------------------------------------------------------
-% 
-% References:
-%
-% 1) RIT technologies:
-%       --> https://www.space-propulsion.com/spacecraft-propulsion/propulsion-systems/electric-propulsion/index.html
-%       NOTE: Possible thruster is RIT-35 (interplanetary missions)
-%
-% 2) NASA DAWN ion propulsion system:
-%       --> https://link.springer.com/chapter/10.1007/978-1-4614-4903-4_11
-%
-% 3) BepiColombo
-%       --> https://en.wikipedia.org/wiki/BepiColombo
-%
-% 4) QinetiQ T7 thrusters
-%       --> https://www.qinetiq.com/en/what-we-do/services-and-products/solar-electric-propulsion
-%       --> http://electricrocket.org/2019/356.pdf
-%
-% 5) ESA Electra mission
-%       --> https://www.esa.int/Applications/Telecommunications_Integrated_Applications/Electra
-%
-% 6) 
-%       Note: Possible thruster is Kaufman UK-25 (interplanetary missions)
+
 
 %% Typical orders of magnitude to consider
 %       --> Found by analyzing past missions as well as real electric 

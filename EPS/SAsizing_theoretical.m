@@ -4,7 +4,9 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 % A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
 %
 %% DESCRIPTION
-% Computes required solar array area
+% Computes required solar array area. Function has been validated with
+% venus express mission, and returns quite similar values of solar panel
+% area at Venus' distance from Sun
 %
 %
 %% INPUTS:
@@ -63,7 +65,7 @@ end
 
 % Define constants
 AU = 149597870.7 ; % [ km ] - Astronomical unit
-P0_1AU = 1367 ; % [ W/m^2 ] - Sun irradiated power @ 1AU
+P0_1AU = 1367.5 ; % [ W/m^2 ] - Sun irradiated power @ 1AU
 
 % Compute Sun irradiated power @ distance of  meanDistance_km
 P_SunIrradiated = P0_1AU * ( AU / meanDistance_km )^2 ;
@@ -72,7 +74,7 @@ P_SunIrradiated = P0_1AU * ( AU / meanDistance_km )^2 ;
 P_SA = ( (Pe_watt*Te/Xe) + (Pd_watt*Td/Xd) ) / Td ; % [W]
 
 % Compute power that the solar array can generate per m^2, at BOL
-P_SA_BOL = eta_SA * P_SunIrradiated * Id * cosd( alpha_incidence_degrees ) ;
+P_SA_BOL = eta_SA * P_SunIrradiated * Id * cosd( alpha_incidence_degrees ) ; % [W/m^2]
 
 % Compute power that the solar array can generate per m^2, at EOL
 P_SA_EOL = P_SA_BOL * ( 1 - yearlyDegradation_percent )^lifetime_years ; % [W/m^2]

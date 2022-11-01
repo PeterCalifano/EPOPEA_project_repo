@@ -96,8 +96,8 @@ for j = 1:length(Pd_watt)
 end
 indx = floor(distancePoints/2) ;
 plot( lifetime_years_cruise(end)*[ 1, 1 ], [ 0, A_SA_theoretical_SaturnSystem(end,end) ], 'k--', 'linewidth', 2 ) ;
-plot( [lifetime_years_cruise(indx)*ones(1,length(Pd_watt)), lifetime_years_SaturnSystem(1)*ones(1,length(Pd_watt))], [A_SA_theoretical_cruise(indx, 1:length(Pd_watt)), A_SA_theoretical_SaturnSystem(1,1:length(Pd_watt))], 'ko', 'markersize', 5, 'markerfacecolor', 'k' ) ;
-text( lifetime_years_cruise(indx), A_SA_theoretical_cruise(indx, end) + 100, '' ) ;
+% plot( [lifetime_years_cruise(indx)*ones(1,length(Pd_watt)), lifetime_years_SaturnSystem(1)*ones(1,length(Pd_watt))], [A_SA_theoretical_cruise(indx, 1:length(Pd_watt)), A_SA_theoretical_SaturnSystem(1,1:length(Pd_watt))], 'ko', 'markersize', 5, 'markerfacecolor', 'k' ) ;
+
 xlabel('\textbf{Years after launch}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 ylabel('\textbf{Required solar array area} \boldmath{$[m^2]$}', 'interpreter', 'latex', 'fontsize', 15 ) ;
 xlim([lifetime_years_cruise(1),lifetime_years_SaturnSystem(end)]) ;

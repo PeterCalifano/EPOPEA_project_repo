@@ -1,4 +1,4 @@
-function [mp,m_fu,m_ox] = preliminary_prop_mass(dV,m0)
+function mp = preliminary_prop_mass(dV,m0)
 % Preliminary propellant mass sizing
 % Computes total propellant mass required for the total dV budget, having
 % preliminary estimated the total dry mass at launch
@@ -28,8 +28,5 @@ mp = m0 - mf;
 % from CDF: "the propellant mass shall include 2% for propellant
 % residuals."
 mp = mp*1.02;
-
-m_fu = mp/(1+of);
-m_ox = mp - m_fu;
 
 end

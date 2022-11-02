@@ -1,7 +1,7 @@
 function [] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
 
 % Add margins according to CDF standards 
-mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant
+mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant / ullage
 % Propellant characteristics
 rho_fu = propellant.rho_fu;
 rho_ox = propellant.rho_ox;

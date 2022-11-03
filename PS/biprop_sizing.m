@@ -1,4 +1,4 @@
-function [] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
+function [mt_prop,V_p,t_prop,Rt_prop,mt_gas,Vt_gas,t_gas,Rt_gas] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
 
 % Add margins according to CDF standards 
 mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant / ullage
@@ -34,11 +34,13 @@ switch pressurant.mode
         rho_mean = mp/(m_fu/rho_fu + m_ox/rho_ox);          % propellant mean density
         V_p = mp/rho_mean;
         if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
+            propellant_tank.shape = 'spherical';
             % Spherical
             Rt_prop = (3*V_p/(4*pi))^(1/3);
             t_prop = Pi_p*Rt_prop/(2*sigma_p);
             mt_prop = rho_tank_p*(4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3);
         else 
+            propellant_tank.shape = 'cylindrical';
             % Cylindrical with caps
             f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
             Rt_prop = fzero(@(x) f, 0.3*h_prop);
@@ -78,11 +80,13 @@ switch pressurant.mode
         V_p = (m_fu*1.03+m_ox*1.03)/rho_mean;
 
        if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
+            propellant_tank.shape = 'spherical';
             % Spherical
             Rt_prop = (3*V_p/(4*pi))^(1/3);
             t_prop = Pi_p*Rt_prop/(2*sigma_p);
             mt_prop = rho_tank_p*(4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3);
-        else 
+       else 
+            propellant_tank.shape = 'cylindrical';
             % Cylindrical with caps
             f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
             Rt_prop = fzero(@(x) f, 0.3*h_prop);
@@ -113,6 +117,9 @@ switch pressurant.mode
 
 end
 
+% Put results in propellant / pressurant tanks structures
+propellant_tank.mass = mt_prop; propellant_tank.volume = V_p; 
+propellant_tank.shape =
 
 end
 

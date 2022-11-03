@@ -1,4 +1,4 @@
-function mp = preliminary_prop_mass(dV,m0)
+function mp = preliminary_prop_mass(dV,m0,Is)
 % Preliminary propellant mass sizing
 % Computes total propellant mass required for the total dV budget, having
 % preliminary estimated the total dry mass at launch
@@ -16,10 +16,7 @@ function mp = preliminary_prop_mass(dV,m0)
 %
 
 % Constants 
-g0 = 9.81;                                          % [m/s^2]
-% Propellant characteristics
-Is = 300;   % to change                             % [s]
-of = 1.4;   % to change                             
+g0 = 9.81;                                          % [m/s^2]                           
 
 % Apply Tsiolkowsky equation
 mf = m0/exp(dV/(Is*g0));

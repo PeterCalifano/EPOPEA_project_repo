@@ -1,4 +1,4 @@
-function [propellant_tank,pressurant_tank] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
+function [propellant_tank,pressurant_tank,m_gas] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
 
 % Add margins according to CDF standards 
 mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant / ullage
@@ -12,7 +12,6 @@ Pi_p = 22*1e+5;                               % average from datasheet:
                                               % Check that is > than Pc of thrusters!
 sigma_p = prop_tank.sigma;
 rho_tank_p = prop_tank.rho;
-h_prop = prop_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase
 % Pressurant characteristics
 R_gas = pressurant.R; gamma_gas = pressurant.gamma;
 % Pressurant tanks initial properties
@@ -20,7 +19,7 @@ Pi_gas = 250*1e+5;                            % Change this value! Its an averag
 % Pressurant tank characteristics
 sigma_gas = gas_tank.sigma;
 rho_tank_gas = gas_tank.rho;
-h_gas = gas_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase
+
 % Rt_real = gas_tank.radius;
 % Vt_real = gas_tank.volume;
 
@@ -33,21 +32,22 @@ switch pressurant.mode
         m_ox = (of/(of+1))*mp;                              % oxidizer mass
         rho_mean = mp/(m_fu/rho_fu + m_ox/rho_ox);          % propellant mean density
         V_p = mp/rho_mean;
-        if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
+%         if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
             propellant_tank.shape = 'spherical';
             % Spherical
             Rt_prop = (3*V_p/(4*pi))^(1/3);
             t_prop = Pi_p*Rt_prop/(2*sigma_p);
             mt_prop = rho_tank_p*(4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3);
-        else 
-            propellant_tank.shape = 'cylindrical';
-            % Cylindrical with caps
-            f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
-            Rt_prop = fzero(@(x) f, 0.3*h_prop);
-            t_prop = Pi_p*Rt_prop/(sigma_p);
-            mt_prop = rho_tank_p*((4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3) +...
-                pi*h_prop*(Rt_prop+t_prop)^2 - Rt_prop^2);
-        end
+%         else 
+%             propellant_tank.shape = 'cylindrical';
+%             % Cylindrical with caps
+%h_prop = prop_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase
+%             f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
+%             Rt_prop = fzero(@(x) f, 0.3*h_prop);
+%             t_prop = Pi_p*Rt_prop/(sigma_p);
+%             mt_prop = rho_tank_p*((4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3) +...
+%                 pi*h_prop*(Rt_prop+t_prop)^2 - Rt_prop^2);
+%         end
 
         % PRESSURANT
         B = pressurant.B;                                     % Chosen blowdown ratio
@@ -55,23 +55,24 @@ switch pressurant.mode
         m_gas = (Pi_gas*Vt_gas)/(R_gas*T_tank);             % Gas initial and tank volume
         m_gas = m_gas*1.2;                                  % Margin MAR-MAS-090
         
-        if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
+%         if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
             pressurant_tank.shape = 'spherical';
             % Spherical case
             Rt_gas = (3*Vt_gas/(4*pi))^(1/3);
             t_gas = Pi_gas*Rt_gas/(2*sigma_gas);
             mt_gas = rho_tank_gas*(4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3);
-        else 
-            pressurant_tank.shape = 'cylindrical';
-            % Cylindrical with caps case                    
-%              N = Vt_real/Vt_gas;        % Number of tanks required (higher or lower than one)
-%              ht_gas = (Vt_gas - (4*pi/3)*Rt_real^3)/(pi*Rt_real^2);         % Pressurant tank heigth [m]
-            f = @(x) Vt_gas - (4*pi/3)*x^3 - pi*h_gas*x^2;
-            Rt_gas = fzero(@(x) f, 0.3*h_gas);
-            t_gas = Pi_gas*Rt_gas/(sigma_gas);
-            mt_gas = rho_tank_gas*((4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3) +...
-                pi*h_gas*(Rt_gas+t_gas)^2 - Rt_gas^2);
-        end
+%         else 
+%             pressurant_tank.shape = 'cylindrical';
+%             % Cylindrical with caps case  
+%             h_gas = gas_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase
+% %              N = Vt_real/Vt_gas;        % Number of tanks required (higher or lower than one)
+% %              ht_gas = (Vt_gas - (4*pi/3)*Rt_real^3)/(pi*Rt_real^2);         % Pressurant tank heigth [m]
+%             f = @(x) Vt_gas - (4*pi/3)*x^3 - pi*h_gas*x^2;
+%             Rt_gas = fzero(@(x) f, 0.3*h_gas);
+%             t_gas = Pi_gas*Rt_gas/(sigma_gas);
+%             mt_gas = rho_tank_gas*((4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3) +...
+%                 pi*h_gas*(Rt_gas+t_gas)^2 - Rt_gas^2);
+%         end
 
     case 'Pressure regulated'
         % PROPELLANT
@@ -81,21 +82,23 @@ switch pressurant.mode
         % Margins for ullage
         V_p = (m_fu*1.03+m_ox*1.03)/rho_mean;
 
-       if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
+%        if V_p < 0.3                                     % Average volume limit assumed from Ariane datasheet
             propellant_tank.shape = 'spherical';
             % Spherical
             Rt_prop = (3*V_p/(4*pi))^(1/3);
             t_prop = Pi_p*Rt_prop/(2*sigma_p);
             mt_prop = rho_tank_p*(4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3);
-       else 
-            propellant_tank.shape = 'cylindrical';
-            % Cylindrical with caps
-            f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
-            Rt_prop = fzero(@(x) f, 0.3*h_prop);
-            t_prop = Pi_p*Rt_prop/(sigma_p);
-            mt_prop = rho_tank_p*((4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3) +...
-                pi*h_prop*(Rt_prop+t_prop)^2 - Rt_prop^2);
-        end
+%        else 
+%             propellant_tank.shape = 'cylindrical';
+%             % Cylindrical with caps
+%             %h_prop = prop_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase
+% 
+%             f = @(x) V_p - (4*pi/3)*x^3 - pi*h_prop*x^2;
+%             Rt_prop = fzero(@(x) f, 0.3*h_prop);
+%             t_prop = Pi_p*Rt_prop/(sigma_p);
+%             mt_prop = rho_tank_p*((4*pi/3)*((Rt_prop+t_prop)^3 - Rt_prop^3) +...
+%                 pi*h_prop*(Rt_prop+t_prop)^2 - Rt_prop^2);
+%         end
 
         % PRESSURANT
         % Conservation law, adiabatic
@@ -104,21 +107,22 @@ switch pressurant.mode
         m_gas = m_gas*1.2;                                         % Margin MAR-MAS-090
         Vt_gas = m_gas*R_gas*T_tank/Pi_gas;                 % Equation of state
 
-        if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
+%         if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
             pressurant_tank.shape = 'spherical';
         % Spherical case
         Rt_gas = (3*Vt_gas/(4*pi))^(1/3);
         t_gas = Pi_gas*Rt_gas/(2*sigma_gas);
         mt_gas = rho_tank_gas*(4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3);
-        else 
-            pressurant_tank.shape = 'cylindrical';
-        % Cylindrical with caps case
-        f = @(x) Vt_gas - (4*pi/3)*x^3 - pi*h_gas*x^2;
-        Rt_gas = fzero(@(x) f, 0.3*h_gas);
-        t_gas = Pi_gas*Rt_gas/(sigma_gas);
-        mt_gas = rho_tank_gas*((4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3) +...
-            pi*h_gas*(Rt_gas+t_gas)^2 - Rt_gas^2);
-    end
+%         else 
+%             pressurant_tank.shape = 'cylindrical';
+%         % Cylindrical with caps case
+% h_gas = gas_tank.height;        % Different values of the height of cylinder tank, only for this preliminary phase% 
+%         f = @(x) Vt_gas - (4*pi/3)*x^3 - pi*h_gas*x^2;
+%         Rt_gas = fzero(@(x) f, 0.3*h_gas);
+%         t_gas = Pi_gas*Rt_gas/(sigma_gas);
+%         mt_gas = rho_tank_gas*((4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3) +...
+%             pi*h_gas*(Rt_gas+t_gas)^2 - Rt_gas^2);
+%     end
 
 end
 

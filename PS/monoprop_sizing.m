@@ -1,4 +1,4 @@
-function [] = monoprop_sizing(mp,propellant,pressurant,tank)
+function [propellant_tank,pressurant_tank] = monoprop_sizing(mp,propellant,pressurant,tank)
 
 % Add margins according to CDF standards 
 mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant
@@ -26,16 +26,24 @@ m_gas = m_gas*1.2;                                  % Margin MAR-MAS-090
 
 % SINGLE TANK SIZING
 if Vt < 0.3                                     % Average volume limit assumed from Ariane datasheet
+    propellant_tank.shape = 'spherical';
     % Spherical case
     Rt = (3*Vt/(4*pi))^(1/3);
     t = Pi_gas*Rt/(2*sigma);
     mt = rho_tank*(4*pi/3)*((Rt+t)^3 - Rt^3);
 else 
+    propellant_tank.shape = 'cylindrical';
+    % Cylindrical
     f = @(x) Vt - (4*pi/3)*x^3 - pi*h_t*x^2;
     Rt = fzero(@(x) f, 0.3*h_t);
     t = Pi_gas*Rt/(sigma);
     mt = rho_tank*((4*pi/3)*((Rt+t)^3 - Rt^3) +...
         pi*h_t*(Rt+t)^2 - Rt^2);
 end
+
+% Put results in propellant / pressurant tanks structures
+tank.mass = mt; tank.volume = Vt; 
+tank.radius = Rt;
+
 end
 

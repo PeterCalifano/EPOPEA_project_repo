@@ -1,4 +1,4 @@
-function [mt_prop,V_p,t_prop,Rt_prop,mt_gas,Vt_gas,t_gas,Rt_gas] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
+function [propellant_tank,pressurant_tank] = biprop_sizing(mp,propellant,prop_tank,pressurant,gas_tank)
 
 % Add margins according to CDF standards 
 mp = mp*1.13;                                 % Margin MAR-CP-010 + 3% "unusable" propellant / ullage
@@ -56,11 +56,13 @@ switch pressurant.mode
         m_gas = m_gas*1.2;                                  % Margin MAR-MAS-090
         
         if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
+            pressurant_tank.shape = 'spherical';
             % Spherical case
             Rt_gas = (3*Vt_gas/(4*pi))^(1/3);
             t_gas = Pi_gas*Rt_gas/(2*sigma_gas);
             mt_gas = rho_tank_gas*(4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3);
         else 
+            pressurant_tank.shape = 'cylindrical';
             % Cylindrical with caps case                    
 %              N = Vt_real/Vt_gas;        % Number of tanks required (higher or lower than one)
 %              ht_gas = (Vt_gas - (4*pi/3)*Rt_real^3)/(pi*Rt_real^2);         % Pressurant tank heigth [m]
@@ -103,11 +105,14 @@ switch pressurant.mode
         Vt_gas = m_gas*R_gas*T_tank/Pi_gas;                 % Equation of state
 
         if Vt_gas < 0.3                                     % Average volume limit assumed from Ariane datasheet
+            pressurant_tank.shape = 'spherical';
         % Spherical case
         Rt_gas = (3*Vt_gas/(4*pi))^(1/3);
         t_gas = Pi_gas*Rt_gas/(2*sigma_gas);
         mt_gas = rho_tank_gas*(4*pi/3)*((Rt_gas+t_gas)^3 - Rt_gas^3);
-    else 
+        else 
+            pressurant_tank.shape = 'cylindrical';
+        % Cylindrical with caps case
         f = @(x) Vt_gas - (4*pi/3)*x^3 - pi*h_gas*x^2;
         Rt_gas = fzero(@(x) f, 0.3*h_gas);
         t_gas = Pi_gas*Rt_gas/(sigma_gas);
@@ -119,7 +124,10 @@ end
 
 % Put results in propellant / pressurant tanks structures
 propellant_tank.mass = mt_prop; propellant_tank.volume = V_p; 
-propellant_tank.shape =
+propellant_tank.radius = Rt_prop;
+
+pressurant_tank.mass = mt_gas; pressurant_tank.volume = Vt_gas; 
+pressurant_tank.radius = Rt_gas;
 
 end
 

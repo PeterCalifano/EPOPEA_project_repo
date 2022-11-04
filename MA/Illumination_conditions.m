@@ -1,5 +1,5 @@
 %% Illumination Conditions
-% SATURN USED 
+% SATURN USED
 
 clear
 clc

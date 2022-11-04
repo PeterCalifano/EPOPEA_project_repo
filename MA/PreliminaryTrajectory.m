@@ -2,7 +2,7 @@ close all
 clear
 clc
 
-
+addpath("..\GeneralUtilities\")
 cspice_kclear();
 cspice_furnsh('..\..\EPOPEA_project_repo\EPOPEA_metakernel.tm')
 
@@ -32,17 +32,41 @@ Vinf_FH = sqrt(C3_FH); % [km/s]
 % 5) Entry SATURN SOI with Vinf = about 3 km/s --> Theoretical DV near 0 km/s if (3) is feasible
 
 
+
+
 %% Preliminary Saturn System trajectory
 mu_Saturn = cspice_bodvrd('SATURN', 'GM', 1); % [km/s^2]
+mu_Enc = cspice_bodvrd('602', 'GM', 1); % [km/s^2]
+
+mu_Earth = cspice_bodvrd('EARTH', 'GM', 1); % [km/s^2]
+
+v_inf_3rdGA = 9; % [km/s]
+Rp_min = 400; % [km]
+% e_hyp = 1 + (Rp_mi*v_inf_3rdGA^2)./mu_Earth;
+% delta_max = @(v_inf) 2*asind(1./e_hyp);
+% 
+% delta_max_3rdGA = delta_max(v_inf_3rdGA);
+DetermineMaxTurnAngle(v_inf_3rdGA, 'EARTH', Rp_min)
+
 
 R_Saturn = mean(cspice_bodvrd('SATURN', 'RADII', 3)); % [km]
 R_Enceladus = mean(cspice_bodvrd('602', 'RADII', 3)); % [km]
+G = astroConstants(1);
+
+M_Enc = mu_Enc./G; % [kg]
+M_Saturn = mu_Saturn./G; % [kg]
+
+% Orbital parameters of Enceladus wrt Saturn
+e_Enc = 0.0045;
+SMA_Enc = 3.9494*R_Saturn;
+Rp_Enc = SMA_Enc*(1-e_Enc);
+Ra_Enc = SMA_Enc*(1+e_Enc);
 
 Ra_target = 200*R_Saturn;
-Rp_target = 1.2*R_Saturn;
+Rp_target = 5*R_Saturn;
 Vinf_arrival = 3; % [km/s]
 
-% Hypothesis: energy evaluation only
+% Hypothesis: Planar orbits, entry hyperbolic leg shaped at will
 % Parameters of target orbit
 SMA_target = (Ra_target + Rp_target)/2;
 eps_target = -mu_Saturn/(2*SMA_target);
@@ -61,11 +85,12 @@ dV_capture = Vp_hyp - V_cap
 T_target = 2*pi*sqrt(SMA_target^3./mu_Saturn)/3600 % [h]
 T_target_d = T_target./24 % [days]
 
+Saturn_SOI_Sun = SOI_radius(6)./R_Saturn; % [Saturn RADII]
+Enceladus_SOI = SMA_Enc * (M_Enc./M_Saturn)^(2/5); % [Saturn RADII]
+
 % transfer_method = 1;
 % transfer_arc_switch
 % [deltaV_arrival, deltaV_injection, deltaV_tot, transfer_arc] = orbit_transfer(mu, r_i1, r_f2, v_i1, v_f2, ToF, transfer_method, transfer_arc_switch);
-
-
 
 
 

@@ -27,15 +27,8 @@ g0 = 9.81 ;
 
 % ------------------------------------------------------------------------
 
-% Derive empirical mass law for missions with ONE module. Similar to Lavagna's plots
-m_orbitDry_singlemoduleRegression = [ 235, 255, 400, 550, 585, 655, 840, 900, 1050, 1025, 1135 ] ;
-m_pl_singlemoduleRegression = [ 10, 15, 58, 68, 90, 75, 117, 85, 94, 130, 158 ] ;
 
-% Derive empirical mass law for mission with TWO modules (orbiter+lander)   
-%   --> If you assume that lander mass (with their payloads) is part of on-orbit dry mass, regression does not provide realistic results (masses are extremely low)
-%   --> To overcome this, ONLY PAYLOAD MASSES (of both orbiter and lander) ARE CONSIDERED AS PAYLOADS, SO STRUCTURE OF LANDER IS NOT INCLUDED IN THIS MASS
-%   --> Overall, enter plot with TOTAL PAYLOAD MASS, SUMMING ORBITER'S AND LANDER'S PAYLOADS   
-%    
+% Past mission data    
     % Rosetta:
       m_orbiterDry_Rosetta = 1230 ; m_lander_Philae = 100 ; m_pl_orbiter_Rosetta = 165 ; m_pl_lander_Philae = 21 ;
       m_pl_Rosetta = m_pl_lander_Philae + m_pl_orbiter_Rosetta ;
@@ -60,6 +53,9 @@ m_pl_singlemoduleRegression = [ 10, 15, 58, 68, 90, 75, 117, 85, 94, 130, 158 ] 
       m_rover_ExoMars = 310 ; m_pl_ExoMars = 2.13 + 1.74 + 1 + 1.7 + 2 + 2.4 + 11.5 + 5 ;
     % Opportunity
       % Not enough info ------ m_rover_Opportunity = 185 ; m_pl_Opportunity =  ;
+
+m_orbitDry_singlemoduleRegression = [ 235, 255, 400, 550, 585, 655, 840, 900, 1050, 1025, 1135 ] ;
+m_pl_singlemoduleRegression = [ 10, 15, 58, 68, 90, 75, 117, 85, 94, 130, 158 ] ;
 
 m_orbitDry_multimoduleRegression = [ m_orbitDry_Rosetta, m_orbitDry_Curiosity, m_orbitDry_Cassini, m_orbitDry_MarsExpress ] ;
 m_pl_multimoduleRegression = [ m_pl_Rosetta, m_pl_Curiosity, m_pl_Cassini, m_pl_MarsExpress ] ;
@@ -106,9 +102,9 @@ figure(3) ; % Orbiters
 hold on ; grid on ;
 plot( x_orbiter, y_orbiter, 'linewidth', 1.5 ) ;
 scatter( m_dry_orbiter, m_pl_orbiter, 30, 'filled' ) ;
-xlabel( 'Lander mass [Kg]' ) ;
-ylabel( 'Lander Payload Mass [Kg]' ) ;
-title( 'Lander ROM Mass Estimation' ) ;
+xlabel( 'Orbiter dry mass [Kg]' ) ;
+ylabel( 'Orbiter Payload Mass [Kg]' ) ;
+title( 'Orbiter ROM Mass Estimation' ) ;
 
 figure(4) ; % Landers/Rovers
 hold on ; grid on ;

@@ -2,12 +2,15 @@ clear;
 close all;
 clc;
 
+% TO DO:
+% -try X band for science downlink -> see how antenna dimensions change
+
 %% Data
 max_distance_Earth = 1658.6e6; % considering Saturn [km]
 % NOTE. I tried useing meters but then we would need like too much power to
 % have positive margins, so I feel like it's correct in km
 max_distance_OL = 100; % for now, average altitude of the orbiter, wrt the 
-% lander (when they are one on top of the other)
+% lander (when they are one on top of the other) <- SHOULD COME FROM MA
 
 % Since BER -> graph on TMTC presentation
 min_EbNo_sci = 4.2; % [dB] science case -> BER = 1e-5
@@ -24,6 +27,7 @@ D_hga = 2.1; % [m] took from Orbilander paper, page 21
 D_gs = 35; % [m] GS antenna, Cebreros considered (all the same, for ESTRACK DSA)
 D_lga = 0.065; % [m] from datasheets of existing helix antennas (by RUAG space)
 D_patch = 0.040; % [m] from datasheets of existing patch antenna (by ISIS – Innovative Solutions In Space)
+
 % Power transmitted
 P_on_board = 170; % [W] based on orbitander paper page 27
 P_gs = P_on_board; %??????????????????
@@ -42,8 +46,8 @@ eta_lga = 0.7; % 0.7 if helix, 0.52 if horn
 T_gs = 21; % [K] of the Ground Station, reference: DSN antenna temperature
 % NB. also by setting this much higher (290K) the margins are still very
 % large
-T_hga = 250; % [K] of the HGA on board
-T_lga = 250; % [K] of the LGA on board
+T_hga = 250; % [K] of the HGA on board (common value <- from SSEO slides)
+T_lga = 250; % [K] of the LGA on board 
 
 %DATA RATES
 % NOTE. This is just a first draft. It influences A LOT the margins we
@@ -188,6 +192,113 @@ marginEbNo_LtoO_NN = EbNo_LtoO_NN - min_EbNo_sci; % must be > 3dB
 fprintf('\n- CASE : PATCH COMM FOR O-L\n')
 fprintf('The Eb/No Orbiter-lander communication is: %.2f \nIts corresponding margin is: %.2f\n',EbNo_LtoO_NN,marginEbNo_LtoO_NN)
 
+
+%% FOR ARCHITECTURE SELECTION (ONLY NOMINAL CASE)
+clc;
+
+% GENERAL NOTES COMING FROM PLAYING A BIT WITH PARAMETERS:
+% - changing Tgs (temperature of the GS) lowers the margin (Downlink case
+% for Orbilander goes from 74 to 49 dB if Tgs goes from 21K (DSN reference)
+% to 250 (-20°C)). NB. The reference temperature used is the one of the
+% cryogenically cooled amplifiers! So, it is more or less the same as for
+% DSN (21K). -> CONCLUSION: I WOULD KEEP THE Tgs=21K.
+% - if downlink from the HGA is in X-Band instead of Ka-band, the margin
+% lowers from 74 to 71 dB (NOT RELEVANT, also because the science data are
+% sent, typically, in Ka band for Deep Space Communication and the chosen
+% GS, apart from NNO, are able to work in that frequency range). 
+% - Power on board does not seem to be relevant -> if 170ish W power is used, based
+% on Orbilander Reference, the margins are very large. But even if the
+% power is lowered to 1/10 of this reference, margins still are very large (63 dB 
+% instead of 74 dB for downlink in Ka band). 
+% - if diameters are changed: nothing major changes in terms of margins.
+% Moreover, the LGA dimension is taken from existing helix antenna, so it
+% is NOT arbitrary, even if we select anothe one, dimensions will NOT
+% change drastically. HGA instead is taken from the orbilander, if its D is
+% lowered even to 0.5m (physically not reasonable, just look at past
+% missions, the further you go, the biggere should be the antenna), the
+% only margin that changes is the uplink. So the antenna that enters into
+% the margin is really the recieving one! -> we could use this to lower the
+% dimensions and still get good margins. 
+
+% CONCLUSION: TUNE THE DATA RATES, WHICH ARE THE MOST RELEVANT PARAMETER TO
+% HAVE BETTER RESULTS, AND THEN PLAY WITH THE DIMENSIONS OF THE ON-BOARD
+% ANTENNAS and THE POWER NEEDED.
+
+%-------------ORBILANDER---------------------------------------------------
+% Downlink
+[EbNo_down, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_down, max_distance_Earth, D_hga, D_gs, f_ka, P_on_board, eta_hga, eta_gs, T_gs);
+% Uplink (most critical is X-band, Ka returns much better margins)
+[EbNo_up, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
+
+% Margins:
+disp('ORBILANDER')
+marginEbNo_down = EbNo_down - min_EbNo_sci 
+marginEbNo_up = EbNo_up - min_EbNo_tel 
+
+% ORBILANDER USES HGA AS MAIN COMMUNICATION ELEMENT, BOTH ON GROUND AND ON
+% ORBIT.
+
+%-------------S.O + S.L----------------------------------------------------
+
+% Downlink
+[EbNo_down, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_down, max_distance_Earth, D_hga, D_gs, f_ka, P_on_board, eta_hga, eta_gs, T_gs);
+% Uplink (most critical is X-band, Ka returns much better margins)
+[EbNo_up, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
+% From Lander to Orbiter
+[EbNo_LtoO, ~] = link_budget('L_to_O', 'uplink', 'no_atmosphere', R_LtoO, max_distance_OL, D_lga, D_lga, f_s, P_on_board, eta_lga, eta_lga, T_lga);
+
+% Margins:
+disp('S.O. + S.L.')
+marginEbNo_down = EbNo_down - min_EbNo_sci 
+marginEbNo_up = EbNo_up - min_EbNo_tel 
+marginEbNo_LtoO = EbNo_LtoO - min_EbNo_sci
+
+% LANDER and ORBITER have LGA to communicate in S-BAND (due to low
+% distance), while ORBITER has HGA to communicate with Earth in Ka/X-BAND in nominal
+% conditions.
+
+%-------------NS.O + S.L---------------------------------------------------
+
+% Downlink
+[EbNo_down, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_down, max_distance_Earth, D_hga, D_gs, f_ka, P_on_board, eta_hga, eta_gs, T_gs);
+% Uplink (most critical is X-band, Ka returns much better margins)
+[EbNo_up, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
+% From Lander to Orbiter
+[EbNo_LtoO, ~] = link_budget('L_to_O', 'uplink', 'no_atmosphere', R_LtoO, max_distance_OL, D_lga, D_lga, f_s, P_on_board, eta_lga, eta_lga, T_lga);
+
+% Margins:
+disp('NS.O. + S.L.')
+marginEbNo_down = EbNo_down - min_EbNo_sci 
+marginEbNo_up = EbNo_up - min_EbNo_tel 
+marginEbNo_LtoO = EbNo_LtoO - min_EbNo_sci
+
+% LANDER and ORBITER have LGA to communicate in S-BAND (due to low
+% distance), while ORBITER has HGA to communicate with Earth in Ka/X-BAND in nominal
+% conditions (when the two modules are attached, it's the orbiter that comm
+% with the Earth, using the data coming from the sampling of the lander attached).
+
+%--------------N LANDERS---------------------------------------------------
+
+% Downlink
+[EbNo_down, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_down, max_distance_Earth, D_hga, D_gs, f_ka, P_on_board, eta_hga, eta_gs, T_gs);
+% Uplink (most critical is X-band, Ka returns much better margins)
+[EbNo_up, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
+% From Landers (just consider one, since all of them will be equal) to Orbiter
+[EbNo_LtoO, ~] = link_budget('L_to_O', 'uplink', 'no_atmosphere', R_LtoO, max_distance_OL, D_lga, D_lga, f_s, P_on_board, eta_lga, eta_lga, T_lga);
+
+% Margins:
+disp('MULTIPLE LANDERS')
+marginEbNo_down = EbNo_down - min_EbNo_sci 
+marginEbNo_up = EbNo_up - min_EbNo_tel 
+marginEbNo_LtoO = EbNo_LtoO - min_EbNo_sci
+
+% ORBITER has HGA to comm with Earth. It recieves data from the N LANDERS
+% with a LGA in S-Band. 
+% HOW TO TUNE DATA RATE? ORBITER will speak with 1 lander at a time. Then
+% gather data, store them, and once it speaks with all landers -> downlink
+% everything to Earth. This way, we are multiplying the data coming from
+% the landers -> more data to Earth in downlink, which can help choosing
+% architectures.
 
 %% FUNCTION
 function [EbNo, SNR] = link_budget(condition, direction, atmosphere, R, max_distance, Dtx, Drx, f, Pinput, eta_tx, eta_rx, Ts)

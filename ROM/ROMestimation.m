@@ -22,6 +22,10 @@ DV = 2400 ; % [m/s] - Assuming Cassini's deltaV with NO margins added
 
 % !!! DO NOT TOUCH BELOW HERE !!!
 
+
+
+
+
 % Fixed constants
 g0 = 9.81 ;
 
@@ -54,15 +58,19 @@ g0 = 9.81 ;
     % Opportunity
       % Not enough info ------ m_rover_Opportunity = 185 ; m_pl_Opportunity =  ;
 
+% Single-module: Considers that on-orbit dry mass is the sum of orbiter + lander
 m_orbitDry_singlemoduleRegression = [ 235, 255, 400, 550, 585, 655, 840, 900, 1050, 1025, 1135 ] ;
 m_pl_singlemoduleRegression = [ 10, 15, 58, 68, 90, 75, 117, 85, 94, 130, 158 ] ;
 
+% Multi-module: Considers that lander is a payload of the orbiter
 m_orbitDry_multimoduleRegression = [ m_orbitDry_Rosetta, m_orbitDry_Curiosity, m_orbitDry_Cassini, m_orbitDry_MarsExpress ] ;
 m_pl_multimoduleRegression = [ m_pl_Rosetta, m_pl_Curiosity, m_pl_Cassini, m_pl_MarsExpress ] ;
 
+% Does not consider lander dry mass or lander payloads
 m_dry_orbiter = [ m_orbiterDry_Rosetta, m_orbiterDry_Cassini, m_orbiterDry_MarsExpress ] ;
 m_pl_orbiter = [ m_pl_orbiter_Rosetta, m_pl_orbiter_Cassini, m_pl_orbiter_MarsExpress ] ;
 
+% Does not consider orbiter dry mass or orbiter payloads
 m_lander = [ m_lander_Philae, m_rover_Curiosity, m_lander_Huygens, m_lander_MarsExpress, m_lander_Perseverance, m_lander_InSight, m_rover_ExoMars ] ;
 m_pl_lander = [ m_pl_lander_Philae, m_pl_rover_Curiosity, m_pl_Huygens, m_pl_lander_MarsExpress, m_pl_Perseverance, m_pl_InSight, m_pl_ExoMars ] ;
 
@@ -73,7 +81,7 @@ p_orbiter = polyfit( m_lander, m_pl_lander, 1 ) ;
 p_lander = polyfit( m_lander, m_pl_lander, 1 ) ;
 
 % Plot regressions
-x_singlemodule = linspace( 100, 1400, 2000 ) ;
+x_singlemodule = linspace( 100, 1600, 2000 ) ;
 y_singlemodule = polyval( p_singlemodule, x_singlemodule ) ;
 x_multimodule = linspace( 100, 3500, 2000 ) ;
 y_multimodule = polyval( p_multimodule, x_multimodule ) ;
@@ -90,13 +98,14 @@ xlabel( 'On Orbit Dry Mass [Kg]' ) ;
 ylabel( 'Payload Mass [Kg]' ) ;
 title( 'Planetary S/C ROM Mass Estimation: Single-Module' ) ;
 
-figure(2) ; % Multi-module
-hold on ; grid on ;
-plot( x_multimodule, y_multimodule, 'linewidth', 1.5 ) ;
-scatter( m_orbitDry_multimoduleRegression, m_pl_multimoduleRegression, 30, 'filled' ) ;
-xlabel( 'On Orbit Dry Mass [Kg]' ) ;
-ylabel( 'Payload Mass [Kg]' ) ;
-title( 'Planetary S/C ROM Mass Estimation: Multi-Module' ) ;
+% This has to be fixed
+% figure(2) ; % Multi-module
+% hold on ; grid on ;
+% plot( x_multimodule, y_multimodule, 'linewidth', 1.5 ) ;
+% scatter( m_orbitDry_multimoduleRegression, m_pl_multimoduleRegression, 30, 'filled' ) ;
+% xlabel( 'On Orbit Dry Mass [Kg]' ) ;
+% ylabel( 'Payload Mass [Kg]' ) ;
+% title( 'Planetary S/C ROM Mass Estimation: Multi-Module' ) ;
 
 figure(3) ; % Orbiters
 hold on ; grid on ;
@@ -126,7 +135,7 @@ m_prop_OLSM = m_wet_OLSM-m_dry_OLSM ;
 pl_SL_NSOSL = 75.4 ;
 pl_NSO_NSOSL = 30.5 ;
 pl_NSOSL = pl_SL_NSOSL+pl_NSO_NSOSL ;
-m_dry_NSOSL = (pl_NSOSL-p_multimodule(2))/p_multimodule(1) ;
+m_dry_NSOSL = (pl_NSOSL-p_singlemodule(2))/p_singlemodule(1) ;
 m_wet_NSOSL = m_dry_NSOSL*exp(DV/(Isp*g0)) ;
 m_prop_NSOSL = m_wet_NSOSL-m_dry_NSOSL ;
 m_lander_NSOSL = (pl_SL_NSOSL-p_lander(2))/p_lander(1) ;
@@ -136,7 +145,7 @@ m_orbiter_NSOSL = (pl_NSO_NSOSL-p_orbiter(2))/p_orbiter(1) ;
 pl_SO_SOSL = 75.4 ;
 pl_SL_SOSL = 85.2 ;
 pl_SOSL = pl_SL_SOSL+pl_SO_SOSL ;
-m_dry_SOSL = (pl_SOSL-p_multimodule(2))/p_multimodule(1) ;
+m_dry_SOSL = (pl_SOSL-p_singlemodule(2))/p_singlemodule(1) ;
 m_wet_SOSL = m_dry_SOSL*exp(DV/(Isp*g0)) ;
 m_prop_SOSL = m_wet_SOSL-m_dry_SOSL ;
 m_lander_SOSL = (pl_SL_SOSL-p_lander(2))/p_lander(1) ;
@@ -146,7 +155,7 @@ m_orbiter_SOSL = (pl_SO_SOSL-p_orbiter(2))/p_orbiter(1) ;
 pl_SO_SOnL = 63.7 ;
 pl_nL_SOnL = 108.8 ;
 pl_SOnL = pl_nL_SOnL+pl_SO_SOnL ;
-m_dry_SOnL = (pl_SOnL-p_multimodule(2))/p_multimodule(1) ;
+m_dry_SOnL = (pl_SOnL-p_singlemodule(2))/p_singlemodule(1) ;
 m_wet_SOnL = m_dry_SOnL*exp(DV/(Isp*g0)) ;
 m_prop_SOnL = m_wet_SOnL-m_dry_SOnL ;
 m_lander_SOnL = (pl_nL_SOnL-p_lander(2))/p_lander(1) ;
@@ -155,14 +164,18 @@ m_orbiter_SOnL = (pl_SO_SOnL-p_orbiter(2))/p_orbiter(1) ;
 figure(1) ;
 hold on ; grid on ;
 scatter(m_dry_OLSM,pl_OLSM,40,'filled')
-legend( 'Regression', 'Previous Missions', 'Orbiter-Lander + SM', 'location', 'northwest' ) ;
+scatter(m_dry_NSOSL,pl_NSOSL,40,'filled')
+scatter(m_dry_SOSL,pl_SOSL,40,'filled')
+scatter(m_dry_SOnL,pl_SOnL,40,'filled')
+legend( 'Regression', 'Previous Missions', 'Orbiter-Lander + SM', 'NSO + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
 
-figure(2) ;
-hold on ; grid on ;
-scatter(m_dry_NSOSL,pl_NSOSL,40,'filled') ;
-scatter(m_dry_SOSL,pl_SOSL,40,'filled') ;
-scatter(m_dry_SOnL,pl_SOnL,40,'filled') ;
-legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
+% This has to be fixed
+% figure(2) ;
+% hold on ; grid on ;
+% scatter(m_dry_NSOSL,pl_NSOSL,40,'filled') ;
+% scatter(m_dry_SOSL,pl_SOSL,40,'filled') ;
+% scatter(m_dry_SOnL,pl_SOnL,40,'filled') ;
+% legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
 
 figure(3) ;
 hold on ; grid on ;

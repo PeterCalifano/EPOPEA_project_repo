@@ -28,7 +28,7 @@ cspice_kclear();
 cspice_furnsh('..\..\EPOPEA_project_repo\EPOPEA_metakernel.tm')
 
 mu_Saturn = cspice_bodvrd('SATURN', 'GM', 1); % [km/s^2]
-
+%%
 % Reference Units
 DU = 2.302500200000000e+05; % [km] % Radius of the circular orbit
 TU = 2*pi*sqrt(DU^3./mu_Saturn); % [h] % Period of revolution 

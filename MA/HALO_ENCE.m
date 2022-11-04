@@ -112,3 +112,10 @@ xlabel('x');
 ylabel('y');
 zlabel('z');
 grid on
+
+%
+function [position,isterminal,direction] = ObjEvent(t,state)
+  position = state(2); % The value that we want to be zero
+  isterminal = 1;  % Halt integration 
+  direction = -1;   % The zero is approached when event decreases
+end

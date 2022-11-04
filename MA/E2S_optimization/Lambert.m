@@ -10,8 +10,8 @@ function [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
 % Inputs:
 % planet1 - Initial planet
 % planet2 - Final planet
-% t1 [1] - Julian Day of departure
-% t2 [1] - Julian Day of arrival
+% t1 [1] - Time of departure [SECONDS]
+% t2 [1] - Time of arrival [SECONDS]
 %
 % Outputs:
 % v1_t [3x1] - Velocity at the beginning of the transfer arc
@@ -29,7 +29,7 @@ function [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
 
 %% Computation of the lambert arc
 
-    tof = (t2 - t1) * 3600 * 24;
+    tof = (t2 - t1);
     [a_t,~,e_t,~,v1_t,v2_t,~,~] = lambertMR( r1, r2, tof, mu);
 
 %% Find output quantities

@@ -21,10 +21,17 @@ function [DV,rp] = Gravity_Assist(planet,Vm,Vp,time)
 % -------------------------------------------------------------------------
 
 %% Find velocities in heliocentric reference frame
+if strcmp(planet,'Jupiter Barycenter')
+    planet_eff = 'Jupiter';
+elseif strcmp(planet,'Saturn Barycenter')
+    planet_eff = 'Saturn';
+else
+    planet_eff = planet;
+end
 
     mu_S = cspice_bodvrd('Sun','GM',1);
-    mu_p = cspice_bodvrd(planet,'GM',1);
-    R_p = cspice_bodvrd(planet,'RADII',3);
+    mu_p = cspice_bodvrd(planet_eff,'GM',1);
+    R_p = cspice_bodvrd(planet_eff,'RADII',3);
     R_p = R_p(1);
     G = astroConstants(1);
     Mass_p = mu_p/G;

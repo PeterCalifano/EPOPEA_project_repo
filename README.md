@@ -7,6 +7,7 @@ To clone this repository:
 3) Right click on any point --> Git BASH here --> Make sure the prompt is opened in the current directory
 4) Write "git clone https://github.com/PeterCalifano/EPOPEA_project_repo.git" and wait. Download of the repository should start
 5) At the end, check that a new folder named as the repository has been created and that it contains all the files
+6) Open git bash and set username and email as follows. Write "git config --global user.name <insert_here_your_account_name>". Send. Then: "git config --global user.email <insert_here_your_account_email>". Send. NOTE: <> must NOT be included.
 
 In MATLAB, work in the folder of the repository to use git integration. You will immediately see the difference with respect to an usual folder.
 Legend of the symbols in the "git" column for a file:

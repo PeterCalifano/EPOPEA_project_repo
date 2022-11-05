@@ -180,8 +180,8 @@ legend( 'Regression', 'Previous Missions', 'NSO + SL', 'SO + SL', 'SO + nL', 'Or
 figure(3) ;
 hold on ; grid on ;
 scatter(m_orbiter_NSOSL,pl_NSO_NSOSL,40,'filled') ;
-scatter(m_orbiter_SOSL,pl_SO_SOSL,40,'filled') ;
-scatter(m_orbiter_SO2L,pl_SO_SO2L,40,'filled') ;
+scatter(m_orbiter_SOSL,pl_SO_SOSL,70,'filled') ;
+scatter(m_orbiter_SO2L,pl_SO_SO2L,25,'filled') ;
 legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
 
 figure(4) ;

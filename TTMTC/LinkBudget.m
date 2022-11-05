@@ -310,7 +310,7 @@ c = 2.98e8; % speed of light
 lambda = c/f;
 
 % Adjust the data rate based on the encoding and modulation techniques
-alpha_mod = 2;
+alpha_mod = 2; % QSPK modulation
 alpha_enc_convolution = 2; % convolutional encoding
 
 R = R * alpha_enc_convolution / alpha_mod;

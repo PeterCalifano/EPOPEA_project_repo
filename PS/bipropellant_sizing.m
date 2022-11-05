@@ -479,9 +479,9 @@ elseif tank.number == 4  % Case in which pressurant and propellant are in separa
 
     sizing_ox.mass = m_ox ;                                                    % Save in output structure
     sizing_ox.volume = V_ox ;                                                  % Save in output structure                                  % Save in output structure
-    sizing_ox.radius = r_tank_gas_ox ;                                         % Save in output structure
-    sizing_ox.thickness = t_tank_gas_ox ;                                      % Save in output structure
-    sizing_ox.tank_mass = m_tank_gas_ox ;                                      % Save in output structure
+    sizing_ox.radius = r_tank_ox ;                                         % Save in output structure
+    sizing_ox.thickness = t_tank_ox ;                                      % Save in output structure
+    sizing_ox.tank_mass = m_tank_ox ;                                      % Save in output structure
 
     sizing_fu.type = tank.type ;                                                  % Save in output structure
     sizing_fu.mass_press = m_gas_fu ;                                             % Save in output structure
@@ -492,9 +492,9 @@ elseif tank.number == 4  % Case in which pressurant and propellant are in separa
 
     sizing_fu.mass = m_fu ;                                                    % Save in output structure
     sizing_fu.volume = V_fu ;                                                  % Save in output structure                                  % Save in output structure
-    sizing_fu.radius = r_tank_gas_ox ;                                         % Save in output structure
-    sizing_fu.thickness = t_tank_gas_fu ;                                      % Save in output structure
-    sizing_fu.tank_mass = m_tank_gas_fu ;                                      % Save in output structure
+    sizing_fu.radius = r_tank_fu ;                                         % Save in output structure
+    sizing_fu.thickness = t_tank_fu ;                                      % Save in output structure
+    sizing_fu.tank_mass = m_tank_fu ;                                      % Save in output structure
 
 end
 %% Compute the total mass

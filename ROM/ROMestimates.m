@@ -1,4 +1,9 @@
 clearvars ; close all ; clc ;
+set( 0, 'defaultlegendinterpreter', 'latex' ) ;
+set( 0, 'defaulttextinterpreter', 'latex' ) ;
+color = { [0 0.4470 0.7410],[0.8500 0.3250 0.0980], [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880], [0.3010 0.7450 0.9330], [0.9290 0.6940 0.1250], [0.6350 0.0780 0.1840] } ; % Blue, Red, Purple, Green, Cyan, Yellow
+fontsize = 15 ;
+
 
 % ----------------------------------------------------
 % Script computes ROM estimation for each architecture
@@ -85,7 +90,7 @@ x_singlemodule = linspace( 0, 1600, 2000 ) ;
 y_singlemodule = polyval( p_singlemodule, x_singlemodule ) ;
 x_multimodule = linspace( 0, 3500, 2000 ) ;
 y_multimodule = polyval( p_multimodule, x_multimodule ) ;
-x_orbiter = linspace( 0, 3500, 2000 ) ;
+x_orbiter = linspace( 0, 2500, 2000 ) ;
 y_orbiter =  polyval( p_orbiter, x_orbiter ) ;
 x_lander = linspace( 0, 1800, 2000 ) ;
 y_lander = polyval( p_lander, x_lander ) ;
@@ -93,10 +98,10 @@ y_lander = polyval( p_lander, x_lander ) ;
 figure(1) ; % Single-module
 hold on ; grid on ;
 plot( x_singlemodule, y_singlemodule, 'linewidth', 1.5 ) ;
-scatter( m_orbitDry_singlemoduleRegression, m_pl_singlemoduleRegression, 30, 'filled' ) ;
-xlabel( 'On Orbit Dry Mass [Kg]' ) ;
-ylabel( 'Payload Mass [Kg]' ) ;
-title( 'Planetary S/C ROM Mass Estimation: Single-Module' ) ;
+scatter( m_orbitDry_singlemoduleRegression, m_pl_singlemoduleRegression, 40, 'filled' ) ;
+xlabel( '\textbf{On-orbit dry mass [kg]}', 'fontsize', fontsize ) ;
+ylabel( '\textbf{Payload mass [kg]}', 'fontsize', fontsize ) ;
+title( '\textbf{Mass ROM: single-module architectures}', 'fontsize', fontsize ) ;
 
 % This has to be fixed
 % figure(2) ; % Multi-module
@@ -110,18 +115,18 @@ title( 'Planetary S/C ROM Mass Estimation: Single-Module' ) ;
 figure(3) ; % Orbiters
 hold on ; grid on ;
 plot( x_orbiter, y_orbiter, 'linewidth', 1.5 ) ;
-scatter( m_dry_orbiter, m_pl_orbiter, 30, 'filled' ) ;
-xlabel( 'Orbiter dry mass [Kg]' ) ;
-ylabel( 'Orbiter Payload Mass [Kg]' ) ;
-title( 'Orbiter ROM Mass Estimation' ) ;
+scatter( m_dry_orbiter, m_pl_orbiter, 40, 'filled' ) ;
+xlabel( '\textbf{Orbiter dry mass [kg]}', 'fontsize', fontsize ) ;
+ylabel( '\textbf{Orbiter payload mass [kg]}', 'fontsize', fontsize ) ;
+title( '\textbf{Mass ROM: multi-module architectures (orbiter)}', 'fontsize', fontsize ) ;
 
 figure(4) ; % Landers/Rovers
 hold on ; grid on ;
 plot( x_lander, y_lander, 'linewidth', 1.5 ) ;
-scatter( m_lander, m_pl_lander, 30, 'filled' ) ;
-xlabel( 'Lander mass [Kg]' ) ;
-ylabel( 'Lander Payload Mass [Kg]' ) ;
-title( 'Lander ROM Mass Estimation' ) ;
+scatter( m_lander, m_pl_lander, 40, 'filled' ) ;
+xlabel( '\textbf{Lander mass [kg]}', 'fontsize', fontsize ) ;
+ylabel( '\textbf{Lander payload mass [kg]}', 'fontsize', fontsize ) ;
+title( '\textbf{Mass ROM: multi-module architectures (lander)}', 'fontsize', fontsize ) ;
 
 % ------------------------------------------------------------------------
 
@@ -163,11 +168,8 @@ m_orbiter_SO2L = (pl_SO_SO2L-p_orbiter(2))/p_orbiter(1) ;
 
 figure(1) ;
 hold on ; grid on ;
-scatter(m_dry_NSOSL,pl_NSOSL,40,'filled')
-scatter(m_dry_SOSL,pl_SOSL,40,'filled')
-scatter(m_dry_SO2L,pl_SO2L,40,'filled')
-scatter(m_dry_OLSM,pl_OLSM,40,'filled')
-legend( 'Regression', 'Previous Missions', 'NSO + SL', 'SO + SL', 'SO + nL', 'Orbiter-Lander + SM', 'location', 'northwest' ) ;
+plot(m_dry_OLSM,pl_OLSM, 'p', 'markersize', 15, 'markerfacecolor', color{7}, 'markeredgecolor', color{7})
+legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{Orbiter-Lander + SM}', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 % This has to be fixed
 % figure(2) ;
@@ -179,17 +181,17 @@ legend( 'Regression', 'Previous Missions', 'NSO + SL', 'SO + SL', 'SO + nL', 'Or
 
 figure(3) ;
 hold on ; grid on ;
-scatter(m_orbiter_NSOSL,pl_NSO_NSOSL,40,'filled') ;
-scatter(m_orbiter_SOSL,pl_SO_SOSL,70,'filled') ;
-scatter(m_orbiter_SO2L,pl_SO_SO2L,25,'filled') ;
-legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
+plot(m_orbiter_NSOSL,pl_NSO_NSOSL, 'd', 'markersize', 10, 'markerfacecolor', color{6}, 'markeredgecolor', color{6} ) ;
+plot(m_orbiter_SOSL,pl_SO_SOSL, '^', 'markersize', 15, 'markerfacecolor', color{3}, 'markeredgecolor', color{3} ) ;
+plot(m_orbiter_SO2L,pl_SO_SO2L, 's', 'markersize', 10, 'markerfacecolor', color{4}, 'markeredgecolor', color{4} ) ;
+legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + nL}', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 figure(4) ;
 hold on ; grid on ;
-scatter(m_lander_NSOSL,pl_SL_NSOSL,40,'filled') ;
-scatter(m_lander_SOSL,pl_SL_SOSL,40,'filled') ;
-scatter(m_lander_SO2L,pl_2L_SO2L,40,'filled') ;
-legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest' ) ;
+plot(m_lander_NSOSL,pl_SL_NSOSL, 'd', 'markersize', 15, 'markerfacecolor', color{6}, 'markeredgecolor', color{6} ) ;
+plot(m_lander_SOSL,pl_SL_SOSL, '^', 'markersize', 10, 'markerfacecolor', color{3}, 'markeredgecolor', color{3} ) ;
+plot(m_lander_SO2L,pl_2L_SO2L, 's', 'markersize', 10, 'markerfacecolor', color{4}, 'markeredgecolor', color{4} ) ;
+legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 
 %% Power %%%%%

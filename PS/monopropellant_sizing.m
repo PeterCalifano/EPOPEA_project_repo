@@ -101,7 +101,7 @@ R = pressurant.R ;                                                              
 Pi_gas = pressurant.pressure ;                                                    % [ Pa ] - Initial pressurant pressure
 
 rho_tank = tank.rho ;                                                             % [ kg/m^3] - Tank material density
-sigma_tank = tank.sigma * 1e5;                                                    % [ MPa ] - Tank material strength
+sigma_tank = tank.sigma;                                                          % [ MPa ] - Tank material strength
 
 % If the tank temperature is not given as input, the ambient temperature 
 % (10 degrees) is considered

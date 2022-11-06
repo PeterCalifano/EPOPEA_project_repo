@@ -91,7 +91,7 @@ for j = 1:length(Pd_watt)
 
     plot( lifetime_years_cruise, A_SA_theoretical_cruise(:,j), '-', 'linewidth', 1.5, 'color', color{j} ) ;
     plot( lifetime_years_SaturnSystem, A_SA_theoretical_SaturnSystem(:,j), '-', 'linewidth', 1.5, 'color', color{j}, 'handlevisibility', 'off' ) ;
-    lgtxt{j} = [ '\textbf{PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' [kW]}' ] ;
+    lgtxt{j} = [ '\textbf{PS power requirement: ' , num2str(Pd_watt(j)/1e3), ' kW}' ] ;
 
 end
 indx = floor(distancePoints/2) ;

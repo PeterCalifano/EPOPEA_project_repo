@@ -1,4 +1,4 @@
-function Capacity_theoretical = BatterySizing( Pe_watt, Te, Battery_data, powerRegulationMethod )
+function [Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te, Battery_data, powerRegulationMethod )
 %% PROTOTYPE
 % -------------------------------------------------------------------------------------------------------------
 %% DESCRIPTION
@@ -34,17 +34,19 @@ end
 % Retrieve constants
 % -none
 
-% Compute capacity of battery
+% Compute theoretical quantities
 Capacity_theoretical = Pe_watt * Te / ( DOD * N * Xe ) ;
 
+if isfield( Battery_data, 'Em' )
 
+    Mass_theoretical = Pe_watt * Te / Em ;
 
+end
 
+if isfield( Battery_data, 'Ev' )
 
+    Volume_theoretical = Pe_watt * Te / Ev ;
 
-
-
-
-
+end
 
 end

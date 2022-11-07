@@ -8,14 +8,16 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 % venus express mission, and returns quite similar values of solar panel
 % area at Venus' distance from Sun
 %
-%
 %% INPUTS:
-%   meanDistance_km: is a number indicating the mean distance in KM of the S/C from the sun
-%   Pe_watt: is a number indicating the power required in eclipse
-%   Te: is a number indicating the duration of the eclipse -> units not important as long as they are the same as Td
-%   Pd_watt: is a number indicating the power required in daylight
-%   Td: is a number indicating the duration of daylight -> units not important as long as they are the same as Te
-%   SA_data: is a structure containing data relative to the chosen solar array
+%   meanDistance_km [1,1]    Indicates mean distance in KM if the S/C with
+%                            respect to the sun.
+%   Pe_watt         [1,1]    Indicates the power required during eclipse
+%   Te              [1,1]    Indicates the duration of the eclipse --> Units
+%                            are not important as long as they are the same as Td
+%   Pd_watt         [1,1]    Indicates the power required during daylight
+%   Td              [1,1]    Indicates duration of daylight --> Units are not
+%                            important as long as they are the same as Te
+%   SA_data         [struct] Contains data of chosen solar array cells
 %       Struct contains:
 %                       1)  SA_data.Id - inherent degradation factor
 %                           (typically ~0.77), representing percentage of
@@ -32,22 +34,23 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 %                          of yearly degradation of solar panels due to
 %                          radiation, etc... (typically 3.75% for GaAs and 2.5% for Si)
 %
-%   lifetime_years is a number indicating after how many years you have the end of life conditions
-%   powerRegulationMethod can be string containing 'DET' or 'PPT'
-
-%% OUTPUT
-% A_SA_theoretical: theoretical solar array area (not considering geometry of real cells)
+%   lifetime_years        [1,1]    Indicates after how many years you have
+%                                  the end of life conditions
+%   powerRegulationMethod [string] String containing 'DET' or 'PPT'
 %
+%% OUTPUT
+%   A_SA_theoretical      [1,1] theoretical solar array area (not 
+%                               considering geometry of real cells)  
 %
 %% CHANGELOG
-% Date, User, brief summary of the modification
-%
+%   1/11/2022, Matteo D'Ambrosio, Created function
 %
 %% DEPENDENCIES
-%
+%   None
 %
 %% Future upgrades
-
+%   Load constants from constants file
+%
 
 % Unpack struct and define variables based on inputs
 eta_SA = SA_data.eta_SA ;
@@ -63,9 +66,9 @@ switch powerRegulationMethod
         Xe = 0.65 ; % Power regulation efficiency factor in eclipse for DET
 end
 
-% Define constants
-AU = 149597870.7 ; % [ km ] - Astronomical unit
-P0_1AU = 1367.5 ; % [ W/m^2 ] - Sun irradiated power @ 1AU
+% Retrieve constants
+AU = ASMADconstants('AU') ; % [km]
+P0_1AU = ASMADconstants('SolarIrradiance_1AU') ; % [W/m^2]
 
 % Compute Sun irradiated power @ distance of  meanDistance_km
 P_SunIrradiated = P0_1AU * ( AU / meanDistance_km )^2 ;

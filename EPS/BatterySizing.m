@@ -1,9 +1,10 @@
-function [Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te, Battery_data, powerRegulationMethod )
-%% PROTOTYPE
-% -------------------------------------------------------------------------------------------------------------
+function [ Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te_hours, Battery_data, powerRegulationMethod )
+%% PROTOTYPE 
+% [Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te_hours, Battery_data, powerRegulationMethod )
+%
 %% DESCRIPTION
-% What the function does
-% -------------------------------------------------------------------------------------------------------------
+%       Function computes theoretical sizing for batteries
+%
 %% INPUT
 % in1 [dim] description
 % -------------------------------------------------------------------------------------------------------------
@@ -17,11 +18,13 @@ function [Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = Batter
 % -------------------------------------------------------------------------------------------------------------
 %% Future upgrades
 
+warning( 'Function has to be validated with SSEO sizing' ) ;
+
 % Unpack struct and define variables based on inputs
 N = Battery_data.NumberOfBatteries ; % Number of batteries
 DOD = Battery_data.DOD ; % Depth of discharge [%]
 Em = Battery_data.Em ; % Mass-specific energy [Wh/kg]
-Ev = Battery_data.Ev ; % Volume-specific energy [Wh/m^3]
+Ev = Battery_data.Ev ; % Volume-specific energy [Wh/dm^3]
 
 switch powerRegulationMethod
     case 'PPT'
@@ -35,17 +38,17 @@ end
 % -none
 
 % Compute theoretical quantities
-Capacity_theoretical = Pe_watt * Te / ( DOD * N * Xe ) ;
+Capacity_theoretical = Pe_watt * Te_hours / ( DOD * N * Xe ) ;
 
 if isfield( Battery_data, 'Em' )
 
-    Mass_theoretical = Pe_watt * Te / Em ;
+    Mass_theoretical = Pe_watt * Te_hours / Em ; % [kg]
 
 end
 
 if isfield( Battery_data, 'Ev' )
 
-    Volume_theoretical = Pe_watt * Te / Ev ;
+    Volume_theoretical = Pe_watt * Te_hours / Ev ; % [dm^3]
 
 end
 

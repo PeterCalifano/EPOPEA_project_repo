@@ -233,17 +233,17 @@ Lc = -2; % [dB], between -1 and -3
 
 if strcmp(condition, 'to_Earth')
     % Tx antenna gain computation
-    Gtx = 10*log(pi*Dtx^2*eta_tx/lambda^2);
+    Gtx = 10*log10(pi*Dtx^2*eta_tx/lambda^2);
 
     % Ptx computation
     eta_TWTA = 0.58; % based on the input power at 150 W
     Ptx = Pinput * eta_TWTA;
 
     % EIRP evaluation
-    EIRP = 20*log(Ptx + Gtx + Lc);
-
+    % EIRP = 20*log(Ptx + Gtx + Lc);
+    EIRP = 10*log10(Ptx) + Gtx + Lc;
     % Free space losses
-    Ls = 20*log(lambda/(4*pi*max_distance)); % [dB]
+    Ls = 20*log10(lambda/(4*pi*max_distance)); % [dB]
 
     % Atmospheric losses
     if strcmp(atmosphere, 'atmosphere')
@@ -253,7 +253,7 @@ if strcmp(condition, 'to_Earth')
     end
 
     % Reciever gain
-    Grx = 10*log(pi*Drx^2*eta_rx/lambda^2);
+    Grx = 10*log10(pi*Drx^2*eta_rx/lambda^2);
 
     % Compute beamwidth (parabolic reflector case)
     theta_tx = 65.3*lambda/Dtx;
@@ -268,35 +268,35 @@ if strcmp(condition, 'to_Earth')
 
     % Reciever noise density (due to temperature)
     k = 1.38e-23; % Boltzmann's constant
-    N0 = 10*log(k*Ts);
+    N0 = 10*log10(k*Ts);
 
     % Eb/No computation
-    EbNo = Prx - N0 - 10*log(R);
+    EbNo = Prx - N0 - 10*log10(R);
 
     % Compute carrier margin
     mu = 78*pi/180; % [rad] standard modulation index [45-90°]
-    Pmod_loss = 20*log(cos(mu)); % power loss due to modulation
+    Pmod_loss = 20*log10(cos(mu)); % power loss due to modulation
 
     Pcarrier = Prx + Pmod_loss;
 
     % Signal to Noise Ratio (of the carrier)
-    SNR = Pcarrier - N0 - 10*log(R);
+    SNR = Pcarrier - N0 - 10*log10(R);
 
 else
     L = 0.289; % [m] from datasheets of existing helix antennas
     % Tx antenna gain computation
     Ctx = pi*Dtx;
-    Gtx = 10.3 + 10*log(Ctx^2*L/(lambda^3)); % peak gain value (see slide 29 of TMTC)
+    Gtx = 10.3 + 10*log10(Ctx^2*L/(lambda^3)); % peak gain value (see slide 29 of TMTC)
 
     % Ptx computation
     eta_TWTA = 0.58; % based on the input power at 150 W
     Ptx = Pinput * eta_TWTA;
 
     % EIRP evaluation
-    EIRP = 20*log(Ptx + Gtx + Lc);
+    EIRP = 10*log10(Ptx) + Gtx + Lc;
 
     % Free space losses
-    Ls = 20*log(lambda/(4*pi*max_distance)); % [dB]
+    Ls = 20*log10(lambda/(4*pi*max_distance)); % [dB]
 
     % Atmospheric losses
     if strcmp(atmosphere, 'atmosphere')
@@ -307,7 +307,7 @@ else
 
     % Reciever gain (assume same helix antennas on board)
     Crx = pi*Drx;
-    Grx = 10.3 + 10*log(Crx^2*L/(lambda^3)); 
+    Grx = 10.3 + 10*log10(Crx^2*L/(lambda^3)); 
     
     % Compute beamwidth (parabolic reflector case)
     theta_tx = 52/sqrt(Ctx^2*L/lambda^2);
@@ -322,19 +322,19 @@ else
 
     % Reciever noise density (due to temperature)
     k = 1.38e-23; % Boltzmann's constant
-    N0 = 10*log(k*Ts);
+    N0 = 10*log10(k*Ts);
 
     % Eb/No computation
-    EbNo = Prx - N0 - 10*log(R);
+    EbNo = Prx - N0 - 10*log10(R);
 
     % Compute carrier margin
     mu = 78*pi/180; % [rad] standard modulation index [45-90°]
-    Pmod_loss = 20*log(cos(mu)); % power loss due to modulation
+    Pmod_loss = 20*log10(cos(mu)); % power loss due to modulation
 
     Pcarrier = Prx + Pmod_loss;
 
     % Signal to Noise Ratio (of the carrier)
-    SNR = Pcarrier - N0 - 10*log(R);
+    SNR = Pcarrier - N0 - 10*log10(R);
 end
 
 end

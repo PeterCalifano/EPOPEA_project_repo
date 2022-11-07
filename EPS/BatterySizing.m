@@ -1,4 +1,4 @@
-function [  ] = BatterySizing_theoretical( Pe_watt, Te )
+function Capacity_theoretical = BatterySizing( Pe_watt, Te, Battery_data, powerRegulationMethod )
 %% PROTOTYPE
 % -------------------------------------------------------------------------------------------------------------
 %% DESCRIPTION
@@ -18,9 +18,30 @@ function [  ] = BatterySizing_theoretical( Pe_watt, Te )
 %% Future upgrades
 
 % Unpack struct and define variables based on inputs
+N = Battery_data.NumberOfBatteries ; % Number of batteries
+DOD = Battery_data.DOD ; % Depth of discharge [%]
+Em = Battery_data.Em ; % Mass-specific energy [Wh/kg]
+Ev = Battery_data.Ev ; % Volume-specific energy [Wh/m^3]
 
+switch powerRegulationMethod
+    case 'PPT'
+        error('PPT has not yet been implemented, as it is better for shorter mission durations')
+    case 'DET'
+        % Xd = 0.85 ; % Power regulation efficiency factor in daylight for DET
+        Xe = 0.65 ; % Power regulation efficiency factor in eclipse for DET
+end
 
 % Retrieve constants
+% -none
+
+% Compute capacity of battery
+Capacity_theoretical = Pe_watt * Te / ( DOD * N * Xe ) ;
+
+
+
+
+
+
 
 
 

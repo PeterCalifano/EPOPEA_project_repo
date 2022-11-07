@@ -191,7 +191,7 @@ hold on ; grid on ;
 plot(m_lander_NSOSL,pl_SL_NSOSL, 'd', 'markersize', 15, 'markerfacecolor', color{6}, 'markeredgecolor', color{6} ) ;
 plot(m_lander_SOSL,pl_SL_SOSL, '^', 'markersize', 10, 'markerfacecolor', color{3}, 'markeredgecolor', color{3} ) ;
 plot(m_lander_SO2L,pl_2L_SO2L, 's', 'markersize', 10, 'markerfacecolor', color{4}, 'markeredgecolor', color{4} ) ;
-legend( 'Regression', 'Previous Missions', 'NS-O + SL', 'SO + SL', 'SO + nL', 'location', 'northwest', 'fontsize', fontsize ) ;
+legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + nL}', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 
 %% Power %%%%%

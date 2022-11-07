@@ -1,4 +1,4 @@
-%% EARTH-SATURN OPTIMIZATION
+%% MISCELLANEOUS/TEST CODES - EARTH-SATURN OPTIMIZATION
 clear; close all; clc
 
 %% Load SPICE Kernels
@@ -19,46 +19,7 @@ t1 = cspice_str2et(date_1)/TU;
 
 R_Saturn = mean(cspice_bodvrd('SATURN', 'RADII', 3)); % [km]
 
-%% DeltaV capture estimation
-% Vinf_entry = 6;
-RingF_distance = 140180/R_Saturn; % [Saturn RADII]
-RingG_distance = 166000/R_Saturn; % [Saturn RADII]
-id = 1;
 
-n_points_Rp = 10;
-n_points_Ra = 50;
-DV_scale = 0.2:0.1:4.8;
-DV_colormap = jet(length(DV_scale));
-
-for Vinf_entry = [3, 6]
-    figure(id)
-    Ra_range = linspace(20, 200, n_points_Ra);
-    Rp_range = [linspace(RingF_distance, RingG_distance, n_points_Rp), linspace(4, 21, 5*n_points_Rp)];
-    [Ra_cap, Rp_cap] = meshgrid(Ra_range, Rp_range);
-
-dV_capture = nan(length(Rp_range), length(Ra_range));
-
-    for i = 1:length(Ra_range)
-        for j = 1:length(Rp_range)
-            dV_capture(j, i) = EstimateDVtoCapture(Vinf_entry, cspice_bodvrd('SATURN', 'GM', 1), R_Saturn*Ra_range(i), R_Saturn*Rp_range(j));
-        end
-    end
-
-    contour(Ra_cap, Rp_cap, dV_capture, 100, 'LineWidth', 1.05);
-    colormap jet
-    
-    DVcolorbar = colorbar;
-    caxis([DV_scale(1), DV_scale(end)]);
-    DVcolorbar.Label.String = 'DV [km/s]';
-    DVcolorbar.Ticks = linspace(DV_scale(1), DV_scale(end), 15);
-
-    xlabel('Apoapsis Radius [RS]');
-    ylabel('Pericentre Radius [RS]');
-    title(['DV capture for changing capture orbit - Vinf = ', num2str(Vinf_entry), ' km/s'])
-    id = id + 1;
-end
-
-return
 %% JUPITER - SATURN
 date_2 = '2055-01-01 00:00:00.00 UTC';
 t2 = cspice_str2et(date_2)/TU;

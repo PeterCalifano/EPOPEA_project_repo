@@ -4,7 +4,7 @@ set( 0, 'defaulttextinterpreter', 'latex' ) ;
 
 color = { [0 0.4470 0.7410], [0.8500 0.3250 0.0980], [0.9290 0.6940 0.1250], [0.4940 0.1840 0.5560], [0.4660 0.6740 0.1880], [0.3010 0.7450 0.9330], [0.6350 0.0780 0.1840] } ;
 
-%% ELECTRIC PROPULSION: INTERPLANETARY LEG EVALUATION
+% ELECTRIC PROPULSION: INTERPLANETARY LEG EVALUATION
 
 
 % ONLY CHANGE SIZING VARIABLES IN THE BOX BELOW TO OBTAIN SOLAR ARRAY SIZE
@@ -29,12 +29,10 @@ Pd_watt = [ 2, 4, 6, 8 ] * 1e3 ;                  % [W] - Range of possible NOMI
 Td = 1 ;                                          % Can be any number, since this is unused in case with no eclipses
 
 % Solar array data
-%       --> Assuming typical values for triple-junction GaAs solar panels
+%       --> Assuming typical values for generic triple-junction GaAs solar panels
 %       --> Check function SAsizing_theoretical.m for description of each variable
-SA_data.Id = 0.77 ; % Inherent degradation
-SA_data.eta_SA = 0.3 ; % Solar panel conversion efficiency
+load('SA_data_tripleJunction_generic.mat') ;
 SA_data.alpha_incidence_degrees = 0 ; % Assuming that in the best-case, conditions, you have always a perfect incidence of solar panel surface to Sun
-SA_data.yearlyDegradation_percent = 0.0375 ; % Yearly degradation percentage of solar panel efficiency
 
 
 % Power regulation method
@@ -66,7 +64,7 @@ distance_km = linspace( distance_min_km, distance_max_km, distancePoints ) ; % C
 lifetime_years_cruise = linspace( lifetime_mindist, lifetime_maxdist, distancePoints ) ;
 lifetime_years_SaturnSystem = linspace( lifetime_maxdist, lifetime_maxdist + 6, distancePoints ) ;
 A_SA_theoretical_cruise = zeros( distancePoints, length(Pd_watt) ) ;
-A_SA_theoretical_SaturnSystem = zeros() ;
+A_SA_theoretical_SaturnSystem = zeros( distancePoints, length(Pd_watt) ) ;
 % Outer loops spans the range given by Pd_watt, inner loop spans mission lifetimes
 for j = 1:length(Pd_watt)
 
@@ -104,6 +102,3 @@ xlim([lifetime_years_cruise(1),lifetime_years_SaturnSystem(end)]) ;
 text( 2, 2500, '\textbf{Cruise phase}', 'fontsize', 15 ) ;
 text( 8, 2500, '\textbf{Saturn system phase}', 'fontsize', 15 ) ;
 legend(lgtxt, 'fontsize', 15) ;
-
-
-

@@ -5,8 +5,8 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 %
 %% DESCRIPTION
 % Computes required solar array area. Function has been validated with
-% venus express mission, and returns quite similar values of solar panel
-% area at Venus' distance from Sun
+% venus express mission and NASA Dawn missions, and returns quite similar
+% values of solar panel area
 %
 %% INPUTS:
 %   meanDistance_km [1,1]    Indicates mean distance in KM if the S/C with

@@ -184,17 +184,17 @@ hold on ; grid on ;
 plot(m_orbiter_NSOSL,pl_NSO_NSOSL, 'd', 'markersize', 10, 'markerfacecolor', color{6}, 'markeredgecolor', color{6} ) ;
 plot(m_orbiter_SOSL,pl_SO_SOSL, '^', 'markersize', 15, 'markerfacecolor', color{3}, 'markeredgecolor', color{3} ) ;
 plot(m_orbiter_SO2L,pl_SO_SO2L, 's', 'markersize', 10, 'markerfacecolor', color{4}, 'markeredgecolor', color{4} ) ;
-legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + nL}', 'location', 'northwest', 'fontsize', fontsize ) ;
+legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + 2L}', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 figure(4) ;
 hold on ; grid on ;
 plot(m_lander_NSOSL,pl_SL_NSOSL, 'd', 'markersize', 15, 'markerfacecolor', color{6}, 'markeredgecolor', color{6} ) ;
 plot(m_lander_SOSL,pl_SL_SOSL, '^', 'markersize', 10, 'markerfacecolor', color{3}, 'markeredgecolor', color{3} ) ;
 plot(m_lander_SO2L,pl_2L_SO2L, 's', 'markersize', 10, 'markerfacecolor', color{4}, 'markeredgecolor', color{4} ) ;
-legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + nL}', 'location', 'northwest', 'fontsize', fontsize ) ;
+legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}', '\textbf{SO + SL}', '\textbf{SO + 2L}', 'location', 'northwest', 'fontsize', fontsize ) ;
 
 
-%% Power %%%%%
+%%%%% Power %%%%%
 
 % It does not make sense to create new regressions from past missions, as
 % the payload powers in some cases are higher than the overall power
@@ -203,33 +203,33 @@ legend( '\textbf{Regression}', '\textbf{Previous Missions}', '\textbf{NSO + SL}'
 % slides) is used, separately for orbiter and lander.
 
 % Empirical power law
-P = @(P_pl) 332.93*log(P_pl) - 1046.6;
+Power_regression = @(P_pl) 332.93*log(P_pl) - 1046.6;
 
-% Orbilander + Service Module
-p_pl_1 = 326;
-p1 = P(p_pl_1);
+% % Orbilander + Service Module
+% P_watt_pl_OLSM_total = 326 ;
+% 
+% % NS Orbiter + S Lander
+% P_watt_pl_NSOSL_O = 64 ;
+% P_watt_pl_NSOSL_L = 269 ;
+% P_watt_pl_NSOSL_total = P_watt_pl_NSOSL_O + P_watt_pl_NSOSL_L ; 
+% 
+% % S Orbiter + S Lander
+% P_watt_pl_SOSL_O = 303.4 ;
+% P_watt_pl_SOSL_L = 269 ;
+% P_watt_pl_SOSL_total = P_watt_pl_SOSL_O + P_watt_pl_SOSL_L ;
+% 
+% % S Orbiter + 2 Lander
+% P_watt_pl_SO2L_O = 303.4 ;
+% P_watt_pl_SO2L_L = 269*2 ;
+% P_watt_pl_SO2L_total = P_watt_pl_SO2L_O + P_watt_pl_SO2L_L ;
 
-% Small Orbiter + Lander
-p_pl_2a = 269;
-p_pl_2b = 64;
-P_orbiter_ = P(p_pl_2a+p_pl_2b);
+P_pl_power = linspace( 25, 500, 1000 ) ;
+P_arch_power = Power_regression( P_pl_power ) ;
 
-% Orbiter with sampling + Lander 
-p_pl_3a = 269;
-p_pl_3b = 303.4;
-p3 = P(p_pl_3a+p_pl_3b);
-
-x_singlemodule = linspace(150,700);
-y_singlemodule = P(x_singlemodule);
 figure() ;
-plot(x_singlemodule,y_singlemodule,'k','linewidth',1.5)
-grid on
-hold on
-scatter(p_pl_1,p1,40,'filled')
-scatter(p_pl_2a+p_pl_2b,p_singlemodule,40,'filled')
-scatter(p_pl_3a+p_pl_3b,p3,40,'filled')
-xlabel('Payload Power [W]')
-ylabel('Overall Power [Kg]')
-title('Planetary S/C ROM Power Estimation')
-legend('','Orbiter-Lander + SM','NS Orbiter + S Lander',...
-    'S Orbiter + S Lander','location','northwest')
+plot( P_arch_power, P_pl_power, 'linewidth', 1.5 ) ;
+grid on ; hold on ;
+ylabel('\textbf{Payload Power [W]}', 'fontsize', fontsize ) ;
+xlabel('\textbf{Total architecture Power [W]}', 'fontsize', fontsize ) ;
+title('\textbf{ROM preliminary power estimation}', 'fontsize', fontsize ) ;
+legend( '\textbf{Regression}', 'location','best', 'fontsize', fontsize ) ;

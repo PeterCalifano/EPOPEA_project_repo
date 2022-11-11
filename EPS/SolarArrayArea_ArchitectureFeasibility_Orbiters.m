@@ -105,7 +105,7 @@ for alpha_iter = 1:length(alpha_incidence_degrees_vect)
     for Pd_iter = 1:length(Pd_watt)
 
         plot( lifetime, A_SA_theoretical_SaturnSystem( : , Pd_iter, alpha_iter ) ) ;
-        lgtxt{Pd_iter} = [ '\textbf{Power requirement ', num2str(Pd_watt(Pd_iter)), ' kW}' ] ;
+        lgtxt{Pd_iter} = [ '\textbf{Power requirement ', num2str(Pd_watt(Pd_iter)), ' W}' ] ;
 
     end
     title( ['\textbf{Sun aspect angle:} \boldmath{$\theta = ', num2str(alpha_incidence_degrees_vect(alpha_iter)), '^o$}' ] ) ;

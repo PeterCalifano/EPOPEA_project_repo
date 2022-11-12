@@ -21,33 +21,39 @@ color = { [0 0.4470 0.7410], [0.8500 0.3250 0.0980], [0.9290 0.6940 0.1250], [0.
 %   get more refined results (once the eclipse windows are known from MA).
 
 
+% Load solar array data, do not touch this, only change things in the box below
+try
+    SA_data_XTE_LILT_Spectrolab = load('SA_data_XTE_LILT_Spectrolab.mat') ;
+    SA_data_XTE_LILT_Spectrolab = SA_data_XTE_LILT_Spectrolab.SA_data ;
+    SA_data_C4MJ_CVP_Spectrolab = load('SA_data_C4MJ_CVP_Spectrolab.mat') ;
+    SA_data_C4MJ_CVP_Spectrolab = SA_data_C4MJ_CVP_Spectrolab.SA_data ;
+catch
+    error('Remember to add complete EPOPEA repository to path')
+end
+
 
 
 % ONLY CHANGE SIZING VARIABLES IN THE BOX BELOW TO OBTAIN SOLAR ARRAY SIZE
 % ------------------------------------------------------------------------
 
-warning( 'Ask Lavagna if we decide to open up Solar panels only once we arrive at Saturn, do they degrade over the previous years? ' ) ;
-
 % Distances
-distance_Saturn = ( 1514.50e6 + 1352.55e6 ) / 2 ; % [km]
+distance_Saturn = ( 1514.50e6 + 1352.55e6 ) / 2 ; % [km] - ~9.5 AU
 
 % Lifetime
 lifetime_start = 7 ;                              
 lifetime_end = lifetime_start+6 ;                 
-lifetime_points = 30 ;                            % Mesh grid representing how many points since start and end of lifetime AT SATURN
 
 % Power requirement
 Te = 0 ;                                          % As a first approximation, assume that during interplanetary leg you have no eclipse
 Pe_watt = 0 ;                                     % Can be any number, since this is unused in case with no eclipses
-Pd_watt = [ 300, 500, 800, 1000 ] ;               % [W] - Range of possible NOMINAL power requirements of each architecture, of onle the lander
+Pd_watt = [ 150, 300, 500, 800, 1000 ] ;               % [W] - Range of possible NOMINAL power requirements of each architecture, of onle the lander
 Td = 1 ;                                          % Can be any number, since this is unused in case with no eclipses
 
-% Solar array data
-load('SA_data_XTE_LILT_Spectrolab.mat') ;
-load('SA_data_C4MJ_CVP_Spectrolab.mat') ;
+% Select which solar array data to use, from loaded ones above
+SA_data = SA_data_XTE_LILT_Spectrolab ;
 
-alpha_incidence_degrees_vect = [ 0, 7.5, 15] ; % Assuming that in the best-case, conditions, you have always a perfect incidence of solar panel surface to Sun
-
+% Select incidence angles to produce plots (families of curves parametrized by this)
+alpha_incidence_degrees_vect = [ 0, 10, 20 ] ; % Assuming that in the best-case, conditions, you have always a perfect incidence of solar panel surface to Sun
 
 % Power regulation method
 powerRegulationMethod = 'DET' ; % Assume direct energy transfer for long-lifetime missions
@@ -73,7 +79,9 @@ powerRegulationMethod = 'DET' ; % Assume direct energy transfer for long-lifetim
 % DO NOT TOUCH BELOW HERE :(
 % -----------------------------------------------------------------
 
-lifetime = linspace( lifetime_start+2, lifetime_end, lifetime_points ) ; 
+lifetime_points = 2*ceil(lifetime_end-lifetime_start)+1 ;                            % Mesh grid representing how many points since start and end of lifetime AT SATURN
+
+lifetime = linspace( lifetime_start, lifetime_end, lifetime_points ) ; 
 
 % Initialize variables for for loop
 A_SA_theoretical_SaturnSystem = zeros( length(alpha_incidence_degrees_vect), length(Pd_watt), lifetime_points ) ;
@@ -104,14 +112,14 @@ for alpha_iter = 1:length(alpha_incidence_degrees_vect)
     hold on ; grid on ;
     for Pd_iter = 1:length(Pd_watt)
 
-        plot( lifetime, A_SA_theoretical_SaturnSystem( : , Pd_iter, alpha_iter ) ) ;
+        plot( lifetime, A_SA_theoretical_SaturnSystem( : , Pd_iter, alpha_iter ), 'o-' ) ;
         lgtxt{Pd_iter} = [ '\textbf{Power requirement ', num2str(Pd_watt(Pd_iter)), ' W}' ] ;
 
     end
     title( ['\textbf{Sun aspect angle:} \boldmath{$\theta = ', num2str(alpha_incidence_degrees_vect(alpha_iter)), '^o$}' ] ) ;
     ylabel( '\textbf{Required SA area [}\boldmath{$m^2$}\textbf{]}' ) ;
-    xlabel( '\textbf{Lifetime once Saturn is reached}' ) ;
-
+    xlabel( '\textbf{Lifetime once Saturn system is reached [years]}' ) ;
+    ylim([0, max(A_SA_theoretical_SaturnSystem( : , Pd_iter, alpha_iter ))+20]) ;
     legend( lgtxt, 'location', 'best' ) ;
 
 end

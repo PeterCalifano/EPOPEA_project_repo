@@ -1,9 +1,9 @@
-function [ Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te_hours, Battery_data, powerRegulationMethod )
+function [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing( PowerDefect_watt, PowerDefectDuration_hours, Battery_data, Batt_capacityMargin_percent, powerRegulationMethod )
 %% PROTOTYPE 
-% [Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = BatterySizing( Pe_watt, Te_hours, Battery_data, powerRegulationMethod )
 %
 %% DESCRIPTION
-%       Function computes theoretical sizing for batteries
+%       Function computes theoretical sizing for batteries, considering
+%       RTG's as power source
 %
 %% INPUT
 % in1 [dim] description
@@ -18,7 +18,6 @@ function [ Capacity_theoretical, Mass_theoretical, Volume_theoretical  ] = Batte
 % -------------------------------------------------------------------------------------------------------------
 %% Future upgrades
 
-warning( 'Function has to be validated with SSEO sizing' ) ;
 
 % Unpack struct and define variables based on inputs
 N = Battery_data.NumberOfBatteries ; % Number of batteries
@@ -27,28 +26,41 @@ Em = Battery_data.Em ; % Mass-specific energy [Wh/kg]
 Ev = Battery_data.Ev ; % Volume-specific energy [Wh/dm^3]
 
 switch powerRegulationMethod
+
     case 'PPT'
+
         error('PPT has not yet been implemented, as it is better for shorter mission durations')
-    case 'DET'
-        % Xd = 0.85 ; % Power regulation efficiency factor in daylight for DET
-        Xe = 0.65 ; % Power regulation efficiency factor in eclipse for DET
+
+    case
+
+        'DET'
+        % Xd = 0.85 ; % Power regulation efficiency factor while power source is providing power for DET
+        Xe = 0.65 ; % Power regulation efficiency factor while battery is discharging for DET -> This is the one to consider while battery is powering the loads alongside the RTG
+
 end
 
 % Retrieve constants
 % -none
 
-% Compute theoretical quantities
-Capacity_theoretical = Pe_watt * Te_hours / ( DOD * N * Xe ) ;
+% Compute required energy --> Energy that actually needs to be provided to
+% the loads
+RequiredEnergy_Wh_nomargin = PowerDefect_watt * PowerDefectDuration_hours ; % [Wh]
 
+% Compute theoretical battery sizing --> Considers DOD, efficiency, number of batteries
+TheoreticalBattCapacity_Wh_nomargin = RequiredEnergy_Wh_nomargin / ( DOD * N * Xd ) ; % [Wh]
+TheoreticalBattCapacity_Wh_withmargin = TheoreticalBattCapacity_Wh_nomargin * ( 1 + Batt_capacacityMargin_percent ) ; % [Wh]
+
+
+% Compute theoretical mass and volume (not considering size and shape of battery cells)
 if isfield( Battery_data, 'Em' )
 
-    Mass_theoretical = Pe_watt * Te_hours / Em ; % [kg]
+    TheoreticalBattMass_kg_withmargin = TheoreticalBattCapacity_Wh_withmargin / Em ; % [kg]
 
 end
 
 if isfield( Battery_data, 'Ev' )
 
-    Volume_theoretical = Pe_watt * Te_hours / Ev ; % [dm^3]
+    TheoreticalBattVolume_dm3_withmargin = TheoreticalBattCapacity_Wh_withmargin / Ev ; % [dm^3]
 
 end
 

@@ -28,7 +28,7 @@ for i = 1:N
     [DV_i,rp_i] = Gravity_Assist(planets(i+1),v_interp(i,:,2),v_interp(i+1,:,1),times(i+1));
     DV_fb(i) = DV_i;
 end
-%% Compute DV
+%% Compute DV (NEED TO DECIDE WHETHER TO INCLUDE IT OR NOT IN OPTIMIZATION)
 X_last = cspice_spkezr(planets(end),times(end),'ECLIPJ2000','NONE','SUN');
 V_last = X_last(4:6);
 mu_main = cspice_bodvrd(planets(end),'GM',1);

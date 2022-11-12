@@ -9,7 +9,7 @@ cspice_furnsh('..\..\spice_kernels/gm_de431.tpc')
 cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 %% DATA:
 % Radius of Saturn from Spice
-R_Saturn = mean(cspice_bodvrd('SATURN', 'RADII', 3)); % [km]
+R_Saturn = astroConstants(26); % [km]
 
 % Normalization coefficients
 TU = 365*24*3600; % 1 year
@@ -23,6 +23,7 @@ t1 = t1/TU;
 % Define trajectory features (N of FBs and sequence)
 N = 3; % NUMBER OF FBs
 planets = {'Earth','Venus','Earth','Jupiter Barycenter','Saturn Barycenter'};
+planets_id = [3,2,3,5,6];
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;

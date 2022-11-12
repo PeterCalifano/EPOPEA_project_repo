@@ -31,9 +31,7 @@ switch powerRegulationMethod
 
         error('PPT has not yet been implemented, as it is better for shorter mission durations')
 
-    case
-
-        'DET'
+    case 'DET'
         % Xd = 0.85 ; % Power regulation efficiency factor while power source is providing power for DET
         Xe = 0.65 ; % Power regulation efficiency factor while battery is discharging for DET -> This is the one to consider while battery is powering the loads alongside the RTG
 
@@ -47,8 +45,8 @@ end
 RequiredEnergy_Wh_nomargin = PowerDefect_watt * PowerDefectDuration_hours ; % [Wh]
 
 % Compute theoretical battery sizing --> Considers DOD, efficiency, number of batteries
-TheoreticalBattCapacity_Wh_nomargin = RequiredEnergy_Wh_nomargin / ( DOD * N * Xd ) ; % [Wh]
-TheoreticalBattCapacity_Wh_withmargin = TheoreticalBattCapacity_Wh_nomargin * ( 1 + Batt_capacacityMargin_percent ) ; % [Wh]
+TheoreticalBattCapacity_Wh_nomargin = RequiredEnergy_Wh_nomargin / ( DOD * N * Xe ) ; % [Wh]
+TheoreticalBattCapacity_Wh_withmargin = TheoreticalBattCapacity_Wh_nomargin * ( 1 + Batt_capacityMargin_percent ) ; % [Wh]
 
 
 % Compute theoretical mass and volume (not considering size and shape of battery cells)

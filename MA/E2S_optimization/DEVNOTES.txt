@@ -1,4 +1,4 @@
-% NOTES
+% NOTES FOR TRAJECTORY OPTIMIZER
 % Always work with NON-DIMENSIONAL quantities
 % 1) Interplanetary trajectory optimizer: given flybys sequence from Tisserand's analysis
 %    a) Variables of the problems: Encounter timings, DSM timing and magnitude

@@ -13,7 +13,10 @@ tank.sigma = 950e6 ;
 %%%%%%%%
 
 % BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER
-m_prop_int = 3491.9;                    % from preliminary sizing
+dV_int = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+Isp_int = 321; m_dry_int = 1279; % Orbiter + lander
+m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
+%m_prop_int = 3491.9;                    % from preliminary sizing
 
 oxidizer.rho = 1443 ; 
 oxidizer.OFratio = 1.65 ;
@@ -36,7 +39,10 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_SOSL_INT, sizing_ox_SOSL_INT, sizing_fu_SOSL_INT, sizing_gas_SOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster )
 
 % MONOPROPELLANT - LANDING - MR107T 110 N
-m_prop_land = 95.33;
+dV_land = 258*2;                            % Additional MAR-DV-020
+Isp_land = 228; m_dry_land = 746;           % Sampling lander
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land);
+%m_prop_land = 95.33;
 
 propellant.mass = m_prop_land ;
 propellant.rho = 1e3 ;
@@ -57,7 +63,10 @@ tank.number = 1 ;
 [ sizing_SOSL_LANDING, M_PS_SOSL_LANDING ] = monopropellant_sizing( propellant, pressurant, tank, thruster )
 
 % MONOPROPELLANT - SK - MR106E 22 N
-m_prop_sk = 205.8;
+dV_sk = 370*2;                             % Additional MAR-DV-020
+Isp_sk = 235; m_dry_sk = 533;              % Sampling orbiter
+m_prop_sk = preliminary_prop_mass(dV_sk,m_dry_sk,Isp_sk);
+%m_prop_sk = 205.8;
 
 propellant.mass = m_prop_sk ;
 propellant.rho = 1e3 ;
@@ -93,7 +102,10 @@ tank.sigma = 950e6 ;
 %%%%%%%%
 
 % BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER
-m_prop_int = 2691.9;                    % from preliminary sizing
+dV_int = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+Isp_int = 321; m_dry_int = 928;                           % Orbiter + lander
+m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
+%m_prop_int = 2691.9;                    % from preliminary sizing
 
 oxidizer.rho = 1443 ; 
 oxidizer.OFratio = 1.65 ;
@@ -116,7 +128,10 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_NSOSL_INT, sizing_ox_NSOSL_INT, sizing_fu_NSOSL_INT, sizing_gas_NSOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster )
 
 % MONOPROPELLANT - LANDING - MR107T 110 N
-m_prop_land = 95.33;
+dV_land = 258*2;                            % Additional MAR-DV-020
+Isp_land = 228; m_dry_land = 746;           % Sampling lander
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land);
+%m_prop_land = 95.33;
 
 propellant.mass = m_prop_land ;
 propellant.rho = 1e3 ;
@@ -137,7 +152,10 @@ tank.number = 1 ;
 [ sizing_NSOSL_LANDING, M_PS_NSOSL_LANDING ] = monopropellant_sizing( propellant, pressurant, tank, thruster )
 
 % MONOPROPELLANT - SK - MR111C 4 N
-m_prop_sk = 117.3 ;
+dV_sk = 550*2;                             % Additional MAR-DV-020
+Isp_sk = 229; m_dry_sk = 928;              % NS Orbiter + S Lander (for know, then change)
+m_prop_sk = preliminary_prop_mass(dV_sk,m_dry_sk,Isp_sk);
+%m_prop_sk = 117.3 ;
 
 propellant.mass = m_prop_sk ;
 propellant.rho = 1e3 ;

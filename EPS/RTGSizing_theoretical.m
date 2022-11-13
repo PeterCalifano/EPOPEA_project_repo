@@ -8,6 +8,7 @@ function [ M_isotope, P_totalThermal, P_dissipatedThermal ] = RTGSizing_theoreti
 %   --> Function is used to compare the best alternatives that can be used as
 %       nuclear fuel. From this function, you can decide whether to use a
 %       Plutonium-based or Americium-based RTG.
+% NOTE: Function has been validated with Space Propulsion notes
 % -------------------------------------------------------------------------------------------------------------
 %% INPUT
 % in1 [dim] description
@@ -27,7 +28,6 @@ function [ M_isotope, P_totalThermal, P_dissipatedThermal ] = RTGSizing_theoreti
 % Unpack struct
 t_halflife = fuel_data.halflife ; % [years]
 specificPower = fuel_data.specificPower ; % [W\kg]
-eta_conversion = fuel_data. ; % [percent]
 
 % Compute specific power [W/kg] that isotope can generate at time t
 P_specific = @(t_years) specificPower * 2^(-t_years/t_halflife) ; % [W/kg]

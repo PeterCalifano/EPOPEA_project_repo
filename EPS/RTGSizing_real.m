@@ -1,21 +1,29 @@
 function [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 %% PROTOTYPE
+% [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 % -------------------------------------------------------------------------------------------------------------
 %% DESCRIPTION
-% What the function does
+% Function computes number, mass and dissipated power of specific RTG necessary to obtain Power P_required_EoL at time t_EoL_years.
+% NOTE: Function has been validated with Mars Perseverance RTG's 
 % -------------------------------------------------------------------------------------------------------------
 %% INPUT
-% in1 [dim] description
+% P_required_EoL [1x1] Amount of power that is required by the loads at EoL
+% t_EoL_years [1x1] Years after start of mission, at which power P_required_EoL is requested (e.g. EoL)
+% RTG_data [struct] Structure containing information on RTG data. This structure is obtained by loading a variable from RTG_data folder
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
-% out1 [dim] description
+% Number_RTGs [1x1] Number of RTGs that are necessary
+% M_tot_RTGs [1x1] Total mass of RTGs that are required on mission
+% P_dissipatedThermalTotal [1x1] Total thermal power that is dissipated by the RTG during energy conversion
+% NuclearFuelMassTOTAL [1x1] Total mass of nuclear fuel that is contained in RTGs
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
-% Date, User, brief summary of the modification
+% 13/11/2022 Matteo D'Ambrosio, Created and validated function
 % -------------------------------------------------------------------------------------------------------------
 %% DEPENDENCIES
+% -None
 % -------------------------------------------------------------------------------------------------------------
-%% Future upgrades
+
 
 % Unpack structure - "unit" stands for a single RTG unit
 P_BoL_electric_unit = RTG_data.BOLpower_electric ;

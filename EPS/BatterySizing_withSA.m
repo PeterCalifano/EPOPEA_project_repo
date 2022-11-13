@@ -1,23 +1,29 @@
 function [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withSA( Pe_watt, Te_hours, Batt_capacityMargin_percent, powerRegulationMethod )
 %% PROTOTYPE 
-%
+% [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing( PowerDefect_watt, PowerDefectDuration_hours, Battery_data, Batt_capacityMargin_percent, powerRegulationMethod )
 %% DESCRIPTION
 %       Function computes theoretical sizing for batteries, considering
-%       RTG's as power source
+%       RTG as power source
+%       NOTE: Function has been validated with Orbilander concept mission
 %
 %% INPUT
-% in1 [dim] description
+% Pe_watt [1x1] Worst-case power that is required during eclipse times
+% Te_hours [1x1] Duration of eclipse, in worst-case conditions
+% Batt_capacityMargin_percent [1x1] Percentage that represents margin considered on battery capacity
+% powerRegulationMethod [string] String containing 'DET' or 'PPT'
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
-% out1 [dim] description
+% TheoreticalBattCapacity_Wh_withmargin [1x1] Sized capacity of battery in Wh, considering DOD, number of batteries, and efficiency
+% TheoreticalBattMass_kg_withmargin [1x1] Mass of sized battery
+% TheoreticalBattVolume_dm3_withmargin [1x1] Volume of sized battery
+% RequiredEnergy_Wh_nomargin [1x1] Energy that is actually required by loads
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
-% Date, User, brief summary of the modification
+% 12/11/22 Matteo D'Ambrosio, Created function and validated it 
 % -------------------------------------------------------------------------------------------------------------
 %% DEPENDENCIES
+% -None
 % -------------------------------------------------------------------------------------------------------------
-%% Future upgrades
-
 
 % Unpack struct and define variables based on inputs
 N = Battery_data.NumberOfBatteries ; % Number of batteries

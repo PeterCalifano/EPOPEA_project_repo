@@ -22,57 +22,61 @@ SaturnMeanDistance_km = 9.6 * ASMADconstants('AU') ; % [km]
 % Define system design parameters
 powerRegulationMethod = 'DET' ;
 
-%% Compute sizing for NSOSL (orbiter) architecture
+%% Compute first SA sizing for NSOSL (orbiter) architecture, with no eclipses
 % --------------------------------------
 
 % Worst-case requirements
-Pe_watt_NSOSL_orb =  ;
-Te_NSOSL_orb =  ;
-Pd_watt_NSOSL_orb =  ;
-Td_NSOSL_orb =  ;
-lifetime_years_NSOSL_orb =  ; % EoL conditions
+Pe_watt_NSOSL_orb = 0 ;
+Te_NSOSL_orb = 0 ;
+Pd_watt_NSOSL_orb = 350 ;
+Td_NSOSL_orb = 1 ;
+lifetime_years_NSOSL_orb = 11 ; % EoL conditions
 
 % Size SA
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
+SA_data.alpha_incidence_degrees = 0 ; % Best case
 A_SA_theoretical_NSOSL_orb = SAsizing_theoretical( SaturnMeanDistance_km, Pe_watt_NSOSL_orb, Te_NSOSL_orb, Pd_watt_NSOSL_orb, Td_NSOSL_orb, SA_data, lifetime_years_NSOSL_orb, powerRegulationMethod ) ; 
 
-%% Compute sizing for NSOSL (lander) architecture
+%% Compute first SA sizing for NSOSL (lander) architecture, with no eclipses
 % --------------------------------------
 
 % Worst-case requirements
-Pe_watt_NSOSL_lan =  ;
-Te_NSOSL_lan =  ;
-Pd_watt_NSOSL_lan =  ;
-Td_NSOSL_lan =  ;
-lifetime_years_NSOSL_lan =  ; % EoL conditions
+Pe_watt_NSOSL_lan = 0 ;
+Te_NSOSL_lan = 0 ;
+Pd_watt_NSOSL_lan = 800 ;
+Td_NSOSL_lan = 1 ;
+lifetime_years_NSOSL_lan = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
+SA_data.alpha_incidence_degrees = 0 ; % Best case
 A_SA_theoretical_NSOSL_lan = SAsizing_theoretical( SaturnMeanDistance_km, Pe_watt_NSOSL_lan, Te_NSOSL_lan, Pd_watt_NSOSL_lan, Td_NSOSL_lan, SA_data, lifetime_years_NSOSL_lan, powerRegulationMethod ) ; 
 
 
-%% Compute SA sizing for SO + SL (orbiter) architecture 
+%% Compute first SA sizing for SO + SL (orbiter) architecture, with no eclipses 
 % ------------------------------------------
 
 % Worst-case requirements
-Pe_watt_SOSL_orb =  ;
-Te_SOSL_orb =  ;
-Pd_watt_SOSL_orb =  ;
-Td_SOSL_orb =  ;
-lifetime_years_SOSL_orb =  ; % EoL conditions
+Pe_watt_SOSL_orb = 0 ;
+Te_SOSL_orb = 0 ;
+Pd_watt_SOSL_orb = 850 ;
+Td_SOSL_orb = 1 ;
+lifetime_years_SOSL_orb = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
+SA_data.alpha_incidence_degrees = 0 ; % Best case
 A_SA_theoretical_SOSL_orb = SAsizing_theoretical( SaturnMeanDistance_km, Pe_watt_SOSL_orb, Te_SOSL_orb, Pd_watt_SOSL_orb, Td_SOSL_orb, SA_data, lifetime_years_SOSL_orb, powerRegulationMethod ) ; 
 
-%% Compute SA sizing for SO + SL (lander) architecture
+%% Compute first SA sizing for SO + SL (lander) architecture, with no eclipses 
 % ------------------------------------------
 
 % Worst-case requirements
-Pe_watt_SOSL_lan =  ;
-Te_SOSL_lan =  ;
-Pd_watt_SOSL_lan =  ;
-Td_SOSL_lan =  ;
-lifetime_years_SOSL_lan =  ; % EoL conditions
+Pe_watt_SOSL_lan = 0 ;
+Te_SOSL_lan = 0 ;
+Pd_watt_SOSL_lan = 800 ;
+Td_SOSL_lan = 1 ;
+lifetime_years_SOSL_lan = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
+SA_data.alpha_incidence_degrees = 0 ; % Best case
 A_SA_theoretical_SOSL_lan = SAsizing_theoretical( SaturnMeanDistance_km, Pe_watt_SOSL_lan, Te_SOSL_lan, Pd_watt_SOSL_lan, Td_SOSL_lan, SA_data, lifetime_years_SOSL_lan, powerRegulationMethod ) ; 
 

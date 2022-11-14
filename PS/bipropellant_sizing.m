@@ -49,6 +49,8 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_sizing( oxidi
 %                               thruster.number : number of thrusters             [ - ]
 %                               thruster.chamber_pressure : combustion            [ Pa ]
 %                                                           chamber pressure
+%                               thurster.chamber_pressure_min : maximum           [ Pa ]
+%                                                               chamber pressure
 
 % OUTPUTS
 %
@@ -178,6 +180,14 @@ switch pressurant.feed_system
 
     case 'Blowdown'
         B = pressurant.feed_system. B ;                                           % [ - ] - Blowdown ratio
+        
+        P_c_min = thruster.chamber_pressure_min ;
+        Pf_gas = P_c_min + dP_feed ;
+        B_max = Pi_gas / Pf_gas ;
+
+        if B > B_max
+            error( 'Blowdown ratio exceeds the maximum value: %d \n', B_max ) 
+        end
 
         % Oxidizer
         V_gas_ox = V_ox / ( B - 1) ;                                              % [ m^3 ] - Pressurant volume for oxidizer

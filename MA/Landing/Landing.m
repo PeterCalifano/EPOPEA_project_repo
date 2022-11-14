@@ -17,22 +17,19 @@ mu = (6.67430e-11 *8.6e19 )*10^(-9) ;                   % [km^3/s^2] Enceladus g
 par.Tmax = Tmax;
 par.Isp= Isp;
 par.g0 = g0;
-par.m0 = m0;
 par.mu= mu;
 par.Re = Re;
-par.m_dry = m_dry;
 
+N = 120; 
 
 % INITIAL CONDITION x0 = [x0 y0 vx0 vy0 m0]
 state_0 = [x0 y0 vx0 vy0 m0];
 
+% NLP vars (x1, u1, ..., xN, uN, t1, tN)
 
-% N = 120; !!!MIT MSc THESIS
-
-% step: initial conditions (xi, ui, ti, tf).
 
 % lower boundary: m(t) >= m_dry
-
+% m_dry = par.m_dry;
 
 % step: inequality constraints --> Re^2 <= r^2
 

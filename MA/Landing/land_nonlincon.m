@@ -1,56 +1,57 @@
-function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, par)
-t_1 = 0; % ???????
-t_N = var(end);
-N = floor(length(var)/8);
-h = (t_N-t_1)/(N-1);
+function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i, par, N)
 
+%Initial state: probably apocenter
+r_i = state_i(1,2);
+v_i = state_i(3,4);
+m_i = state_i(5);
+
+%Initial and final time
+t1 = var(end-1);
+tN = var(end);
+
+% Orbit Propagator
+% t_range = [0 t1];
+% [~, output] = ode113(@dyn, t_range, [r0;v0], options, altrevariabili);
+% r1 = output(end,1:2);
+% v1 = output(end,3:4);
+% m1 = m_i;
+
+% step time grid
+h = (tN-t1)/(N-1);
 
 % Retrieve par
-
 Re = par.Re;
-x0 = par.x0;
-m_dry = par.m_dry;
 
+step_state = length(state_i);
+step_var = 5+3;
 
-Ceq = zeros(6*N+2,1);
+% Non-linear equality constraints
+% Initialization
 
-rr_end = var(end-7:end-6);
-r_end = norm(rr_end);
-vv_end = var(end-5:end-4);
-v_end = norm(vv_end);
-Ceq(end) = v_end;
-Ceq(end-1) = r_end -Re;
-
+% Cycle to fill constraints
 for k = 1:(N-1)
-   var =  var((k-1)*8+1:8*k);
-   x_k = var(1:5);
-   x_next = var(k*8+1:k*8+5);
-   t_k = t_1+h*k;
-   f_k = landing_dyn(t_k, var, par);
-   epsilon = x_next-x_k-h*f_k;
-   Ceq(5*(k-1)+1:5*k) = epsilon;
-   alpha_x = var(end-1);
-   alpha_y = var(end);
-   Ceq(5*N+k) = alpha_x^2 + alpha_y^2 -1;
-end
-Ceq(5*(N-1)+1:5*N) = var(1:5)-x0; % initial condition (could be linear)
+    t_k = t1 + h*k;
+    var =  var((k-1)*8+1:8*k);
+    x_k = var(1:5);
+    x_next = var(k*8+1:k*8+5);
+    
 
-var =  var((N-1)*8+1:8*N);
-alpha_x = var(end-1);
-alpha_y = var(end);
-Ceq(4*N+N) = alpha_x^2 + alpha_y^2 -1;
+end
+%initial and final conditions
+
+%Constraints on alpha
 
 % derivative
-% if nargout > 2
-% 
-% 
-% end
+if nargout > 2
+
+
+end
 
 % NB : many could be linear inequalities
 
 C = zeros(8*N+1,1);
-C(end) = -t_N;
-C(end-1) = t_1-t_N;
+C(end) = -tN;
+C(end-1) = t1-tN;
 
 var = var(1:8);
 x = var(1); 

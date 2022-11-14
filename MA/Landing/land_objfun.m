@@ -1,23 +1,29 @@
-function  [F, JF] = land_objfun(var,~)
+function  [F, JF] = land_objfun(var,state_i, par, N)
+%
+%
+%
+%
+%
+%----------------------------------------------------------------------------
 
-t_1 = 0; % ???????
+%Initial and final time
+t_1 = var(end-1);
 t_N = var(end);
-% Unpack the control
 
-N = floor(length(var)/8);
-F = 0;
+% Time grid
 h = (t_N-t_1)/(N-1);
+
+F = 0;
 for k = 1:(N-1)
    u_k = var(6+8*(k-1));
    u_next = var(6+8*(k));
-   F = F+(u_k+u_next)*h/2;                                                 % trapezoidal. change in Gauss!
+   F = F+(u_k+u_next)*h/2;                 % trapezoidal. change in Gauss!
 end
-JF = [];
+
+
 % add derivative
-%     if nargout>1
-%        
-% 
-% 
-%     end
+if nargout>1
+   JF = [];
+end
 
 end

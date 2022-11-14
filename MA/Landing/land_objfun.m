@@ -1,4 +1,4 @@
-function  [F, JF] = ObjFun(var,~)
+function  [F, JF] = land_objfun(var,~)
 
 t_1 = 0; % ???????
 t_N = var(end);

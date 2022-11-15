@@ -23,10 +23,13 @@ h = (tN-t1)/(N-1);
 Re = par(5);
 
 step_st = length(state_i);           % 5: rr,vv,m
-step_var = 5+3;                         % 8: rr,vv,m,u,ax,ay
+step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 
 % Non-linear equality constraints
 % Initialization
+vec_def = zeros(5*(N-1),1);
+vec_alpha = zeros(N,1);
+C = zeros((N-1),1);
 
 % Cycle to fill constraints
 for k = 1:(N-1)
@@ -35,7 +38,9 @@ for k = 1:(N-1)
     var_k = var(step_var*(k-1)+1:step_var*k);
     x_k = var_k(1:5);
     x_next = var(step_var*k+1:step_var*k+step_st);
-    f = landing_dyn(~, var_k, par);
+    uk = var_k(6:8);
+
+    f = landing_dyn(~, x_k, uk,par);
     zk = x_next - x_k - h.*f;
 
     %thrust versor
@@ -45,6 +50,9 @@ for k = 1:(N-1)
     vec_def(step_st*(k-1)+1:step_st*(k-1)+5) = zk;
     vec_alpha(k) = q_k;
 
+    %Inequality constraints
+    C(k) = Re - norm(x_k(1:2));
+
 end
 vec_alpha(end) = norm(var(end-3:end-2)) - 1;
 
@@ -53,7 +61,7 @@ var_N = var(end-9:end-2);
 r_N = var_N(1:2);
 v_N = var_N(3:4);
 psi_i = var(1:5) - [r1; v1; m1];
-psi_f = [r_N(1) r_N(2) v_N(1) v_N(2)]' - [0 -Re 0 0]'; 
+psi_f = [r_N(1); r_N(2); v_N(1); v_N(2)] - [0; -Re; 0; 0]; 
 
 %fill Ceq
 Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs
@@ -61,7 +69,9 @@ Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs
 % derivative
 if nargout > 2
 JCeq = [];
+JC = [];
 end
+
 
 
 end

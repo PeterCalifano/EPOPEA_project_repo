@@ -35,6 +35,16 @@ clc
 % Initial guess
 
 % Define linear constraints
+
+% - t_1 < t_initial = (2030)
+
+
+
+
+
+
+
+
 A = [];
 b = [];
 

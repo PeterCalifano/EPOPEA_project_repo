@@ -1,4 +1,4 @@
-function DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
+function DV = objfun_EarthSaturntransfer(var, planets_id, Ra_target, Rp_target, TU)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -7,7 +7,6 @@ function DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_targe
 % -------------------------------------------------------------------------------------------------------------
 %% INPUT
 % % var - variables vector
-% N - Number of fly-bys
 % planets_id - String of identifier of planets visited (dep and arrival included)
 % Ra_target - Apoapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
 % Rp_target - Periapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
@@ -18,14 +17,16 @@ function DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_targe
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % 12/11/2022 - Matteo Lusvarghi - First version
+% 15/11/2022 - Matteo Lusvarghi - Changed the 4th variable to identify each
+% DSM from epoch to alpha
 % -------------------------------------------------------------------------------------------------------------
 %% EXPLANATION OF VAR VECTOR
 %
 % var = [t_1, --> time of departure
 %       ToF_1,...,ToF_(N+1), --> time of flight of each arc
-%       r_1, th_1, z_1, t_DSM_1, --> coordinates in cylindrical of each DSM
+%       r_1, th_1, z_1, alpha_1, --> coordinates in cylindrical of each DSM
 %       ...
-%       r_(N+1), th_(N+1), z_(N+1), t_DSM_(N+1) ]
+%       r_(N+1), th_(N+1), z_(N+1), alpha_(N+1) ]
 % -------------------------------------------------------------------------------------------------------------
 %% DEPENDENCIES
 % 
@@ -46,6 +47,9 @@ function DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_targe
 %% CONSTANTS DEFINITION
 mu_S = astroConstants(4);
 
+% Obtain the number of fly-bys from the string of visited planets
+N = length(planets_id) - 2;
+
 %% EXTRACT VARIABLES FROM VAR
 % Static allocation
 t1 = var(1);
@@ -53,7 +57,7 @@ tof = zeros(N+1,1);
 ephtimes = zeros(N+2,1); % ephemeris time in [s]
 ephtimes(1) = t1;
 cyl_DSM = zeros(3,N+1);
-times_DSM = zeros(N+1,1);
+alpha_DSM = zeros(N+1,1);
 
 
 for i = 2:N+2
@@ -66,13 +70,13 @@ for i = 1:(N+1)
     % States at the DSMs in cylindrical coords
     cyl_DSM(:,i) = var((N+2 + 4*i-3):(N+2 + 4*i-1));
     % Corresponding times at DSMs
-    times_DSM(i) = var(N+2 + 4*i);
+    alpha_DSM(i) = var(N+2 + 4*i);
 end
 
 %% Convert the times from years to seconds with TU
 ephtimes = ephtimes * TU; 
-% tof = tof * TU;
-times_DSM = times_DSM * TU;
+tof = tof * TU;
+%times_DSM = times_DSM * TU;
 
 %% Convert the DSM coordinates from cylindrical to cartesian
 car_DSM = zeros(size(cyl_DSM));
@@ -108,8 +112,8 @@ v_DSM = zeros(N+1,3,2);
 for i = 1:(N+1) 
     
     % Compute ToFs in seconds to be given to Lambert
-    tof_1 = times_DSM(i) - ephtimes(i); % can it be executed vectorially in one operation?
-    tof_2 = ephtimes(i+1) - times_DSM(i);
+    tof_1 = alpha_DSM(i) * tof(i);        %times_DSM(i) - ephtimes(i); % can it be executed vectorially in one operation?
+    tof_2 = (1-alpha_DSM(i)) * tof(i);
 
     % Lambert arc from i-th planet to the position of the i-th DSM
     [~,~,~,~,v1_t,v2_t,~,~] = lambertMR( r_planets(:,i), car_DSM(:,i), tof_1, mu_S);

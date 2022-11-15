@@ -1,8 +1,8 @@
 function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i, par, N)
 
 %Initial state: probably apocenter
-r_i = state_i(1,2);
-v_i = state_i(3,4);
+r_i = state_i(1:2);
+v_i = state_i(3:4);
 m_i = state_i(5);
 
 %Initial and final time
@@ -40,7 +40,7 @@ for k = 1:(N-1)
     x_next = var(step_var*k+1:step_var*k+step_st);
     uk = var_k(6:8);
 
-    f = landing_dyn(~, x_k, uk,par);
+    f = landing_dyn(t_k, x_k, uk,par);
     zk = x_next - x_k - h.*f;
 
     %thrust versor

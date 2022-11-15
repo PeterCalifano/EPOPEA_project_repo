@@ -23,6 +23,10 @@ par(5) = Re;
 N = 120; 
 
 % INITIAL CONDITION : pericenter conditions of Enceladus Orbit
+xi = Re+400;                         
+yi = 0;
+vxi = 0;
+vyi = 0.1;
 state_i = [xi yi vxi vyi m0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
@@ -32,26 +36,29 @@ step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 t1 = 0;                              %initial time guess
 tN = 30*60;                          %final time guess
 h = (tN-t1)/(N-1);
-s0(1,5) = state_i;
-for k = 1:N-1
-    tk = t1 + h(k-1);
+s0 = state_i;
+guess = zeros(step_var*N+2, 1);
+options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
+for k = 1:N
+    tk = t1 + h*(k-1);
     t_next = tk + h;
-    vv_vers = s0(3:4)/norm(s0(3:4));
-    if k == N-1 || k == 1
-        uk = [1, -vv_vers];
+    vv_vers = s0(3:4)'/norm(s0(3:4));
+    if k == N || k == 1
+        uk = [1; -vv_vers];
     else
-        uk = [0, -vv_vers];
+        uk = [0; -vv_vers];
     end
 
-    [~, output] = ode113(@landing_dyn, [tk t_next], s0, options, uk, par);
-    s0(k,1:5) = output(end,1:5);
+    [~, output] = ode113(@landing_dyn, [tk t_next], s0', options, uk, par);
+    state_guess(k+1,1:5) = output(end,1:5);
+    s0 = state_guess(k+1,1:5);
 
-    
+    guess((k-1)*step_var+1:k*step_var) = [s0'; uk];
 end
-
+guess(end-1:end) = [t1; tN];
 
 % constraints for fmincon
-A = [zeros(step_var*N,1); 1; -1];
+A = [zeros(step_var*N,1); 1; -1]';
 b = 0;
 Aeq = [];
 beq = [];
@@ -65,19 +72,11 @@ for k = 1:length(lb)
 end
 lb(end) = 0;
 
+
 %call solver
 options = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-10, ...
     'StepTolerance', 1e-10, 'OptimalityTolerance', 1e-10, 'MaxIter', 1000, ...
     'MaxFunctionEvaluations', 2000);
-fmincon(@(var) land_objfun(var, state_i, par, N),x0,A,b,Aeq,beq,lb,ub, ...
+fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i, par, N),options)
-
-%% Function
-
-% 2. Objective function
-
-
-
-
-% 3. Constraints
 

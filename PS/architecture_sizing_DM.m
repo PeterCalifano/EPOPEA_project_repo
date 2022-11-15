@@ -54,7 +54,7 @@ thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
 disp('S ORBITER - S LANDER:')
-[ M_PS_DM, sizing_ox_DM, sizing_fu_DM, sizing_DM ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
+[ M_PS_SS, sizing_ox_SS, sizing_fu_SS, sizing_SS ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
 
 %% NON SAMPLING ORBITER - SAMPLING LANDER
 close all, clear all
@@ -104,5 +104,5 @@ thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
 disp('NS ORBITER - S LANDER:')
-[ M_PS_DM, sizing_ox_DM, sizing_fu_DM, sizing_DM ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
+[ M_PS_NS, sizing_ox_NS, sizing_fu_NS, sizing_NS ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
 

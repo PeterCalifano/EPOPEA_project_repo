@@ -11,7 +11,7 @@ tN = var(end);
 
 % Orbit Propagator
 % t_range = [0 t1];
-% [~, output] = ode113(@dyn, t_range, [r0;v0], options, altrevariabili);
+% [~, output] = ode113(@dyn, t_range, [r_i;v_i], options, altrevariabili);
 % r1 = output(end,1:2);
 % v1 = output(end,3:4);
 % m1 = m_i;
@@ -20,69 +20,48 @@ tN = var(end);
 h = (tN-t1)/(N-1);
 
 % Retrieve par
-Re = par.Re;
+Re = par(5);
 
-step_state = length(state_i);
-step_var = 5+3;
+step_st = length(state_i);           % 5: rr,vv,m
+step_var = 5+3;                         % 8: rr,vv,m,u,ax,ay
 
 % Non-linear equality constraints
 % Initialization
 
 % Cycle to fill constraints
 for k = 1:(N-1)
+    %defects
     t_k = t1 + h*k;
-    var =  var((k-1)*8+1:8*k);
-    x_k = var(1:5);
-    x_next = var(k*8+1:k*8+5);
-    
+    var_k = var(step_var*(k-1)+1:step_var*k);
+    x_k = var_k(1:5);
+    x_next = var(step_var*k+1:step_var*k+step_st);
+    f = landing_dyn(~, var_k, par);
+    zk = x_next - x_k - h.*f;
+
+    %thrust versor
+    q_k = norm(var_k(7:8)) - 1;
+
+    %columns for Ceq
+    vec_def(step_st*(k-1)+1:step_st*(k-1)+5) = zk;
+    vec_alpha(k) = q_k;
 
 end
-%initial and final conditions
+vec_alpha(end) = norm(var(end-3:end-2)) - 1;
 
-%Constraints on alpha
+%initial and final conditions
+var_N = var(end-9:end-2);
+r_N = var_N(1:2);
+v_N = var_N(3:4);
+psi_i = var(1:5) - [r1; v1; m1];
+psi_f = [r_N(1) r_N(2) v_N(1) v_N(2)]' - [0 -Re 0 0]'; 
+
+%fill Ceq
+Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs
 
 % derivative
 if nargout > 2
-
-
-end
-
-% NB : many could be linear inequalities
-
-C = zeros(8*N+1,1);
-C(end) = -tN;
-C(end-1) = t1-tN;
-
-var = var(1:8);
-x = var(1); 
-y = var(2);
-u = var(6);
-alpha_x = var(7);
-alpha_y = var(8);
-C(1) = Re^2-x^2-y^2;
-C(2) = -u;
-C(3) = -u-1;
-C(4) = -alpha_x;
-C(5) = -alpha_x-1;
-C(6) = -alpha_y;
-C(7) = -alpha_y-1;
-for k = 2:N
-    var = var((k-1)*8+1:8*k);
-    x = var(1); 
-    y = var(2);
-    m = var(5);
-    u = var(6);
-    alpha_x = var(7);
-    alpha_y = var(8);
-    C(8*(k-2)+8) = Re^2-x^2-y^2;
-    C(8*(k-2)+9) = -u;
-    C(8*(k-2)+10) = -u-1;
-    C(8*(k-2)+11) = -alpha_x;
-    C(8*(k-2)+12) = -alpha_x-1;
-    C(8*(k-2)+13) = -alpha_y;
-    C(8*(k-2)+14) = -alpha_y-1;
-    C(8*(k-2)+15) = m_dry -m;
-end
-JC = [];
 JCeq = [];
+end
+
+
 end

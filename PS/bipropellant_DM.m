@@ -24,8 +24,6 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_DM( oxidizer,
 %                               pressurant.R : specific gas constant              [ J/kgK ]
 %                               pressurant.pressure : initial pressure of         [ Pa ]
 %                                                     pressurant (consider the one for the initial pressure regulated mode)  
-%                               pressurant.type : geometry of pressurant tank 
-%                                                 ('Spherical' or 'Cylindrical')
 
 % tank          [ struc ] - Structure with all tank properties
 %                               tank.rho : tank material density                  [ kg/m^3 ]
@@ -37,20 +35,14 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_DM( oxidizer,
                         %                                       - 'Spherical' 
                         %                                       - 'Cylindrical' -> cylindrical with
                         %                                                          spherical caps
-%                               tank.number : number of tanks ( defines if        [ - ]
-%                                             propellant and pressurant are in 
-%                                             the same tank or in saperate tanks)
-%                                       - 2: 1 for ox and pressurant, 1 for
-%                                            fu and pressurant
-%                                       - 3: 1 for ox, 1 for fu and 1 for pressurant
-%                                       - 4: 1 for ox, 1 for fu, 1 for oxidizer 
-%                                            pressurant and 1 for fuel pressurant
 %
 % thruster      [ struc ] - Structure with all tank properties
-%                               thruster.mass : thruster mass                     [ kg ]
-%                               thruster.number : number of thrusters             [ - ]
-%                               thruster.chamber_pressure : combustion            [ Pa ]
-%                                                           chamber pressure
+%                               thruster.mass_ME : Main Engine mass                     [ kg ]
+%                               thruster.number_ME : number of Main Engines             [ - ]
+%                               thruster.mass_ST : Small Thrusters mass                 [ kg ]
+%                               thruster.number_ST : number of Small Thrusters          [ - ]
+%                               thruster.chamber_pressure_reg : combustion chamber pressure in ME           [ Pa ]
+%                               thruster.chamber_pressure_blow : combustion chamber pressure in ST          [ Pa ]
 
 % OUTPUTS
 %
@@ -134,7 +126,6 @@ mf_reg = 1.01 * mf_reg ;                                                        
 mf_blow = mp_blow / ( 1 + OF_blow ) ;                                                 % [ kg ] - Fuel mass (blow-down portion)
 mf_blow = 1.01 * mf_blow ;                                                            % [ kg ] - Margin: ullage
 
-
 mox_reg = ( OF_reg * mp_reg ) / ( OF_reg + 1 ) ;                                      % [ kg ] - Oxidizer mass (pressure regulated portion)
 mox_reg = 1.01 * mox_reg ;                                                            % [ kg ] - Margin: ullage
 mox_blow = ( OF_blow * mp_blow ) / ( OF_blow + 1 ) ;                                  % [ kg ] - Oxidizer mass (blow-down portion)
@@ -190,39 +181,48 @@ end
 
 %% PRESSURE REGULATED
 % Oxidizer
-m_gas_ox = ( Pi_p_reg * Vox_reg ) / ( R * T_tank ) * gamma / ...                  % [ kg ] - Pressurant mass
+m_gas_ox = ( Pi_p_reg * Vox_reg ) / ( R * T_tank ) * gamma / ...           % [ kg ] - Pressurant mass
         ( 1 - Pi_p_reg / Pi_gas ) ;                             
-m_gas_ox = m_gas_ox * 1.2 ;                                                   % [ kg ] - Margin: MAR-MAS-090      
+m_gas_ox = m_gas_ox * 1.2 ;                                                % [ kg ] - Margin: MAR-MAS-090
 
-V_gas_ox_reg = ( m_gas_ox * R * T_tank ) / Pi_gas ;                                 % [ m^3 ] - Pressurant volume (coincides with initial pressurant tank volume)
-V_gas_ox_reg = 1.01 * V_gas_ox_reg ;                                                    % [ m^3 ] - Margin: bladder 
+V_gas_ox_reg = ( m_gas_ox * R * T_tank ) / Pi_gas ;                        % [ m^3 ] - Pressurant volume (coincides with initial pressurant tank volume)
+V_gas_ox_reg = 1.01 * V_gas_ox_reg ;                                       % [ m^3 ] - Margin: bladder 
 
 % Fuel
-m_gas_fu = ( Pi_p_reg * Vf_reg ) / ( R * T_tank ) * gamma / ...               % [ kg ] - Pressurant mass
+m_gas_fu = ( Pi_p_reg * Vf_reg ) / ( R * T_tank ) * gamma / ...            % [ kg ] - Pressurant mass
         ( 1 - Pi_p_reg / Pi_gas ) ;                             
-m_gas_fu = m_gas_fu * 1.2 ;                                                   % [ kg ] - Margin: MAR-MAS-090      
+m_gas_fu = m_gas_fu * 1.2 ;                                                % [ kg ] - Margin: MAR-MAS-090      
 
-V_gas_fu_reg = ( m_gas_fu * R * T_tank ) / Pi_gas ;                                 % [ m^3 ] - Pressurant volume (coincides with initial pressurant tank volume)
-V_gas_fu_reg = 1.01 * V_gas_fu_reg ;                                                    % [ m^3 ] - Margin: bladder 
+V_gas_fu_reg = ( m_gas_fu * R * T_tank ) / Pi_gas ;                        % [ m^3 ] - Pressurant volume (coincides with initial pressurant tank volume)
+V_gas_fu_reg = 1.01 * V_gas_fu_reg ;                                       % [ m^3 ] - Margin: bladder 
 
-m_gas_reg = m_gas_ox + m_gas_fu ;
+m_gas_reg = m_gas_ox + m_gas_fu ;                                          % Total pressurant mass and volume
+                                                                           % required for the regulated portion
 V_gas_reg = V_gas_ox_reg + V_gas_fu_reg ;
 
 %% BLOWDOWN
-B = pressurant.B ;                                           % [ - ] - Blowdown ratio
+B = pressurant.B ;                                                         % [ - ] - Blowdown ratio
+
+% Check on B value
+P_c_min = min(Pc_reg,Pc_blow) ;
+Pf_gas = P_c_min + dP_feed ;
+B_max = Pi_gas / Pf_gas ;
+if B > B_max
+    error( 'Blowdown ratio exceeds the maximum value: %d \n', B_max )
+end
 
 % Oxidizer
-V_gas_ox_blow = Vox_blow / ( B - 1) ;                                              % [ m^3 ] - Pressurant volume for oxidizer
-V_gas_ox_blow = V_gas_ox_blow * 1.01 ;                                              % [ m^3 ] - Margin: baldder volume
+V_gas_ox_blow = Vox_blow / ( B - 1) ;                                      % [ m^3 ] - Pressurant volume for oxidizer
+V_gas_ox_blow = V_gas_ox_blow * 1.01 ;                                     % [ m^3 ] - Margin: baldder volume
 
-m_gas_ox = ( Pi_gas * V_gas_ox_blow ) / ( R * T_tank ) ;                       % [ kg ] - Pressurant mass for oxidizer
+m_gas_ox = ( Pi_gas * V_gas_ox_blow ) / ( R * T_tank ) ;                   % [ kg ] - Pressurant mass for oxidizer
 m_gas_ox = m_gas_ox * 1.2 ;                                                % [ kg ] - Margin: MAR-MAS-090
 
 % Fuel
-V_gas_fu_blow = Vf_blow / ( B - 1) ;                                              % [ m^3 ] - Pressurant volume for fuel
-V_gas_fu_blow = V_gas_fu_blow * 1.01 ;                                              % [ m^3 ] - Margin: baldder volume
+V_gas_fu_blow = Vf_blow / ( B - 1) ;                                       % [ m^3 ] - Pressurant volume for fuel
+V_gas_fu_blow = V_gas_fu_blow * 1.01 ;                                     % [ m^3 ] - Margin: baldder volume
 
-m_gas_fu = ( Pi_gas * V_gas_fu_blow ) / ( R * T_tank ) ;                       % [ kg ] - Pressurant mass for fuel
+m_gas_fu = ( Pi_gas * V_gas_fu_blow ) / ( R * T_tank ) ;                   % [ kg ] - Pressurant mass for fuel
 m_gas_fu = m_gas_fu * 1.2 ;                                                % [ kg ] - Margin: MAR-MAS-090
 
 m_gas_blow = m_gas_ox + m_gas_fu ;
@@ -246,20 +246,20 @@ V_fu = Vf_blow + Vf_reg;
 switch oxidizer.type
 case 'Spherical'
     % Oxidizer tank
-    r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
-    t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
-    m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Propellant tank mass
+    r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                 % [ m ] - Propellant tank radius
+    t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;             % [ m ] - Propellant tank thickness
+    m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...            % [ kg ] - Propellant tank mass
                   t_tank_ox) ^ 3 - r_tank_ox ^ 3 ) ;
 
     % Fuel tank
-    r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
-    t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
-    m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
+    r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                 % [ m ] - Propellant tank radius
+    t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;             % [ m ] - Propellant tank thickness
+    m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...            % [ kg ] - Propellant tank mass
                   t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
 
 case 'Cylindrical'
     % Oxidizer tank
-    ratio = tank.ratio ;                                                  % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+    ratio = tank.ratio ;                                                   % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
     % height = radius / ratio
 
     r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height

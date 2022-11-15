@@ -29,12 +29,12 @@ m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 % Orbiter + lander
 dV_blow = 185*2;                             % Additional MAR-DV-020
 Isp_blow = 292; 
-m_dry_sk_orb_lan = 1279 ;                            % Sampling orbiter
+m_dry_sk_orb_lan = 1279 ;                    % Sampling orbiter
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 % Only orbiter
 dV_blow = 185*2;                             % Additional MAR-DV-020
 Isp_blow = 292; 
-m_dry_sk_orb = 533;                         % Sampling orbiter
+m_dry_sk_orb = 533;                          % Sampling orbiter
 m_prop_sk_orb = preliminary_prop_mass(dV_blow,m_dry_sk_orb,Isp_blow);
 
 m_prop_blow = m_prop_sk_orb_lan + m_prop_sk_orb ;
@@ -76,6 +76,7 @@ m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 % BLOWDOWN: ARIANE 10N BI-PROPELLANT THRUSTER
 % Assumption: half of the deltav for SK is used when orbiter and lander are
 % clamped, while the other half is used only by the orbiter.
+% Orbiter + lander
 dV_sk = 275*2;                             % Additional MAR-DV-020
 Isp_sk = 292; 
 m_dry_sk_orb_lan = 928 ;                            % Sampling orbiter

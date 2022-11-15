@@ -28,10 +28,10 @@ RTG_data.element = 'Plutonium-238 dioxide' ;
 RTG_data.decay = 'alpha, gamma' ; % alpha - easy to be shielded
 RTG_data.eff = 0.15 ; % [percent]
 RTG_data.halflife = 87.74 ; % [years]
-RTG_data.RTGmass = 54.2 ; % [kg]
-RTG_data.BOLpower_electric = 456 ; % [W]
-RTG_data.BOLpower_thermal = 3040 ; % [W]
-RTG_data.FUELmass = 9.9 ; % [kg]
+RTG_data.RTGmass = 15.1 ; % [kg]
+RTG_data.BOLpower_electric = 101 ; % [W]
+RTG_data.BOLpower_thermal = 673 ; % [W]
+RTG_data.FUELmass = 2.5 ; % [kg]
 % VarName = 'RTG_data_nextGenRTG' ;
 save( VarName, 'RTG_data' ) ;
 

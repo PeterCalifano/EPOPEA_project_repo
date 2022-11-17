@@ -1,4 +1,4 @@
-function [dV_capture, T_capture] = EstimateDVtoCapture(Vinf_entry, mu_main, Ra_target, Rp_target)
+function [dV_capture] = EstimateDVtoCapture(Vinf_entry, mu_main, Ra_target, Rp_target)
 %% PROTOTYPE
 % [DV_capture] = EstimateDVtoCapture(Vinf_entry, mu_main, Ra_target, Rp_target)
 % -------------------------------------------------------------------------------------------------------------
@@ -17,10 +17,10 @@ function [dV_capture, T_capture] = EstimateDVtoCapture(Vinf_entry, mu_main, Ra_t
 %% OUTPUT
 % dV_capture: [scalar] Impulsive DeltaV at hyperbola pericentre to achieve
 %                      specified capture orbit.
-% T_capture: [scalar] Period in days of the Capture orbit
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % 01/11/2022 - Pietro Califano - Coded
+% 17/11/2022 - Pietro Califano - Time computation deleted
 % -------------------------------------------------------------------------------------------------------------
 %% DEPENDENCIES
 % -------------------------------------------------------------------------------------------------------------
@@ -29,9 +29,7 @@ function [dV_capture, T_capture] = EstimateDVtoCapture(Vinf_entry, mu_main, Ra_t
 
 %% Function code
 % Hypothesis: Planar orbits, entry hyperbolic leg shaped at will
-% Parameters of target orbit
-SMA_target = (Ra_target + Rp_target)/2;
-% eps_target = -mu_main/(2*SMA_target);
+
 e_target = (Ra_target - Rp_target)/(Ra_target + Rp_target);
 
 % Velocity of hyperbolic orbit at Rp target
@@ -43,9 +41,7 @@ V_cap = sqrt(mu_main*(1 + e_target)/Rp_target);
 % DV required to achieve elliptical capture orbit
 dV_capture = Vp_hyp - V_cap;
 
-% Period of the capture orbit
-T_target = 2*pi*sqrt(SMA_target^3./mu_main)/3600; % [h]
-T_capture = T_target./24; % [days]
+
 
 
 end

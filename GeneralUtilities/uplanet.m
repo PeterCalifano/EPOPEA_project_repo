@@ -97,11 +97,9 @@ elseif strcmp(ibody,'Sun')
 
     ibody = 10;
 
-else 
-    
-    error('ibody string not present in analytical ephemeris database')
-
 end
+    
+
 
 DEG2RAD=pi/180;
 

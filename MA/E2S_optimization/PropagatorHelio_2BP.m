@@ -1,4 +1,4 @@
-function [r, v, timevec] = PropagatorHelio_2BP(initial_state, tf)
+function [r, v, timevec] = PropagatorHelio_2BP(initial_state, tf,mu_SUN)
 %% PROTOTYPE
 % [time, r, v] = twobp_solver(T, initial_state, mu, perturbation, dT)
 % -------------------------------------------------------------------------
@@ -22,7 +22,7 @@ function [r, v, timevec] = PropagatorHelio_2BP(initial_state, tf)
 % v1: 2BP solver for Heliocentric trajectories, 17/11/2022
 % -------------------------------------------------------------------------
 %% Next upgrades
-mu_SUN = 1.32712440017987e+11;
+%mu_SUN = 1.32712440017987e+11;
 
 %% Function code
 
@@ -34,9 +34,9 @@ options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 sysF = @(t, state_vec) [state_vec(4:6);...
     (-mu_SUN/norm(state_vec(1:3)).^3)*state_vec(1:3)];
 
-[timevec, output_state] = ode113(sysF, 0:tf, [r_init; v_init], options);
+[timevec, output_state] = ode113(sysF, [0,tf], [r_init; v_init], options);
 
-r = output_state(:, 1:3);
-v = output_state(:, 4:6);
+r = output_state(:, 1:3)';
+v = output_state(:, 4:6)';
 
 end

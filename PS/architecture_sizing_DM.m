@@ -16,12 +16,24 @@ pressurant.gamma = 1.667 ;
 
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
+
+mdot_reg = 0.135;
+mdot_blow = 0.0035;
 %%%%%%%%
 
 % PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER
 dV_reg = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; m_dry_int = 1279;                          % Orbiter + lander
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
+
+% Compute maneuvering time
+m_prop_int = preliminary_prop_mass(1.05*0.5e+3,m_dry_int,Isp_reg) ;
+dt_int = m_prop_int / mdot_reg ;
+m_prop_cap = preliminary_prop_mass(1.05*0.9e+3,m_dry_int,Isp_reg) ;
+dt_cap = m_prop_cap / mdot_reg ;
+m_prop_eoi = preliminary_prop_mass(2*1.1e+3,m_dry_int,Isp_reg) ;
+dt_eoi = m_prop_eoi / mdot_reg ;
+
 
 % BLOWDOWN: ARIANE 10N BI-PROPELLANT THRUSTER
 % Assumption: half of the deltav for SK is used when orbiter and lander are
@@ -38,6 +50,10 @@ m_dry_sk_orb = 533;                          % Sampling orbiter
 m_prop_sk_orb = preliminary_prop_mass(dV_blow,m_dry_sk_orb,Isp_blow);
 
 m_prop_blow = m_prop_sk_orb_lan + m_prop_sk_orb ;
+
+% Compute maneuvering time
+dt_sk1 = m_prop_sk_orb_lan / mdot_blow ;
+dt_sk2 = m_prop_sk_orb / mdot_blow ;
 
 % DATA
 oxidizer.rho = 1443 ; oxidizer.OFratio_reg = 1.65 ; oxidizer.OFratio_blow = 1.60 ;
@@ -66,12 +82,22 @@ pressurant.gamma = 1.667 ;
 
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
+
+mdot_reg = 0.135;
+mdot_blow = 0.0035;
 %%%%%%%%
 
 % PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER
 dV_reg = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; m_dry_int = 928;                           % Orbiter + lander
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
+% Compute maneuvering time
+m_prop_int = preliminary_prop_mass(1.05*0.5e+3,m_dry_int,Isp_reg) ;
+dt_int = m_prop_int / mdot_reg ;
+m_prop_cap = preliminary_prop_mass(1.05*0.9e+3,m_dry_int,Isp_reg) ;
+dt_cap = m_prop_cap / mdot_reg ;
+m_prop_eoi = preliminary_prop_mass(2*1.1e+3,m_dry_int,Isp_reg) ;
+dt_eoi = m_prop_eoi / mdot_reg ;
 
 % BLOWDOWN: ARIANE 10N BI-PROPELLANT THRUSTER
 % Assumption: half of the deltav for SK is used when orbiter and lander are
@@ -89,6 +115,10 @@ m_dry_sk_orb = 182;                            % Sampling orbiter
 m_prop_sk_orb = preliminary_prop_mass(dV_sk,m_dry_sk_orb,Isp_sk);
 
 m_prop_blow = m_prop_sk_orb_lan + m_prop_sk_orb ;
+
+% Compute maneuvering time
+dt_sk1 = m_prop_sk_orb_lan / mdot_blow ;
+dt_sk2 = m_prop_sk_orb / mdot_blow ; 
 
 % DATA
 oxidizer.rho = 1443 ; oxidizer.OFratio_reg = 1.65 ; oxidizer.OFratio_blow = 1.60 ;

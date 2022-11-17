@@ -211,7 +211,7 @@ Vinf_entry = v_FB_in - v_planets(:,end);
 
 norm_Vinf_entry = norm(Vinf_entry);
 
-[DV_capture, ~] = EstimateDVtoCapture(norm_Vinf_entry, mu_end, Ra_target, Rp_target);
+[DV_capture] = EstimateDVtoCapture(norm_Vinf_entry, mu_end, Ra_target, Rp_target);
 
 %% COMPUTE DV:
 

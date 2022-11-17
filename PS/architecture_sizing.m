@@ -159,11 +159,11 @@ Isp_int = 321; m_dry_int = 928;                                                 
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
 % Compute maneuvering time
-m_prop_int1 = preliminary_prop_mass(MAR_020*0.5e+3,m_dry_int,Isp_reg) ;
+m_prop_int1 = preliminary_prop_mass(MAR_020*0.5e+3,m_dry_int,Isp_int) ;
 dt_int = m_prop_int1 / mdot_bip ;
-m_prop_cap = preliminary_prop_mass(MAR_010*0.9e+3,m_dry_int,Isp_reg) ;
+m_prop_cap = preliminary_prop_mass(MAR_010*0.9e+3,m_dry_int,Isp_int) ;
 dt_cap = m_prop_cap / mdot_bip ;
-m_prop_eoi = preliminary_prop_mass(MAR_020*1.1e+3,m_dry_int,Isp_reg) ;
+m_prop_eoi = preliminary_prop_mass(MAR_020*1.1e+3,m_dry_int,Isp_int) ;
 dt_eoi = m_prop_eoi / mdot_bip ;
 
 oxidizer.rho = 1443 ; 

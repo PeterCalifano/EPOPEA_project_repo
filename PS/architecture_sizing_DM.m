@@ -33,7 +33,7 @@ MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER
-dV_int = MAR_080 + MAR_020*0.5e+3 + MAR_010*0.9e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_reg = MAR_080 + MAR_020*0.5e+3 + MAR_010*0.9e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; m_dry_int = 1279;                          % Orbiter + lander
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 
@@ -81,7 +81,7 @@ thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
 disp('S ORBITER - S LANDER:')
-[ M_PS_SS, sizing_ox_SS, sizing_fu_SS, sizing_SS ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
+[ M_PS_SOSL, sizing_ox_SOSL, sizing_fu_SOSL, sizing_SOSL ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
 
 %% NON SAMPLING ORBITER - SAMPLING LANDER
 close all, clear all
@@ -146,5 +146,5 @@ thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
 disp('NS ORBITER - S LANDER:')
-[ M_PS_NS, sizing_ox_NS, sizing_fu_NS, sizing_NS ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
+[ M_PS_NSOSL, sizing_ox_NSOSL, sizing_fu_NSOSL, sizing_NSOSL] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster )
 

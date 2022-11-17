@@ -17,15 +17,15 @@ iter = 1;
 maxiter = 20; % Number of maximum allowed iteration of while loop
 perc = 80; % Percentile of objective function for LB, UB update
 cost_thr = 1; % DV cost in km/s ?
-stoptime = 600; % Stop time for ga solver
-maxtime =  13*3600; % Max allowable execution time
+stoptime = 45; % Stop time for ga solver
+maxtime =  10.5*3600; % Max allowable execution time
 
 rng shuffle
 
 % GA options
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-10, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 400, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.8, 'MaxStallGenerations', 200);
+    'UseParallel', true, 'PopulationSize', 250, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.8, 'MaxStallGenerations', 10);
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-12,...
                'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 2e5, 'MaxIterations', 300, ...

@@ -12,8 +12,20 @@ try
     fuel_data_Am = fuel_data_Am.Fuel_data ;
     RTG_data_MMRTG = load('RTG_data_MMRTG.mat') ;
     RTG_data_MMRTG = RTG_data_MMRTG.RTG_data ;
-    RTG_data_nextGenRTG = load('RTG_data_nextGenRTG.mat') ;
-    RTG_data_nextGenRTG = RTG_data_nextGenRTG.RTG_data ;
+    RTG_data_nextGenRTG16 = load('RTG_data_nextGenRTG16.mat') ;
+    RTG_data_nextGenRTG16 = RTG_data_nextGenRTG16.RTG_data ;
+    RTG_data_nextGenRTG14 = load('RTG_data_nextGenRTG14.mat') ;
+    RTG_data_nextGenRTG14 = RTG_data_nextGenRTG14.RTG_data ;
+    RTG_data_nextGenRTG12 = load('RTG_data_nextGenRTG12.mat') ;
+    RTG_data_nextGenRTG12 = RTG_data_nextGenRTG12.RTG_data ;
+    RTG_data_nextGenRTG10 = load('RTG_data_nextGenRTG10.mat') ;
+    RTG_data_nextGenRTG10 = RTG_data_nextGenRTG10.RTG_data ;
+    RTG_data_nextGenRTG8 = load('RTG_data_nextGenRTG8.mat') ;
+    RTG_data_nextGenRTG8 = RTG_data_nextGenRTG8.RTG_data ;
+    RTG_data_nextGenRTG6 = load('RTG_data_nextGenRTG6.mat') ;
+    RTG_data_nextGenRTG6 = RTG_data_nextGenRTG6.RTG_data ;
+    RTG_data_nextGenRTG4 = load('RTG_data_nextGenRTG4.mat') ;
+    RTG_data_nextGenRTG4 = RTG_data_nextGenRTG4.RTG_data ;
     RTG_data_GPHSRTG = load('RTG_data_GPHSRTG.mat') ;
     RTG_data_GPHSRTG = RTG_data_GPHSRTG.RTG_data ;
     RTG_data_ASRG = load('RTG_data_ASRG.mat') ;
@@ -25,7 +37,7 @@ end
 
 
 % Real RTG data - Used to select which type of RTG to consider
-RTG_data = RTG_data_nextGenRTG ; % This RTG type can be tuned since it is modular, do this once power is known.
+RTG_data = RTG_data_nextGenRTG8 ; % This RTG type can be tuned since it is modular, do this once power is known.
 %RTG_data = RTG_data_GPHSRTG ; 
 %RTG_data = RTG_data_MMRTG ; 
 %RTG_data = RTG_data_ASRG ; 

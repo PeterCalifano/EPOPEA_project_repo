@@ -10,14 +10,35 @@ pressurant.gamma = 1.667 ;
 
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
+
+mdot_bip = 0.135; mdot_sk = 0.00905 ; mdot_land = 0.03925;  % [kg/s]
 %%%%%%%%
 
+n_flyby = 4;             % Number of flybys
+
+% Margins
+MAR_010 = 1.05;          % Deterministic maneuvers
+MAR_020 = 2;             % Stochastic
+MAR_050 = 1.2;           % Apply on LANDING
+MAR_030 = 2;             % Attitude maneuvres
+MAR_080 = 30;            % [m/s] Launcher dispersion - apply only on primary
+MAR_090 = 15*n_flyby;    % [m/s] For each flyby
+MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
+MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
+
 % BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER
-dV_int = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
-Isp_int = 321; m_dry_int = 1279; % Orbiter + lander
+% Only CAPTURE dV is deterministic
+dV_int = MAR_080 + MAR_020*0.5e+3 + MAR_010*0.9e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+Isp_int = 321; m_dry_int = 1279;                          % Orbiter + lander
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
-%m_prop_int = 3491.9;                    % from preliminary sizing
+% Compute maneuvering time
+m_prop_int1 = preliminary_prop_mass(MAR_020*0.5e+3,m_dry_int,Isp_int) ;
+dt_int = m_prop_int1 / mdot_bip ;
+m_prop_cap = preliminary_prop_mass(MAR_010*0.9e+3,m_dry_int,Isp_int) ;
+dt_cap = m_prop_cap / mdot_bip ;
+m_prop_eoi = preliminary_prop_mass(MAR_020*1.1e+3,m_dry_int,Isp_int) ;
+dt_eoi = m_prop_eoi / mdot_bip ;
 
 oxidizer.rho = 1443 ; 
 oxidizer.OFratio = 1.65 ;
@@ -40,11 +61,11 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_SOSL_INT, sizing_ox_SOSL_INT, sizing_fu_SOSL_INT, sizing_gas_SOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster )
 
 % MONOPROPELLANT - LANDING - MR107T 110 N
-dV_land = 258*2;                            % Additional MAR-DV-020
+dV_land = 258*MAR_050;                            % Additional MAR-DV-020
 Isp_land = 228; m_dry_land = 746;           % Sampling lander
-m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land);
-
-%m_prop_land = 95.33;
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
+% Compute maneuvering time
+dt_land = m_prop_land / mdot_land;
 
 propellant.mass = m_prop_land ;
 propellant.rho = 1e3 ;
@@ -69,20 +90,23 @@ tank.number = 1 ;
 % clamped, while the other half is used only by the orbiter.
 
 % Orbiter + lander
-dV_sk = 185*2;                             % Additional MAR-DV-020
+dV_sk = 185*MAR_020;                             % Additional MAR-DV-020
 Isp_sk = 235; 
 m_dry_sk_orb_lan = 1279 ;                            % Sampling orbiter
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_sk,m_dry_sk_orb_lan,Isp_sk);
 
 % Only orbiter
-dV_sk = 185*2;                             % Additional MAR-DV-020
+dV_sk = 185*MAR_020;                             % Additional MAR-DV-020
 Isp_sk = 235; 
 m_dry_sk_orb = 533;                            % Sampling orbiter
 m_prop_sk_orb = preliminary_prop_mass(dV_sk,m_dry_sk_orb,Isp_sk);
 
-% 
+% Total
 m_prop_sk = m_prop_sk_orb_lan + m_prop_sk_orb ;
-%m_prop_sk = 205.8;
+
+% Compute maneuvering time
+dt_sk1 = m_prop_sk_orb_lan / mdot_sk;
+dt_sk2 = m_prop_sk_orb / mdot_sk ; 
 
 propellant.mass = m_prop_sk ;
 propellant.rho = 1e3 ;
@@ -114,13 +138,33 @@ pressurant.gamma = 1.667 ;
 
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
+
+mdot_bip = 0.135; mdot_sk = 0.00905; mdot_land = 0.03925;  % [kg/s]
+
 %%%%%%%%
+n_flyby = 4;             % Number of flybys
+% Margins
+MAR_010 = 1.05;          % Deterministic maneuvers
+MAR_020 = 2;             % Stochastic
+MAR_050 = 1.2;           % Apply on LANDING
+MAR_030 = 2;             % Attitude maneuvres
+MAR_080 = 30;            % [m/s] Launcher dispersion - apply only on primary
+MAR_090 = 15*n_flyby;    % [m/s] For each flyby
+MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
+MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER
-dV_int = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
-Isp_int = 321; m_dry_int = 928;                           % Orbiter + lander
+dV_int = MAR_080 + MAR_020*0.5e+3 + MAR_010*0.9e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+Isp_int = 321; m_dry_int = 928;                                                           % Orbiter + lander
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
-%m_prop_int = 2691.9;                    % from preliminary sizing
+
+% Compute maneuvering time
+m_prop_int1 = preliminary_prop_mass(MAR_020*0.5e+3,m_dry_int,Isp_int) ;
+dt_int = m_prop_int1 / mdot_bip ;
+m_prop_cap = preliminary_prop_mass(MAR_010*0.9e+3,m_dry_int,Isp_int) ;
+dt_cap = m_prop_cap / mdot_bip ;
+m_prop_eoi = preliminary_prop_mass(MAR_020*1.1e+3,m_dry_int,Isp_int) ;
+dt_eoi = m_prop_eoi / mdot_bip ;
 
 oxidizer.rho = 1443 ; 
 oxidizer.OFratio = 1.65 ;
@@ -143,10 +187,11 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_NSOSL_INT, sizing_ox_NSOSL_INT, sizing_fu_NSOSL_INT, sizing_gas_NSOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster )
 
 % MONOPROPELLANT - LANDING - MR107T 110 N
-dV_land = 258*2;                            % Additional MAR-DV-020
+dV_land = 258*MAR_050;                            % Additional MAR-DV-020
 Isp_land = 228; m_dry_land = 746;           % Sampling lander
-m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land);
-%m_prop_land = 95.33;
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
+% Compute maneuvering time
+dt_land = m_prop_land / mdot_land;
 
 propellant.mass = m_prop_land ;
 propellant.rho = 1e3 ;
@@ -171,26 +216,22 @@ tank.number = 1 ;
 % clamped, while the other half is used only by the orbiter.
 
 % Orbiter + lander
-dV_sk = 275*2;                             % Additional MAR-DV-020
+dV_sk = 275*MAR_020;                             % Additional MAR-DV-020
 Isp_sk = 229; 
 m_dry_sk_orb_lan = 928 ;                            % Sampling orbiter
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_sk,m_dry_sk_orb_lan,Isp_sk);
 
 % Only orbiter
-dV_sk = 275*2;                             % Additional MAR-DV-020
+dV_sk = 275*MAR_020;                             % Additional MAR-DV-020
 Isp_sk = 229; 
 m_dry_sk_orb = 182;                            % Sampling orbiter
 m_prop_sk_orb = preliminary_prop_mass(dV_sk,m_dry_sk_orb,Isp_sk);
 
-% 
 m_prop_sk = m_prop_sk_orb_lan + m_prop_sk_orb ;
 
-
-
-% dV_sk = 550*2;                             % Additional MAR-DV-020
-% Isp_sk = 229; m_dry_sk = 928;              % NS Orbiter + S Lander (for know, then change)
-% m_prop_sk = preliminary_prop_mass(dV_sk,m_dry_sk,Isp_sk);
-%m_prop_sk = 117.3 ;
+% Compute maneuvering time
+dt_sk1 = m_prop_sk_orb_lan / mdot_sk;
+dt_sk2 = m_prop_sk_orb / mdot_sk ; 
 
 propellant.mass = m_prop_sk ;
 propellant.rho = 1e3 ;

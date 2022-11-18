@@ -3,26 +3,28 @@ clear; close all; clc
 
 %% Load SPICE Kernels
 cspice_kclear();
-cspice_furnsh('..\..\spice_kernels/pck00010.tpc')
-cspice_furnsh('..\..\spice_kernels/naif0012.tls')
-cspice_furnsh('..\..\spice_kernels/gm_de431.tpc')
-cspice_furnsh('..\..\spice_kernels/de440s.bsp')
+cspice_furnsh('spice_kernels/pck00010.tpc')
+cspice_furnsh('spice_kernels/naif0012.tls')
+cspice_furnsh('spice_kernels/gm_de431.tpc')
+cspice_furnsh('spice_kernels/de440s.bsp')
 %% DATA:
 % Radius of Saturn from Spice
 R_Saturn = astroConstants(26); % [km]
 
 % Normalization coefficients
-TU = 365*24*3600; % 1 year
+TU = 24*3600; % 1 day
 DU = 1.495978707e+8; % 1 AU
 
 % Initial Time manipulation
 date_1 = '2030-01-01 00:00:00.00 UTC'; % First available date to launch
-t1 = cspice_str2et(date_1)/TU;
+t1 = cspice_str2et(date_1);
 t1 = t1/TU;
 
 % Define trajectory features (N of FBs and sequence)
 N = 3; % NUMBER OF FBs
-planets = {'Earth','Venus','Earth','Jupiter Barycenter','Saturn Barycenter'};
+
+%planets = {'Earth','Venus','Earth','Jupiter','Saturn'};
+
 planets_id = [3,2,3,5,6];
 
 % Target orbit at Saturn
@@ -33,13 +35,23 @@ Rp_target = 20*R_Saturn;
 clc
 
 % Initial guess
+guess_0 = [t1, 4, 0.2, 0.4,...
+    200, 500, 3000, 5500,...
+    0.4, 0.5, 0.6, 0.6,...
+    1.7, 1.5, 1.7, ...
+    pi/2, pi/9, pi/8];
+tic
+DV = objfun_EarthSaturntransfer_2(guess_0, planets_id, Ra_target, Rp_target);
+toc
+%% Define linear constraints
 
-% Define linear constraints
+% - t_1 < t_initial = (2030)
+
 A = [];
 b = [];
 
 % Optimizer
-DV = fmincon(@(var) objfun_EarthSaturntransfer(var,N,planets,Ra_target,Rp_target,TU),guess_0,A,b);
+DV = fmincon(@(var) objfun_EarthSaturntransfer2(var,N,planets,Ra_target,Rp_target,TU),guess_0,A,b);
 
 
 

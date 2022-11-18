@@ -12,23 +12,23 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 10; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 50; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
-maxiter = 20; % Number of maximum allowed iteration of while loop
-perc = 80; % Percentile of objective function for LB, UB update
+maxiter = 5; % Number of maximum allowed iteration of while loop
+perc = [80*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 1; % DV cost in km/s ?
-stoptime = 4; % Stop time for ga solver
+stoptime = 20; % Stop time for ga solver
 maxtime =  2*3600; % Max allowable execution time
 
 rng shuffle
 
 % GA options
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-10, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 100, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'UseParallel', true, 'PopulationSize', 150, 'Display', 'iter', 'MaxGenerations', 1e3,...
     'CrossoverFraction', 0.7, 'MaxStallGenerations', 3);
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-12,...
-               'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 2e5, 'MaxIterations', 10, ...
+               'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 2e5, 'MaxIterations', 15, ...
                'StepTolerance', 1e-12);
 
 opts_simulanneal = optimoptions('simulannealbnd', 'Display', 'iter',...
@@ -134,9 +134,9 @@ while converge_flag ~= 1
             converge_flag = 1;
         end
 
-
+%%
         % Find percentile of cost
-       perc_value = prctile(feval_local(:, :, iter), perc);
+       perc_value = prctile(feval_local(:, :, iter), perc(iter));
        feval_temp = feval_local(:, :, iter);
        % Create mask to extract only solutions below desired percentile
        maskid_perc = feval_temp < perc_value;
@@ -149,17 +149,17 @@ while converge_flag ~= 1
 
        % Redefine LB for iter+1
 %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
-       LB_new = LB_min - (UB(iter, :) - LB(iter, :))*2*perc/100;
+       LB_new = LB_min - (UB(iter, :) - LB(iter, :))*perc(iter)/100/2;
 
        % Redefine UB for iter+1
 %        UB_max = max(NLPoptset_local(:, :, iter), [], 1); % Find maximum of decision variables
-       UB_new = UB_max + (UB(iter, :) - LB(iter, :))*2*perc/100;
+       UB_new = UB_max + (UB(iter, :) - LB(iter, :))*perc(iter)/100/2;
 
        for idVar = 1:length(NLPvars)
 
            if LB_new(idVar) > LB(iter, idVar)
                % If new LB is within previous LB
-               LB(iter+1, :) = LB_min - (UB(iter, :) - LB(iter, :))*2*perc/100;
+               LB(iter+1, :) = LB_min - (UB(iter, :) - LB(iter, :))*perc(iter)/100/2;
            else
                % Assign previous LB
                LB(iter+1, idVar) = LB(iter, idVar);
@@ -168,7 +168,7 @@ while converge_flag ~= 1
 
            if UB_new(idVar) < UB(iter, idVar)
                % If new UB is within previous UB
-               UB(iter+1, idVar) = UB_max + (UB(iter, :) - LB(iter, :))*2*perc/100;
+               UB(iter+1, idVar) = UB_max + (UB(iter, :) - LB(iter, :))*perc(iter)/100/2;
            else
                % Assign previous UB
                UB(iter+1, idVar) = UB(iter, idVar);

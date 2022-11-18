@@ -10,11 +10,12 @@ t1 = var(end-1);
 tN = var(end);
 
 % Orbit Propagator
-% t_range = [0 t1];
-% [~, output] = ode113(@dyn, t_range, [r_i;v_i], options, altrevariabili);
-% r1 = output(end,1:2);
-% v1 = output(end,3:4);
-% m1 = m_i;
+options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+t_range = [0 t1];
+[~, output] = ode113(@dyn, t_range, [r_i;v_i], options, par);
+r1 = output(end,1:2)';
+v1 = output(end,3:4)';
+m1 = m_i;
 
 % step time grid
 h = (tN-t1)/(N-1);

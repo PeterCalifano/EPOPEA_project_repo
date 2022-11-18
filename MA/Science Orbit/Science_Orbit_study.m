@@ -67,7 +67,7 @@ vz0_P=-0.1131541724302042/DU*TU; %km/s
 state0_P=[x0_P,y0_P,z0_P,vx0_P,vy0_P,vz0_P]';
 %propagation - P
 tf_P=0.9896641998233017*1e+6/TU; %1 period - actually if you plot it for
-%more time if gets lost
+%more time if gets lost (different model used in the paper)
 [t_vec_P,state_vec_P]=ode113(@(t,x) f(t,x,mu),[t0 tf_P],state0_P,options_ode);
 state_vec_P=state_vec_P';
 

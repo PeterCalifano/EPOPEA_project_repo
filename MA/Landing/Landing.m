@@ -26,10 +26,10 @@ N = 50;
 % xi = Re+400;   
 % vyi = 0.1;
 % INITIAL ORBIT : circular, polar, altitude = 20 km. (TO CHANGE!!)
-xi = Re+20;
-yi = 0;
-vxi = 0;
-vyi = sqrt(mu/xi);
+xi = 0;
+yi = Re+20;
+vxi = -sqrt(mu/norm([xi; yi]));
+vyi = 0;
 state_i = [xi yi vxi vyi m0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
@@ -59,6 +59,21 @@ for k = 1:N
     guess((k-1)*step_var+1:k*step_var) = [s0'; uk];
 end
 guess(end-1:end) = [t1; tN];
+
+% Check guess points
+r_i = state_i(1:2);
+v_i = state_i(3:4);
+t_range = [t1 tN];
+[~, out_guess] = ode113(@dyn, t_range, [r_i;v_i], options, par);
+r_guess = out_guess(:,1:2);
+L = length(r_guess(:,1));
+figure; hold on; grid on; grid minor
+for k = 1:N
+    plot3(guess((k-1)*step_var+1), guess((k-1)*step_var+2), 0, 'or', 'LineWidth', 1.2);
+    plot3(r_guess(:,1), r_guess(:,2), zeros(L,1), '--r', 'LineWidth', 1.2);
+end
+
+return
 
 % constraints for fmincon
 A = [zeros(step_var*N,1); 1; -1]';

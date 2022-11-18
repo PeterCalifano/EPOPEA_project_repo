@@ -7,7 +7,6 @@ v = state(3:4);
 % par: mu
 mu = par(4);
 
-
 % dynamics 
 dxdt = [v; 
         -mu/(norm(r)^3).*r];

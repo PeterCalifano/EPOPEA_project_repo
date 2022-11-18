@@ -61,9 +61,9 @@ end
 guess(end-1:end) = [t1; tN];
 
 % Check guess points
-r_i = state_i(1:2);
-v_i = state_i(3:4);
-t_range = [t1 tN];
+r_i = state_i(1:2)';
+v_i = state_i(3:4)';
+t_range = [t1 7*tN];
 [~, out_guess] = ode113(@dyn, t_range, [r_i;v_i], options, par);
 r_guess = out_guess(:,1:2);
 L = length(r_guess(:,1));
@@ -71,6 +71,7 @@ figure; hold on; grid on; grid minor
 for k = 1:N
     plot3(guess((k-1)*step_var+1), guess((k-1)*step_var+2), 0, 'or', 'LineWidth', 1.2);
     plot3(r_guess(:,1), r_guess(:,2), zeros(L,1), '--r', 'LineWidth', 1.2);
+    axis equal
 end
 
 return

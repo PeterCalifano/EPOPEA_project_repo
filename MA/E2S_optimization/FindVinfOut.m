@@ -17,8 +17,13 @@ delta = 2*asin(1/(1 + (Rp_i*vinfin_i.^2)./mu_pl ));
 % K = cross(I, J);
 
 Vinfout = vinfin_i.*[cos(delta); % I 
-    cos(beta_i)*sin(delta); % J
-    sin(beta_i)*sin(delta)]; % K
+   cos(beta_i)*sin(delta); % J
+   sin(beta_i)*sin(delta)]; % K
 
+% i = vinfinvec_i/vinfin_i;
+% k = cross(vinfinvec_i,radius)/norm(cross(vinfinvec_i,radius));
+% j = cross(k,i);
+% 
+% Vinfout = [i,j,k] * Vinfout;
 
 end

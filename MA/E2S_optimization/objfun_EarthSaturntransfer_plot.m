@@ -1,4 +1,4 @@
-function DV = objfun_EarthSaturntransfer_2(nlpvar, planets_id, Ra_target, Rp_target)
+function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, Ra_target, Rp_target)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -157,9 +157,11 @@ r_DSM = zeros(3,N+1);
 %v_FB(:,1,2) = v_dep;
 v_FB_out = v_dep;
 
+VV_FB = zeros(3,N+1);
+
 % Loop over the arcs
 for i = 1:N+1
-
+    VV_FB(:,i) = v_FB_out;
     % Initial state: position of the previous planet and outgoing velocity
     x_0 = [r_planets(:,i);v_FB_out];
     
@@ -225,10 +227,50 @@ end
 
 DV = (DV_capture + sum(DV_DSM)) * VU;
 
+%% PLOT
+t_v = linspace(ephtimes(1),ephtimes(end),1000);
 
+figure
+hold on
+for i = 1:N+2
+    scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),30,'filled','DisplayName',['Planet ',num2str(i)])
+end
+grid minor
+xlabel('X [AU]')
+ylabel('Y [AU]')
+zlabel('Z [AU]')
+legend()
+axis equal
+pos_plot = zeros(3,length(planets_id),length(t_v));
+i = 1;
+for t = t_v
+    j = 1;
+    for id = planets_id
+        [kep1,~] = uplanet(t*TU, id);
+        [r1,~] = kep2car(kep1, mu_S);
+        pos_plot(:,j,i) = r1/DU;
+        j = j+1;
+    end
+    i = i+1;
+end
+
+plot3(squeeze(pos_plot(1,1,:)),squeeze(pos_plot(2,1,:)),squeeze(pos_plot(3,1,:)),'k','DisplayName','Earth Orbit')
+plot3(squeeze(pos_plot(1,2,:)),squeeze(pos_plot(2,2,:)),squeeze(pos_plot(3,3,:)),'k','DisplayName','Venus Orbit')
+plot3(squeeze(pos_plot(1,4,:)),squeeze(pos_plot(2,4,:)),squeeze(pos_plot(3,4,:)),'k','DisplayName','Jupiter Orbit')
+plot3(squeeze(pos_plot(1,5,:)),squeeze(pos_plot(2,5,:)),squeeze(pos_plot(3,5,:)),'k','DisplayName','Saturn Orbit')
+
+
+for i = 1:N+1
+    scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),20,'filled','MarkerFaceColor','k')%,'DisplayName',['DSM ',num2str(i)])
+    [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+    plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),'linewidth',1,'DisplayName',['Arc ', num2str(i)])
+    [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+    plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:))
 end
 
 
 
 
 
+
+end

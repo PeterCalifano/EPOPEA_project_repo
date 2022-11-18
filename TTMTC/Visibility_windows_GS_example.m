@@ -10,7 +10,12 @@ cspice_kclear();
 %%
 %Kernel loading - keep the metakernel out of the kernels folder, if needed look into
 %it to see what kernels it loads
-cspice_furnsh('vis_cond_metakernel.tm');
+cspice_furnsh('..\spice_kernels\naif0012.tls');
+cspice_furnsh('..\spice_kernels\sat441.bsp');
+cspice_furnsh('..\spice_kernels\de440s.bsp');
+cspice_furnsh('..\spice_kernels\pck00010.tpc');
+cspice_furnsh('..\spice_kernels\estrack.bsp');
+cspice_furnsh('..\spice_kernels\estrack.tf');
 
 %%
 %Time span - play with the dates here

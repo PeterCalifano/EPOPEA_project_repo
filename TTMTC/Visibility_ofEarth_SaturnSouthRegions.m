@@ -15,12 +15,12 @@ cspice_kclear()
 % cspice_furnsh(kernelpool);
 
 %% Define Kernel
-cspice_furnsh 'kernels\naif0012.tls'
-cspice_furnsh 'kernels\de440s.bsp'
-cspice_furnsh 'kernels\sat441.bsp'
-cspice_furnsh 'kernels\pck00010_mod.tpc'
-cspice_furnsh 'kernels\LATs.bsp';
-cspice_furnsh 'kernels\LATs.tf';
+cspice_furnsh('..\spice_kernels\naif0012.tls');
+cspice_furnsh ('..\spice_kernels\de440s.bsp');
+cspice_furnsh ('..\spice_kernels\sat441.bsp');
+cspice_furnsh ('..\spice_kernels\pck00010_mod.tpc');
+cspice_furnsh ('..\spice_kernels\LATs.bsp');
+cspice_furnsh ('..\spice_kernels\LATs.tf');
 
 
 

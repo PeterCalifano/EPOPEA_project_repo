@@ -36,13 +36,29 @@ C = zeros((N-1),1);
 for k = 1:(N-1)
     %defects
     t_k = t1 + h*k;
-    var_k = var(step_var*(k-1)+1:step_var*k);
-    x_k = var_k(1:5);
-    x_next = var(step_var*k+1:step_var*k+step_st);
-    uk = var_k(6:8);
+    t_next = t_k + h;
+    t_c = (t_k + t_next)/2;
 
-    f = landing_dyn(t_k, x_k, uk,par);
-    zk = x_next - x_k - h.*f;
+    var_k = var(step_var*(k-1)+1:step_var*k);
+    var_next = var(step_var*k+1:step_var*(k+1));
+
+    x_k = var_k(1:5);
+    x_next = var_next(1:5);
+
+    u_k = var_k(6:8);
+    u_next = var_next(6:8);
+    u_c = (u_k + u_next)/2;
+
+    f_k = landing_dyn(t_k, x_k, u_k, par);
+    f_next = landing_dyn(t_next, x_next, u_next, par);
+
+    % FE
+    %zk = x_next - x_k - h.*f_k;      
+
+    % Hermite-Simpson
+    x_c = 0.5 * (x_k + x_next) + (h/8) * (f_k - f_next);
+    f_c = landing_dyn(t_c, x_c, u_c, par);
+    zk = x_k - x_next + (h/6) * (f_k + 4*f_c + f_next);
 
     %thrust versor
     q_k = norm(var_k(7:8)) - 1;

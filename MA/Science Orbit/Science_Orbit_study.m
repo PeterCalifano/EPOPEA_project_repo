@@ -40,13 +40,16 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=2; %days of prapagation
-tf=FlightDays*24*3600/TU; %final time of propagation
+%FlightDays=2; %days of prapagation
+%tf=FlightDays*24*3600/TU; %final time of propagation
+tf=1*3600/TU;  
+
 
 %propagation - Halo
-
-[t_vec,state_vec_Halo]=ode113(@(t,x) f(t,x,mu),[t0 tf],state0_Halo,options_ode);
+[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) f(t,x,mu),[t0 tf],state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';
+state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
+state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 
 %plot
 % Enceladus_3D_Adim(R_enc,[1-mu,0,0])
@@ -74,9 +77,46 @@ state_vec_P=state_vec_P';
 
 
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
-plot3(state_vec_Halo(1,:)*DU,state_vec_Halo(2,:)*DU,state_vec_Halo(3,:)*DU,'k')
-plot3(state_vec_P(1,:)*DU,state_vec_P(2,:)*DU,state_vec_P(3,:)*DU,'b')
+plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'k')
+%plot3(state_vec_P(1,:)*DU,state_vec_P(2,:)*DU,state_vec_P(3,:)*DU,'b')
 
+% %% ground tracks
+% w_Enc=1/TU;
+% 
+% 
+% %conversion of the trajectory to the inertial Enceladus Centred frame
+% for k=1:length(t_vec_guess)
+%     x_Halo_GT(k)=((1,k)+mu)*cos(t_vec_guess(k))-xx(2,k)*sin(t_vec_guess(k));
+%     y_Halo_GT(k)=(xx(1,k)+mu)*sin(t_vec_guess(k))+xx(2,k)*cos(t_vec_guess(k));
+% end
+% om_em=2.66186135e-6; %E-M angular velocity
+% figure
+% plot(X1,Y1,'r','linewidth',1.5);
+% hold on
+% plot(0,0,'xb','Markersize',4,'linewidth',3)
+% t_plot=t_vec_guess*TU*24*3600;
+% plot(cos(om_em*t_plot),sin(om_em*t_plot),'--k','linewidth',1.5);
+% grid on
+% grid minor
+% axis equal
+% xlabel('x')
+% ylabel('y')
+% legend('Guess trajectory','Earth','Motion of the Moon','location','Northwest')
+% title('Guess trajectory, non dimensional inertial frame')
+% 
+% 
+% 
+% 
+% 
+% [alpha, delta, lat_Halo, lon_Halo] = groundTrack(t_vec_Halo*TU, state_vec_Halo_GT,90, w_Enc);
+% 
+% figure
+% plot(lon_Halo,lat_Halo,'k')
+% xlabel('Longitude');
+% ylabel('Latitude');
+% hold on
+% grid on
+% grid minor
 
 
 

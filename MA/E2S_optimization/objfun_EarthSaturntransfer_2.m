@@ -192,7 +192,7 @@ for i = 1:N+1
 
         % Compute the fly-by
         %v_inf_out = perform_FB(v_inf_in,rp_FB(i),beta_FB(i));
-        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl);
+        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl, v_planets(:, i+1));
 
         % Obtain the outcoming infinite velocity which is the input for the
         % next iteration of the loop

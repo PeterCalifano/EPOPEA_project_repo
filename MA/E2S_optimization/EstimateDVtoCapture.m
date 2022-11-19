@@ -42,6 +42,4 @@ V_cap = sqrt(mu_main*(1 + e_target)/Rp_target);
 dV_capture = Vp_hyp - V_cap;
 
 
-
-
 end

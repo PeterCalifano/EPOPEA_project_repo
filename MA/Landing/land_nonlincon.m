@@ -1,8 +1,8 @@
 function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i, par, N)
 
 %Initial state: probably apocenter
-r_i = state_i(1:2);
-v_i = state_i(3:4);
+r_i = state_i(1:2)';
+v_i = state_i(3:4)';
 m_i = state_i(5);
 
 %Initial and final time
@@ -16,6 +16,7 @@ t_range = [0 t1];
 r1 = output(end,1:2)';
 v1 = output(end,3:4)';
 m1 = m_i;
+R_orb = norm(r1);
 
 % step time grid
 h = (tN-t1)/(N-1);
@@ -30,7 +31,7 @@ step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 % Initialization
 vec_def = zeros(5*(N-1),1);
 vec_alpha = zeros(N,1);
-C = zeros((N-1),1);
+C = zeros(2*N,1);
 
 % Cycle to fill constraints
 for k = 1:(N-1)
@@ -68,7 +69,7 @@ for k = 1:(N-1)
     vec_alpha(k) = q_k;
 
     %Inequality constraints
-    C(k) = Re - norm(x_k(1:2));
+    C((k-1)*2+1:2*k) = [Re - norm(x_k(1:2)); norm(x_k(1:2)) - R_orb];
 
 end
 vec_alpha(end) = norm(var(end-3:end-2)) - 1;
@@ -77,11 +78,16 @@ vec_alpha(end) = norm(var(end-3:end-2)) - 1;
 var_N = var(end-9:end-2);
 r_N = var_N(1:2);
 v_N = var_N(3:4);
-psi_i = var(1:5) - [r1; v1; m1];
-psi_f = [r_N(1); r_N(2); v_N(1); v_N(2)] - [0; -Re; 0; 0]; 
+psi_i = var(1:5) - [r1; v1; m1]; 
+psi_f = [norm(r_N); norm(v_N)] - [Re; 0];
 
 %fill Ceq
 Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs
+
+%add Final constraint to C (inequality)
+% lim defines semi-angle of possible landing cone 
+lim = deg2rad(20);          
+C(end-1:end) = [abs(r_N(1)); r_N(2)] - [Re*sin(lim); -Re*cos(lim)];
 
 % derivative
 if nargout > 2

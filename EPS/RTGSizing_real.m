@@ -1,4 +1,4 @@
-function [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
+function [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL, P_EoL_electric_total ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 %% PROTOTYPE
 % [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 % -------------------------------------------------------------------------------------------------------------
@@ -39,6 +39,8 @@ P_EoL_thermal_unit = P_BoL_thermal_unit * powerReductionFactor ;
 
 % Compute number of RTGs required
 Number_RTGs = ceil( P_required_EoL / P_EoL_electric_unit ) ;
+P_EoL_electric_total = P_EoL_electric_unit * Number_RTGs ;
+
 
 % Compute total mass of units required
 M_tot_RTGs = Number_RTGs * M_RTG_unit ;

@@ -1,4 +1,4 @@
-function [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
+function [v1_t,v2_t] = Lambert(id_1,id_2,t1,t2)
 %
 % Description:
 % The function computes the interplanetary leg through a Lambert solver
@@ -8,8 +8,8 @@ function [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
 % [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
 %
 % Inputs:
-% planet1 - Initial planet
-% planet2 - Final planet
+% id_1 - Identifier of initial planet
+% id_2 - Identifier of final planet
 % t1 [1] - Time of departure [SECONDS]
 % t2 [1] - Time of arrival [SECONDS]
 %
@@ -18,14 +18,13 @@ function [v1_t,v2_t] = Lambert(planet1,planet2,t1,t2)
 % v2_t [3x1] - Velocity at the end of the transfer arc
 % -------------------------------------------------------------------------
 %% Computation of initial and final positions and velocities of the planets
-
-    mu = cspice_bodvrd('Sun','GM',1);
-    x1 = cspice_spkezr(planet1,t1,'ECLIPJ2000','NONE','SUN');
-    r1 = x1(1:3);
-    v1 = x1(4:6);
-    x2 = cspice_spkezr(planet2,t2,'ECLIPJ2000','NONE','SUN');
-    r2 = x2(1:3);
-    v2 = x2(4:6);
+    jd_1 = t1/(3600*24);
+    jd_2 = t2/(3600*24);
+    mu = astroConstants(4);
+    [kep1,~] = uplanet(jd_1, id_1);
+    [kep2,~] = uplanet(jd_2, id_2);
+    [r1,v1] = kep2car(kep1, mu);
+    [r2,v2] = kep2car(kep2, mu);
 
 %% Computation of the lambert arc
 

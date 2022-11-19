@@ -42,17 +42,23 @@ f_delta = @(rp) turning_angle - asin( 1 ./ (1 + rp*(norm(v_inf_minus).^2)/mu_fly
 rp = fzero_proj(f_delta, rp_guess); %fzero_proj = fzero without frpintf
 
 if isnan(rp) || ~isreal(rp) %check if r_p is a real number
-    error('Error: fzero could not find a real solution'); % goes to catch
+
+    %error('Error: fzero could not find a real solution'); % goes to catch
+    DeltaV_power = 1000;
+
+elseif rp < astroConstants(23) + 300
+
+    %error('Error: the flyby is performed under 300 km of Height'); % goes to catch
+    DeltaV_power = 1000;
+
+else
+
+    v_p_1 = sqrt((norm(v_inf_minus)^2 + 2*mu_flyby_planet/rp));
+    v_p_2 = sqrt((norm(v_inf_plus)^2 + 2*mu_flyby_planet/rp));
+    
+    DeltaV_power = v_p_2 - v_p_1;
+
 end
-
-if rp < astroConstants(23) + 300
-    error('Error: the flyby is performed under 300 km of Height'); % goes to catch
-end
-
-v_p_1 = sqrt((norm(v_inf_minus)^2 + 2*mu_flyby_planet/rp));
-v_p_2 = sqrt((norm(v_inf_plus)^2 + 2*mu_flyby_planet/rp));
-
-DeltaV_power = v_p_2 - v_p_1;
 
 end
 

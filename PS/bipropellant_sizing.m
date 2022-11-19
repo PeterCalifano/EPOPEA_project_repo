@@ -6,10 +6,12 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_sizing( oxidi
 %                               oxidizer.rho : density of propellant              [ kg/m^3 ]          
 %                               oxidizer.OFratio : O/F ratio                      [ - ]
 %                               oxidizer.prop_mass : mass of propellant           [ kg ]
+%                               oxidizer.type : geometry of oxidizer tank 
+%                                               ('Spherical' or 'Cylindrical')      
 %
 % fuel          [ struc ] - Structure with all propellant properties:
 %                               fuel.rho : density of propellant                  [ kg/m^3 ]   
-%
+
 % pressurant    [ struc ] - Structure with all pressurant properties:
 %                               pressurant.feed_system : feeding system type      [ str ]
 %                                       - 'Blowdown' 
@@ -20,17 +22,19 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_sizing( oxidi
 %                               pressurant.R : specific gas constant              [ J/kgK ]
 %                               pressurant.pressure : initial pressure of         [ Pa ]
 %                                                     pressurant     
-%
+%                               pressurant.type : geometry of pressurant tank 
+%                                                 ('Spherical' or 'Cylindrical')
+
 % tank          [ struc ] - Structure with all tank properties
 %                               tank.rho : tank material density                  [ kg/m^3 ]
 %                               tank.sigma : tank material strenght               [ Pa ]
-%                               tank.height : cylindrical intersection height     [ m ]
+%                               tank.ratio : cylindrical intersection radiut-to-height ratio    [ m ]
 %                               tank.temperature : tank temperature (if not given [ K ]
 %                                                  will be considered as 10 deg)               
-%                               tank.type : tank geometry                         [ str ]
-%                                       - 'Spherical' 
-%                                       - 'Cylindrical' -> cylindrical with
-%                                                          spherical caps
+                        %                               tank.type : tank geometry                         [ str ]
+                        %                                       - 'Spherical' 
+                        %                                       - 'Cylindrical' -> cylindrical with
+                        %                                                          spherical caps
 %                               tank.number : number of tanks ( defines if        [ - ]
 %                                             propellant and pressurant are in 
 %                                             the same tank or in saperate tanks)
@@ -45,6 +49,8 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_sizing( oxidi
 %                               thruster.number : number of thrusters             [ - ]
 %                               thruster.chamber_pressure : combustion            [ Pa ]
 %                                                           chamber pressure
+%                               thurster.chamber_pressure_min : maximum           [ Pa ]
+%                                                               chamber pressure
 
 % OUTPUTS
 %
@@ -116,7 +122,7 @@ function [ M_PS, sizing_ox, sizing_fu, sizing_gas ] = bipropellant_sizing( oxidi
 
 %% Recover data from structures
 m_prop = oxidizer.prop_mass ;                                                     % [ kg ] - Propellant mass
-m_prop = m_prop * 1.13 ;                                                          % [ kg ] Margin: MAR-CP-010 + 3% of unsable mass
+m_prop = m_prop * 1.12 ;                                                          % [ kg ] Margin: MAR-CP-010 + 3% of unsable mass
   
 OF = oxidizer.OFratio ;                                                           % [ - ] - Oxidizer-to-fuel ratio
 
@@ -174,6 +180,14 @@ switch pressurant.feed_system
 
     case 'Blowdown'
         B = pressurant.feed_system. B ;                                           % [ - ] - Blowdown ratio
+        
+        P_c_min = thruster.chamber_pressure_min ;
+        Pf_gas = P_c_min + dP_feed ;
+        B_max = Pi_gas / Pf_gas ;
+
+        if B > B_max
+            error( 'Blowdown ratio exceeds the maximum value: %d \n', B_max ) 
+        end
 
         % Oxidizer
         V_gas_ox = V_ox / ( B - 1) ;                                              % [ m^3 ] - Pressurant volume for oxidizer
@@ -216,91 +230,139 @@ end
 
 if tank.number == 2 % Case in which pressurant and propellant are in the same tank (1 for ox, 1 for fu)
     
-    switch tank.type
+    switch oxidizer.type
 
         case 'Spherical'
-            % Oxidizer & pressurant
             r_tank_ox = ( ( 3 * ( V_gas_ox + V_ox ) ) / ( 4 * pi ) ) ^ ( 1 / 3 ); % [ m ] - Oxidizer-pressurant tank radius
             t_tank_ox = ( Pi_gas * r_tank_ox ) / ( 2 * sigma_tank ) ;             % [ m ] - Oxidizer-pressurant tank thickness
-    
-            m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Oxidizer-pressurant tank mass
-                        t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) ; 
 
-            % Fuel & pressurant
-            r_tank_fu = ( ( 3 * ( V_gas_fu + V_fu ) ) / ( 4 * pi ) ) ^ ( 1 / 3 ); % [ m ] - Fuel-pressurant tank radius
+            m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Oxidizer-pressurant tank mass
+                t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) ;
+
+                        r_tank_fu = ( ( 3 * ( V_gas_fu + V_fu ) ) / ( 4 * pi ) ) ^ ( 1 / 3 ); % [ m ] - Fuel-pressurant tank radius
             t_tank_fu = ( Pi_gas * r_tank_fu ) / ( 2 * sigma_tank ) ;             % [ m ] - Fuel-pressurant tank thickness
-    
+
             m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Fuel-pressurant tank mass
-                        t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) ; 
-            
-            %
-            m_tank = m_tank_ox + m_tank_fu ;                                      % [ kg ] - Total tank mass
+                t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) ;
 
         case 'Cylindrical'
-            h_tank = tank.heigh ;                                                 % [ m ] - Height of cylindrical interection 
-            
-            % Oxidizer & pressurant
-            r_function_ox = @( x ) ( V_gas_ox + V_ox ) - ( 4 * pi / 3 ) * ...     % Function used to compute the radius of the tank knowing the height
-                                   x ^ 3 - pi * h_tank * x ^ 2 ; 
-            r_guess_ox = 0.3 * h_tank ;
-            r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+            ratio = tank.ratio ;                                                 % [ - ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+            % height = radius / ratio
 
+            r_function_ox = @( x ) ( V_gas_ox + V_ox ) - ( 4 * pi / 3 ) * ...     % Function used to compute the radius of the tank knowing the height
+                                   x ^ 3 - pi * x / ratio * x ^ 2 ; 
+            r_guess_ox = 0.3 * ratio ;
+            r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+            h_tank = r_tank_ox / ratio ;
             t_tank_ox = ( Pi_gas * r_tank_ox ) / sigma_tank ;                     % [ m ] - Oxidizer-pressurant tank thickness
            
             m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox +  ...        % [ kg ] - Oxidizer-pressurant tank mass
                         t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ( ...
                         ( r_tank_ox + t_tank_ox) ^ 2 - r_tank_ox ^ 2 ) ) ;
 
-            % Fuel & pressurant
-            r_function_fu = @( x ) ( V_gas_fu + V_fu ) - ( 4 * pi / 3 ) *  ...    % Function used to compute the radius of the tank knowing the height
-                                x ^ 3 - pi * h_tank * x ^ 2 ; 
-            r_guess_fu = 0.3 * h_tank ;
-            r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+            sizing_ox.heigth = h_tank ;                                    % Save in output structure
 
+            r_function_fu = @( x ) ( V_gas_fu + V_fu ) - ( 4 * pi / 3 ) *  ...    % Function used to compute the radius of the tank knowing the height
+                                x ^ 3 - pi * x / ratio * x ^ 2 ; 
+            r_guess_fu = 0.3 * ratio ;
+            r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+            h_tank = r_tank_fu / ratio ;
             t_tank_fu = ( Pi_gas * r_tank_fu ) / sigma_tank ;                     % [ m ] - Fuel-pressurant tank thickness
            
             m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Fuel-pressurant tank mass
                         t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ( ...
-                        ( r_tank_fu + t_tank_fu) ^ 2 - r_tank_fu ^ 2 ) ) ;
+                        ( r_tank_fu + t_tank_fu) ^ 2 - r_tank_fu ^ 2 ) ) ;      
 
-            %
-            m_tank = m_tank_ox + m_tank_fu ;                                      % [ kg ] - Total tank mass
-            
+            sizing_fu.heigth = h_tank ;                                    % Save in output structure
     end
 
+    m_tank = m_tank_ox + m_tank_fu ;
 
-    sizing_ox.single.type = tank.type ;                                           % Save in output structure
-    sizing_ox.single.mass_press = m_gas_ox ;                                      % Save in output structure
-    sizing_ox.single.volume_press = V_gas_ox ;                                    % Save in output structure
-    sizing_ox.single.mass_ox = m_ox ;                                             % Save in output structure
-    sizing_ox.single.volume_ox = V_ox ;                                           % Save in output structure
-    sizing_ox.single.radius = r_tank_ox ;                                         % Save in output structure
-    sizing_ox.single.thickness = t_tank_ox ;                                      % Save in output structure
-    sizing_ox.single.tank_mass = m_tank_ox ;                                      % Save in output structure
-    sizing_ox.single.tank_volume = V_gas_ox + V_ox ;                              % Save in output structure
+    sizing_ox.type = oxidizer.type ;                                           % Save in output structure
+    sizing_ox.mass_press = m_gas_ox ;                                      % Save in output structure
+    sizing_ox.volume_press = V_gas_ox ;                                    % Save in output structure
+    sizing_ox.mass_ox = m_ox ;                                             % Save in output structure
+    sizing_ox.volume_ox = V_ox ;                                           % Save in output structure
+    sizing_ox.radius = r_tank_ox ;                                         % Save in output structure
+    sizing_ox.thickness = t_tank_ox ;                                      % Save in output structure
+    sizing_ox.tank_mass = m_tank_ox ;                                      % Save in output structure
+    sizing_ox.tank_volume = V_gas_ox + V_ox ;                              % Save in output structure
 
-    sizing_fu.single.type = tank.type ;                                           % Save in output structure
-    sizing_fu.single.mass_press = m_gas_fu ;                                      % Save in output structure
-    sizing_fu.single.volume_press = V_gas_fu ;                                    % Save in output structure
-    sizing_fu.single.mass_fu = m_fu ;                                             % Save in output structure
-    sizing_fu.single.volume_fu = V_fu ;                                           % Save in output structure
-    sizing_fu.single.radius = r_tank_fu ;                                         % Save in output structure
-    sizing_fu.single.thickness = t_tank_fu ;                                      % Save in output structure
-    sizing_fu.single.tank_mass = m_tank_fu ;                                      % Save in output structure
-    sizing_fu.single.tank_volume = V_gas_fu + V_fu ;                              % Save in output structure
+    sizing_fu.type = fuel.type ;                                           % Save in output structure
+    sizing_fu.mass_press = m_gas_fu ;                                      % Save in output structure
+    sizing_fu.volume_press = V_gas_fu ;                                    % Save in output structure
+    sizing_fu.mass_fu = m_fu ;                                             % Save in output structure
+    sizing_fu.volume_fu = V_fu ;                                           % Save in output structure
+    sizing_fu.radius = r_tank_fu ;                                         % Save in output structure
+    sizing_fu.thickness = t_tank_fu ;                                      % Save in output structure
+    sizing_fu.tank_mass = m_tank_fu ;                                      % Save in output structure
+    sizing_fu.tank_volume = V_gas_fu + V_fu ;                              % Save in output structure
+
+
+
+%     switch tank.type
+% 
+%         case 'Spherical'
+%             % Oxidizer & pressurant
+%             r_tank_ox = ( ( 3 * ( V_gas_ox + V_ox ) ) / ( 4 * pi ) ) ^ ( 1 / 3 ); % [ m ] - Oxidizer-pressurant tank radius
+%             t_tank_ox = ( Pi_gas * r_tank_ox ) / ( 2 * sigma_tank ) ;             % [ m ] - Oxidizer-pressurant tank thickness
+%     
+%             m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Oxidizer-pressurant tank mass
+%                         t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) ; 
+% 
+%             % Fuel & pressurant
+%             r_tank_fu = ( ( 3 * ( V_gas_fu + V_fu ) ) / ( 4 * pi ) ) ^ ( 1 / 3 ); % [ m ] - Fuel-pressurant tank radius
+%             t_tank_fu = ( Pi_gas * r_tank_fu ) / ( 2 * sigma_tank ) ;             % [ m ] - Fuel-pressurant tank thickness
+%     
+%             m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Fuel-pressurant tank mass
+%                         t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) ; 
+%             
+%             %
+%             m_tank = m_tank_ox + m_tank_fu ;                                      % [ kg ] - Total tank mass
+
+%         case 'Cylindrical'
+%             ratio = tank.ratio ;                                                 % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+% 
+%             % height = radius / ratio
+% 
+%             % Oxidizer & pressurant
+%             r_function_ox = @( x ) ( V_gas_ox + V_ox ) - ( 4 * pi / 3 ) * ...     % Function used to compute the radius of the tank knowing the height
+%                                    x ^ 3 - pi * x / ratio * x ^ 2 ; 
+%             r_guess_ox = 0.3 * ratio ;
+%             r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+%             h_tank = r_tank_ox / ratio ;
+%             t_tank_ox = ( Pi_gas * r_tank_ox ) / sigma_tank ;                     % [ m ] - Oxidizer-pressurant tank thickness
+%            
+%             m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox +  ...        % [ kg ] - Oxidizer-pressurant tank mass
+%                         t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ( ...
+%                         ( r_tank_ox + t_tank_ox) ^ 2 - r_tank_ox ^ 2 ) ) ;
+% 
+%             % Fuel & pressurant
+%             r_function_fu = @( x ) ( V_gas_fu + V_fu ) - ( 4 * pi / 3 ) *  ...    % Function used to compute the radius of the tank knowing the height
+%                                 x ^ 3 - pi * x / ratio * x ^ 2 ; 
+%             r_guess_fu = 0.3 * ratio ;
+%             r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+%             h_tank = r_tank_fu / ratio ;
+%             t_tank_fu = ( Pi_gas * r_tank_fu ) / sigma_tank ;                     % [ m ] - Fuel-pressurant tank thickness
+%            
+%             m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Fuel-pressurant tank mass
+%                         t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ( ...
+%                         ( r_tank_fu + t_tank_fu) ^ 2 - r_tank_fu ^ 2 ) ) ;
+% 
+%             %
+%             m_tank = m_tank_ox + m_tank_fu ;                                      % [ kg ] - Total tank mass
+%             sizing_ox.single.heigth = r_tank_ox / ratio ;                                    % Save in output structure
+%             sizing_fu.single.heigth = r_tank_fu / ratio ;                                    % Save in output structure
+  
+%     end
+
+
 
 elseif tank.number == 3  % Case in which pressurant and propellant are in separate tanks ( 1 common pressurant, 1 ox and 1 fu ) 
 
-    switch tank.type
+    switch oxidizer.type
 
         case 'Spherical'
-            % Pressurant tank
-            r_tank_gas = ( ( 3 * ( V_gas_fu + V_gas_ox ) ) / ( 4 * pi ) ) ^ ...   % [ m ] - Pressurant tank radius
-                         ( 1 / 3 );             
-            t_tank_gas = ( Pi_gas * r_tank_gas ) / ( 2 * sigma_tank ) ;           % [ m ] - Pressurant anks thickness
-            m_tank_gas = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas + ...         % [ kg ] - Pressurant tank mass 
-                         t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) ; 
-
             % Oxidizer tank
             r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
             t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
@@ -313,28 +375,19 @@ elseif tank.number == 3  % Case in which pressurant and propellant are in separa
             m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
                           t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
 
-            m_tank = m_tank_gas + m_tank_ox + m_tank_fu ;                         % [ kg ] - Total tank mass
-
         case 'Cylindrical'
-    
-            h_tank = tank.heigh ;                                                 % [ m ] - Height of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
-            
-            % Pressurant tank
-            r_function_gas = @( x ) ( V_gas_ox + V_gas_fu ) - ( 4 * pi / 3 )  ... % Function used to compute the radius of the tank knowing the height
-                                    * x ^ 3 - pi * h_tank * x ^ 2 ; 
-            r_guess_gas = 0.3 * h_tank ;
-            r_tank_gas = fzero( r_function_gas, r_guess_gas ) ;   
-            t_tank_gas = ( Pi_gas * r_tank_gas ) / sigma_tank ;                   % [ m ] - Tank thickness
-           
-            m_tank_gas = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas + ...       % [ kg ] - Tank mass
-                         t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) +  pi * h_tank *...
-                         ( ( r_tank_gas + t_tank_gas) ^ 2 - r_tank_gas ^ 2 ) ) ;
-
             % Oxidizer tank
+            ratio = tank.ratio ;                                                  % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+            % height = radius / ratio
+
             r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
-                                     h_tank * x ^ 2 ; 
-            r_guess_ox = 0.3 * h_tank ;
+                                     x / ratio * x ^ 2 ; 
+            r_guess_ox = 0.3 * ratio ;
             r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+
+            h_tank = r_tank_ox / ratio ;
+
+            sizing_ox.heigth = h_tank ;                                    % Save in output structure
 
             t_tank_ox = ( Pi_prop * r_tank_ox ) / sigma_tank ;                    % [ m ] - Tank thickness
            
@@ -344,9 +397,12 @@ elseif tank.number == 3  % Case in which pressurant and propellant are in separa
  
             % Fuel tank
             r_function_fu = @( x ) V_fu - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
-                                     h_tank * x ^ 2 ; 
-            r_guess_fu = 0.3 * h_tank ;
+                                     x / ratio * x ^ 2 ; 
+            r_guess_fu = 0.3 * ratio ;
             r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+
+            h_tank = r_tank_fu / ratio ;
+            sizing_fu.heigth = h_tank ;                                    % Save in output structure
 
             t_tank_fu = ( Pi_prop * r_tank_fu ) / sigma_tank ;                    % [ m ] - Tank thickness
            
@@ -354,37 +410,207 @@ elseif tank.number == 3  % Case in which pressurant and propellant are in separa
                          t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ...
                          ( ( r_tank_fu + t_tank_fu ) ^ 2 - r_tank_fu ^ 2 ) ) ;
 
-            %
-            m_tank = m_tank_gas + m_tank_ox + m_tank_fu ;                         % [ kg ] - Total tank mass
-
     end
 
-    sizing_ox.type = tank.type ;                                                  % Save in output structure
+    switch pressurant.type
+
+        case 'Spherical'
+            r_tank_gas = ( ( 3 * ( V_gas_fu + V_gas_ox ) ) / ( 4 * pi ) ) ^ ...   % [ m ] - Pressurant tank radius
+                ( 1 / 3 );
+            t_tank_gas = ( Pi_gas * r_tank_gas ) / ( 2 * sigma_tank ) ;           % [ m ] - Pressurant anks thickness
+            m_tank_gas = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas + ...         % [ kg ] - Pressurant tank mass
+                t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) ;
+
+        case 'Cylindrical'
+            ratio = tank.ratio ;                                                 % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+            % height = radius / ratio
+
+            r_function_gas = @( x ) ( V_gas_ox + V_gas_fu ) - ( 4 * pi / 3 )  ... % Function used to compute the radius of the tank knowing the height
+                                    * x ^ 3 - pi * x / ratio * x ^ 2 ; 
+            r_guess_gas = 0.3 * ratio ;
+            r_tank_gas = fzero( r_function_gas, r_guess_gas ) ;   
+            h_tank = r_tank_gas / ratio ;
+            sizing_gas.heigth = h_tank ;                                    % Save in output structure
+
+            t_tank_gas = ( Pi_gas * r_tank_gas ) / sigma_tank ;                   % [ m ] - Tank thickness
+           
+            m_tank_gas = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas + ...       % [ kg ] - Tank mass
+                         t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) +  pi * h_tank *...
+                         ( ( r_tank_gas + t_tank_gas) ^ 2 - r_tank_gas ^ 2 ) ) ;
+    end
+
+    m_tank = m_tank_gas + m_tank_ox + m_tank_fu ;                                 % [ kg ] - Total tank mass
+
+    sizing_ox.type = oxidizer.type ;                                              % Save in output structure
     sizing_ox.mass = m_ox ;                                                       % Save in output structure
     sizing_ox.volume = V_ox ;                                                     % Save in output structure
     sizing_ox.radius = r_tank_ox ;                                                % Save in output structure
     sizing_ox.thickness = t_tank_ox ;                                             % Save in output structure
     sizing_ox.tank_mass = m_tank_ox ;                                             % Save in output structure
 
-    sizing_fu.type = tank.type ;                                                  % Save in output structure
+    sizing_fu.type = oxidizer.type ;                                                  % Save in output structure
     sizing_fu.mass = m_fu ;                                                       % Save in output structure
     sizing_fu.volume = V_fu ;                                                     % Save in output structure
     sizing_fu.radius = r_tank_fu ;                                                % Save in output structure
     sizing_fu.thickness = t_tank_fu ;                                             % Save in output structure
     sizing_fu.tank_mass = m_tank_fu;                                              % Save in output structure
 
-    sizing_gas.type = tank.type ;                                                 % Save in output structure
+    sizing_gas.type = pressurant.type ;                                                 % Save in output structure
     sizing_gas.mass = m_gas ;                                                     % Save in output structure
     sizing_gas.volume = V_gas ;                                                   % Save in output structure
     sizing_gas.radius = r_tank_gas ;                                              % Save in output structure
     sizing_gas.thickness = t_tank_gas ;                                           % Save in output structure
     sizing_gas.tank_mass = m_tank_gas;                                            % Save in output structure
 
-    sizing.propellant.total_mass = m_tank ;                                       % Save in output structure
+
+%     switch tank.type
+
+%         case 'Spherical'
+%             % Pressurant tank
+%             r_tank_gas = ( ( 3 * ( V_gas_fu + V_gas_ox ) ) / ( 4 * pi ) ) ^ ...   % [ m ] - Pressurant tank radius
+%                 ( 1 / 3 );
+%             t_tank_gas = ( Pi_gas * r_tank_gas ) / ( 2 * sigma_tank ) ;           % [ m ] - Pressurant anks thickness
+%             m_tank_gas = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas + ...         % [ kg ] - Pressurant tank mass
+%                 t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) ;
+% 
+%             % Oxidizer tank
+%             r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+%             t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+%             m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Propellant tank mass
+%                           t_tank_ox) ^ 3 - r_tank_ox ^ 3 ) ;
+% 
+% 
+%             % Fuel tank
+%             r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+%             t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+%             m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
+%                           t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
+
+% m_tank = m_tank_gas + m_tank_ox + m_tank_fu ;                         % [ kg ] - Total tank mass
+
+%         case 'Cylindrical'
+%     
+%             ratio = tank.ratio ;                                                 % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+% 
+%             % height = radius / ratio
+% 
+%             % Pressurant tank
+%             r_function_gas = @( x ) ( V_gas_ox + V_gas_fu ) - ( 4 * pi / 3 )  ... % Function used to compute the radius of the tank knowing the height
+%                                     * x ^ 3 - pi * x / ratio * x ^ 2 ; 
+%             r_guess_gas = 0.3 * ratio ;
+%             r_tank_gas = fzero( r_function_gas, r_guess_gas ) ;   
+%             h_tank = r_tank_gas / ratio ;
+%             t_tank_gas = ( Pi_gas * r_tank_gas ) / sigma_tank ;                   % [ m ] - Tank thickness
+%            
+%             m_tank_gas = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas + ...       % [ kg ] - Tank mass
+%                          t_tank_gas ) ^ 3 - r_tank_gas ^ 3 ) +  pi * h_tank *...
+%                          ( ( r_tank_gas + t_tank_gas) ^ 2 - r_tank_gas ^ 2 ) ) ;
+% 
+%             % Oxidizer tank
+%             r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+%                                      x / ratio * x ^ 2 ; 
+%             r_guess_ox = 0.3 * ratio ;
+%             r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+% 
+%             h_tank = r_tank_ox / ratio ;
+%             t_tank_ox = ( Pi_prop * r_tank_ox ) / sigma_tank ;                    % [ m ] - Tank thickness
+%            
+%             m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox + ...         % [ kg ] - Tank mass
+%                          t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ...
+%                          ( ( r_tank_ox + t_tank_ox ) ^ 2 - r_tank_ox ^ 2 ) ) ;
+%  
+%             % Fuel tank
+%             r_function_fu = @( x ) V_fu - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+%                                      x / ratio * x ^ 2 ; 
+%             r_guess_fu = 0.3 * ratio ;
+%             r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+% 
+%             h_tank = r_tank_fu / ratio ;
+%             t_tank_fu = ( Pi_prop * r_tank_fu ) / sigma_tank ;                    % [ m ] - Tank thickness
+%            
+%             m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Tank mass
+%                          t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ...
+%                          ( ( r_tank_fu + t_tank_fu ) ^ 2 - r_tank_fu ^ 2 ) ) ;
+% 
+%             %
+%             m_tank = m_tank_gas + m_tank_ox + m_tank_fu ;                         % [ kg ] - Total tank mass
+            
+%             sizing_ox.heigth = r_tank_ox / ratio ;                                    % Save in output structure
+%             sizing_fu.heigth = r_tank_fu / ratio ;                                    % Save in output structure
+%             sizing_gas.heigth = r_tank_gas / ratio ;                                    % Save in output structure
+
+%     end
+% 
+%     sizing_ox.type = tank.type ;                                                  % Save in output structure
+%     sizing_ox.mass = m_ox ;                                                       % Save in output structure
+%     sizing_ox.volume = V_ox ;                                                     % Save in output structure
+%     sizing_ox.radius = r_tank_ox ;                                                % Save in output structure
+%     sizing_ox.thickness = t_tank_ox ;                                             % Save in output structure
+%     sizing_ox.tank_mass = m_tank_ox ;                                             % Save in output structure
+% 
+%     sizing_fu.type = tank.type ;                                                  % Save in output structure
+%     sizing_fu.mass = m_fu ;                                                       % Save in output structure
+%     sizing_fu.volume = V_fu ;                                                     % Save in output structure
+%     sizing_fu.radius = r_tank_fu ;                                                % Save in output structure
+%     sizing_fu.thickness = t_tank_fu ;                                             % Save in output structure
+%     sizing_fu.tank_mass = m_tank_fu;                                              % Save in output structure
+% 
+%     sizing_gas.type = tank.type ;                                                 % Save in output structure
+%     sizing_gas.mass = m_gas ;                                                     % Save in output structure
+%     sizing_gas.volume = V_gas ;                                                   % Save in output structure
+%     sizing_gas.radius = r_tank_gas ;                                              % Save in output structure
+%     sizing_gas.thickness = t_tank_gas ;                                           % Save in output structure
+%     sizing_gas.tank_mass = m_tank_gas;                                            % Save in output structure
+% 
+%     sizing.propellant.total_mass = m_tank ;                                       % Save in output structure
 
 elseif tank.number == 4  % Case in which pressurant and propellant are in separate tanks ( 1 pressurant for ox, 1 pressurant for ru, 1 ox and 1 fu ) 
 
-    switch tank.type
+    switch oxidizer.type
+
+        case 'Spherical'
+            % Oxidizer tank
+            r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+            t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+            m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Propellant tank mass
+                          t_tank_ox) ^ 3 - r_tank_ox ^ 3 ) ;
+
+            % Fuel tank
+            r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+            t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+            m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
+                          t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
+
+        case 'Cylindrical'
+            % Oxidizer tank
+            r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+                                     x / ratio * x ^ 2 ; 
+            r_guess_ox = 0.3 * ratio ;
+            r_tank_ox = fzero( r_function_ox, r_guess_ox ) ; 
+            h_tank = r_tank_ox / ratio;
+            sizing_ox.heigth = h_tank ;                                    % Save in output structure
+            t_tank_ox = ( Pi_prop * r_tank_ox ) / sigma_tank ;                    % [ m ] - Oxidizer tank thickness
+           
+            m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox + ...         % [ kg ] - Oxidizer tank mass
+                         t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ...
+                         ( ( r_tank_ox + t_tank_ox ) ^ 2 - r_tank_ox ^ 2 ) ) ;
+
+            % Fuel tank
+            r_function_fu = @( x ) V_fu - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+                                     x / ratio * x ^ 2 ; 
+            r_guess_fu = 0.3 * ratio ;
+            r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+            h_tank = r_tank_fu / ratio ;
+            sizing_fu.heigth = h_tank ;                                    % Save in output structure
+            t_tank_fu = ( Pi_prop * r_tank_fu ) / sigma_tank ;                    % [ m ] - Fuel tank thickness
+           
+            m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Fuel tank mass
+                         t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ...
+                         ( ( r_tank_fu + t_tank_fu ) ^ 2 - r_tank_fu ^ 2 ) ) ;
+
+    end
+
+    switch pressurant.type
 
         case 'Spherical'
             % Oxider pressurant tank
@@ -394,12 +620,6 @@ elseif tank.number == 4  % Case in which pressurant and propellant are in separa
             m_tank_gas_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas_ox + ...   % [ kg ] - Pressurant tank mass 
                          t_tank_gas_ox ) ^ 3 - r_tank_gas_ox ^ 3 ) ; 
 
-            % Oxidizer tank
-            r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
-            t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
-            m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Propellant tank mass
-                          t_tank_ox) ^ 3 - r_tank_ox ^ 3 ) ;
-
             % Fuel pressurant tank
             r_tank_gas_fu = ( ( 3 * V_gas_fu ) / ( 4 * pi ) ) ^ ...               % [ m ] - Pressurant tank radius
                          ( 1 / 3 );             
@@ -407,94 +627,159 @@ elseif tank.number == 4  % Case in which pressurant and propellant are in separa
             m_tank_gas_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas_fu + ...   % [ kg ] - Pressurant tank mass 
                          t_tank_gas_fu ) ^ 3 - r_tank_gas_fu ^ 3 ) ; 
 
-            % Fuel tank
-            r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
-            t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
-            m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
-                          t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
-
-            m_tank = m_tank_gas_ox + m_tank_gas_fu + m_tank_ox + m_tank_fu ;      % [ kg ] - Total tank mass
 
         case 'Cylindrical'
-    
-            h_tank = tank.heigh ;                                                 % [ m ] - Height of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+
+            ratio = tank.ratio ;                                                 % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+            % height = radius / ratio
 
             % Oxidizer pressurant tank
             r_function_gas_ox = @( x ) V_gas_ox - ( 4 * pi / 3 ) * x ^ 3 - ...    % Function used to compute the radius of the tank knowing the height
-                                    pi * h_tank * x ^ 2 ; 
-            r_guess_gas_ox = 0.3 * h_tank ;
+                                    pi * x / ratio * x ^ 2 ; 
+            r_guess_gas_ox = 0.3 * ratio ;
             r_tank_gas_ox = fzero( r_function_gas_ox, r_guess_gas_ox ) ;   
+            h_tank = r_tank_gas_ox / ratio ;
+            sizing_ox.heigth_press = h_tank ;                                    % Save in output structure
             t_tank_gas_ox = ( Pi_gas * r_tank_gas_ox ) / sigma_tank ;             % [ m ] - Oxidizer pressurant tank thickness
            
             m_tank_gas_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas_ox + ... % [ kg ] - Oxidizer pressurant tank mass
                          t_tank_gas_ox ) ^ 3 - r_tank_gas_ox ^ 3 ) +  pi * h_tank *...
                          ( ( r_tank_gas_ox + t_tank_gas_ox ) ^ 2 - r_tank_gas_ox ^ 2 ) ) ;
 
-            % Oxidizer tank
-            r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
-                                     h_tank * x ^ 2 ; 
-            r_guess_ox = 0.3 * h_tank ;
-            r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
-
-            t_tank_ox = ( Pi_prop * r_tank_ox ) / sigma_tank ;                    % [ m ] - Oxidizer tank thickness
-           
-            m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox + ...         % [ kg ] - Oxidizer tank mass
-                         t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ...
-                         ( ( r_tank_ox + t_tank_ox ) ^ 2 - r_tank_ox ^ 2 ) ) ;
- 
             % Fuel pressurant tank
             r_function_gas_fu = @( x ) V_gas_fu - ( 4 * pi / 3 ) * x ^ 3 - ...    % Function used to compute the radius of the tank knowing the height
-                                    pi * h_tank * x ^ 2 ; 
-            r_guess_gas_fu = 0.3 * h_tank ;
+                                    pi * x / ratio * x ^ 2 ; 
+            r_guess_gas_fu = 0.3 * ratio ;
             r_tank_gas_fu = fzero( r_function_gas_fu, r_guess_gas_fu ) ;   
+            h_tank = r_tank_gas_fu / ratio ;
+            sizing_fu.heigth_press = h_tank ;                                    % Save in output structure
             t_tank_gas_fu = ( Pi_gas * r_tank_gas_fu ) / sigma_tank ;             % [ m ] - Fuel pressurant tank thickness
            
             m_tank_gas_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas_fu + ... % [ kg ] - Fuel pressurant tank mass
                          t_tank_gas_fu ) ^ 3 - r_tank_gas_fu ^ 3 ) +  pi * h_tank *...
                          ( ( r_tank_gas_fu + t_tank_gas_fu ) ^ 2 - r_tank_gas_fu ^ 2 ) ) ;
 
-            % Fuel tank
-            r_function_fu = @( x ) V_fu - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
-                                     h_tank * x ^ 2 ; 
-            r_guess_fu = 0.3 * h_tank ;
-            r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+    end
 
-            t_tank_fu = ( Pi_prop * r_tank_fu ) / sigma_tank ;                    % [ m ] - Fuel tank thickness
-           
-            m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Fuel tank mass
-                         t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ...
-                         ( ( r_tank_fu + t_tank_fu ) ^ 2 - r_tank_fu ^ 2 ) ) ;
+    m_tank = m_tank_gas_ox + m_tank_gas_fu + m_tank_ox + m_tank_fu ;      % [ kg ] - Total tank mass
 
-            %
-            m_tank = m_tank_gas_ox + m_tank_gas_fu + m_tank_ox + m_tank_fu ;      % [ kg ] - Total tank mass
-
-    end 
-
-    sizing_ox.type = tank.type ;                                                  % Save in output structure
+    sizing_ox.type_press = pressurant.type ;                                                  % Save in output structure
     sizing_ox.mass_press = m_gas_ox ;                                             % Save in output structure
     sizing_ox.volume_press = V_gas_ox ;                                           % Save in output structure
     sizing_ox.radius_press = r_tank_gas_ox ;                                      % Save in output structure
     sizing_ox.thickness_press = t_tank_gas_ox ;                                   % Save in output structure
     sizing_ox.tank_mass_press = m_tank_gas_ox ;                                   % Save in output structure
 
+    sizing_ox.type = oxidizer.type ;                                                  % Save in output structure
     sizing_ox.mass = m_ox ;                                                    % Save in output structure
     sizing_ox.volume = V_ox ;                                                  % Save in output structure                                  % Save in output structure
     sizing_ox.radius = r_tank_ox ;                                         % Save in output structure
     sizing_ox.thickness = t_tank_ox ;                                      % Save in output structure
     sizing_ox.tank_mass = m_tank_ox ;                                      % Save in output structure
 
-    sizing_fu.type = tank.type ;                                                  % Save in output structure
+    sizing_fu.type_press = pressurant.type ;                                                  % Save in output structure
     sizing_fu.mass_press = m_gas_fu ;                                             % Save in output structure
     sizing_fu.volume_press = V_gas_fu ;                                           % Save in output structure
     sizing_fu.radius_press = r_tank_gas_fu ;                                      % Save in output structure
     sizing_fu.thickness_press = t_tank_gas_fu ;                                   % Save in output structure
     sizing_fu.tank_mass_press = m_tank_gas_fu ;                                   % Save in output structure
 
+    sizing_fu.type = oxidizer.type ;                                                  % Save in output structure
     sizing_fu.mass = m_fu ;                                                    % Save in output structure
     sizing_fu.volume = V_fu ;                                                  % Save in output structure                                  % Save in output structure
     sizing_fu.radius = r_tank_fu ;                                         % Save in output structure
     sizing_fu.thickness = t_tank_fu ;                                      % Save in output structure
     sizing_fu.tank_mass = m_tank_fu ;                                      % Save in output structure
+
+%     switch tank.type
+% 
+%         case 'Spherical'
+%             % Oxider pressurant tank
+%             r_tank_gas_ox = ( ( 3 * V_gas_ox ) / ( 4 * pi ) ) ^ ...               % [ m ] - Pressurant tank radius
+%                          ( 1 / 3 );             
+%             t_tank_gas_ox = ( Pi_gas * r_tank_gas_ox ) / ( 2 * sigma_tank ) ;     % [ m ] - Pressurant anks thickness
+%             m_tank_gas_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas_ox + ...   % [ kg ] - Pressurant tank mass 
+%                          t_tank_gas_ox ) ^ 3 - r_tank_gas_ox ^ 3 ) ; 
+% 
+%             % Oxidizer tank
+%             r_tank_ox = ( ( 3 * V_ox ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+%             t_tank_ox = ( Pi_prop * r_tank_ox ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+%             m_tank_ox = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_ox + ...           % [ kg ] - Propellant tank mass
+%                           t_tank_ox) ^ 3 - r_tank_ox ^ 3 ) ;
+
+%             % Fuel pressurant tank
+%             r_tank_gas_fu = ( ( 3 * V_gas_fu ) / ( 4 * pi ) ) ^ ...               % [ m ] - Pressurant tank radius
+%                          ( 1 / 3 );             
+%             t_tank_gas_fu = ( Pi_gas * r_tank_gas_fu ) / ( 2 * sigma_tank ) ;     % [ m ] - Pressurant anks thickness
+%             m_tank_gas_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_gas_fu + ...   % [ kg ] - Pressurant tank mass 
+%                          t_tank_gas_fu ) ^ 3 - r_tank_gas_fu ^ 3 ) ; 
+
+%             % Fuel tank
+%             r_tank_fu = ( ( 3 * V_fu ) / ( 4 * pi ) ) ^ ( 1 / 3 );                % [ m ] - Propellant tank radius
+%             t_tank_fu = ( Pi_prop * r_tank_fu ) / ( 2 * sigma_tank ) ;            % [ m ] - Propellant tank thickness
+%             m_tank_fu = rho_tank * ( 4 * pi / 3 ) * ( ( r_tank_fu + ...           % [ kg ] - Propellant tank mass
+%                           t_tank_fu) ^ 3 - r_tank_fu ^ 3 ) ;
+% 
+%             m_tank = m_tank_gas_ox + m_tank_gas_fu + m_tank_ox + m_tank_fu ;      % [ kg ] - Total tank mass
+% 
+%         case 'Cylindrical'
+%     
+%             ratio = tank.ratio ;                                                 % [ m ] - Radius-to-height ratio of cylindrical interection - NOTE: we assumed both propellant and pressurant tanks to have same height
+% 
+%             % height = radius / ratio
+% 
+%             % Oxidizer pressurant tank
+%             r_function_gas_ox = @( x ) V_gas_ox - ( 4 * pi / 3 ) * x ^ 3 - ...    % Function used to compute the radius of the tank knowing the height
+%                                     pi * x / ratio * x ^ 2 ; 
+%             r_guess_gas_ox = 0.3 * ratio ;
+%             r_tank_gas_ox = fzero( r_function_gas_ox, r_guess_gas_ox ) ;   
+%             h_tank = r_tank_gas_ox / ratio ;
+%             t_tank_gas_ox = ( Pi_gas * r_tank_gas_ox ) / sigma_tank ;             % [ m ] - Oxidizer pressurant tank thickness
+%            
+%             m_tank_gas_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas_ox + ... % [ kg ] - Oxidizer pressurant tank mass
+%                          t_tank_gas_ox ) ^ 3 - r_tank_gas_ox ^ 3 ) +  pi * h_tank *...
+%                          ( ( r_tank_gas_ox + t_tank_gas_ox ) ^ 2 - r_tank_gas_ox ^ 2 ) ) ;
+
+%             % Oxidizer tank
+%             r_function_ox = @( x ) V_ox - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+%                                      x / ratio * x ^ 2 ; 
+%             r_guess_ox = 0.3 * ratio ;
+%             r_tank_ox = fzero( r_function_ox, r_guess_ox ) ;   
+%             h_tank = r_tank_ox / ratio;
+%             t_tank_ox = ( Pi_prop * r_tank_ox ) / sigma_tank ;                    % [ m ] - Oxidizer tank thickness
+%            
+%             m_tank_ox = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_ox + ...         % [ kg ] - Oxidizer tank mass
+%                          t_tank_ox ) ^ 3 - r_tank_ox ^ 3 ) +  pi * h_tank * ...
+%                          ( ( r_tank_ox + t_tank_ox ) ^ 2 - r_tank_ox ^ 2 ) ) ;
+ 
+%             % Fuel pressurant tank
+%             r_function_gas_fu = @( x ) V_gas_fu - ( 4 * pi / 3 ) * x ^ 3 - ...    % Function used to compute the radius of the tank knowing the height
+%                                     pi * x / ratio * x ^ 2 ; 
+%             r_guess_gas_fu = 0.3 * ratio ;
+%             r_tank_gas_fu = fzero( r_function_gas_fu, r_guess_gas_fu ) ;   
+%             h_tank = r_tank_gas_fu / ratio ;
+%             t_tank_gas_fu = ( Pi_gas * r_tank_gas_fu ) / sigma_tank ;             % [ m ] - Fuel pressurant tank thickness
+%            
+%             m_tank_gas_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_gas_fu + ... % [ kg ] - Fuel pressurant tank mass
+%                          t_tank_gas_fu ) ^ 3 - r_tank_gas_fu ^ 3 ) +  pi * h_tank *...
+%                          ( ( r_tank_gas_fu + t_tank_gas_fu ) ^ 2 - r_tank_gas_fu ^ 2 ) ) ;
+
+%             % Fuel tank
+%             r_function_fu = @( x ) V_fu - ( 4 * pi / 3 ) * x ^ 3 - pi * ...       % Function used to compute the radius of the tank knowing the height
+%                                      x / ratio * x ^ 2 ; 
+%             r_guess_fu = 0.3 * ratio ;
+%             r_tank_fu = fzero( r_function_fu, r_guess_fu ) ;   
+%             h_tank = r_tank_fu / ratio ;
+%             t_tank_fu = ( Pi_prop * r_tank_fu ) / sigma_tank ;                    % [ m ] - Fuel tank thickness
+%            
+%             m_tank_fu = rho_tank * ( ( 4 * pi / 3 ) * ( ( r_tank_fu + ...         % [ kg ] - Fuel tank mass
+%                          t_tank_fu ) ^ 3 - r_tank_fu ^ 3 ) +  pi * h_tank * ...
+%                          ( ( r_tank_fu + t_tank_fu ) ^ 2 - r_tank_fu ^ 2 ) ) ;
+
+            %
+
+
+%     end 
 
 end
 %% Compute the total mass

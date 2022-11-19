@@ -1,4 +1,4 @@
-function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
+function [ A_SA_theoretical ] = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
 
 %% PROTOTYPE
 % A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, Pd_watt, Td, SA_data, lifetime_years, powerRegulationMethod )
@@ -46,10 +46,7 @@ function A_SA_theoretical = SAsizing_theoretical( meanDistance_km, Pe_watt, Te, 
 %   1/11/2022, Matteo D'Ambrosio, Created function
 %
 %% DEPENDENCIES
-%   None
-%
-%% Future upgrades
-%   Load constants from constants file
+%   ASMADconstants.m
 %
 
 % Unpack struct and define variables based on inputs

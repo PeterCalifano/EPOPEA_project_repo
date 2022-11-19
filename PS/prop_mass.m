@@ -26,13 +26,14 @@ Is = 300;   % to change                             % [s]
 m0_v = zeros(1,n);
 mf = zeros(1,n);
 mp_v = zeros(1,n);
-m0_v(1,1) = m0;
+m0_v(1) = m0;                                   % Initial wet mass
 for i = 1:n
-    mf(1,i) = m0_v(i)/exp(dV_v(i)/(Is*g0));
-    mp_v(1,i) = m0_v(1,i) - mf(1,i);
-    m0_v(1,i+1) = mf(1,i);
+    mf(1,i) = m0_v(i)/exp(dV_v(i)/(Is*g0));     % wet mass after consumption
+    mp_v(i) = m0_v(i) - mf(i);                  % propellant mass consumed
+    m0_v(i) = mf(i);                            % next initial wet mass will be the final mass after maneuvre
 end
 
-mp = sum(mp_v);
+mp = sum(mp_v);                                 % total propellant mass consumed 
+mp = mp*1.02;
 
 end

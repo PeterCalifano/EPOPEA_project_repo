@@ -1,4 +1,4 @@
-function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, Ra_target, Rp_target)
+function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -7,16 +7,17 @@ function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, Ra_target, Rp_
 % -------------------------------------------------------------------------------------------------------------
 %% INPUT
 % % var - variables vector
-% planets_id - String of identifier of planets visited (dep and arrival included)
+% planets_id - Vector of identifiers of planets visited (dep and arrival included)
+% planets - Cell array with the names of all the planets visited
 % Ra_target - Apoapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
 % Rp_target - Periapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
-% TU - Time Unit used to adimensionalize from seconds to days 
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
 % DV: [scalar] Sum of the DSMs and of the DVs given during the Powered Fly Bys
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % 17/11/2022 - Matteo Lusvarghi - First version
+% 19/11/2022 - Matteo Lusvarghi - Fixed the plotting legend
 % -------------------------------------------------------------------------------------------------------------
 %% EXPLANATION OF VAR VECTOR
 %
@@ -194,7 +195,7 @@ for i = 1:N+1
 
         % Compute the fly-by
         %v_inf_out = perform_FB(v_inf_in,rp_FB(i),beta_FB(i));
-        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl);
+        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl,v_planets(:,i+1));
 
         % Obtain the outcoming infinite velocity which is the input for the
         % next iteration of the loop
@@ -225,15 +226,18 @@ for i = 1:(N+1)
 
 end
 
-DV = (DV_capture + sum(DV_DSM)) * VU;
+DV_DSM = DV_DSM*VU;
+DV_capture = DV_capture * VU;
+
+DV = (DV_capture + sum(DV_DSM));
 
 %% PLOT
 t_v = linspace(ephtimes(1),ephtimes(end),1000);
-
+leg1 = zeros(1,N+2);
 figure
 hold on
 for i = 1:N+2
-    scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),30,'filled','DisplayName',['Planet ',num2str(i)])
+    leg1(i) = scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),30,'filled','DisplayName',planets{i});
 end
 grid minor
 xlabel('X [AU]')
@@ -241,34 +245,46 @@ ylabel('Y [AU]')
 zlabel('Z [AU]')
 legend()
 axis equal
-pos_plot = zeros(3,length(planets_id),length(t_v));
-i = 1;
-for t = t_v
-    j = 1;
-    for id = planets_id
-        [kep1,~] = uplanet(t*TU, id);
-        [r1,~] = kep2car(kep1, mu_S);
-        pos_plot(:,j,i) = r1/DU;
-        j = j+1;
+pos_plot = zeros(3,N+2,length(t_v));
+flags = zeros(1,N+2);
+for i = 1:length(t_v)
+    t = t_v(i);
+    for j = 1:N+2
+        id = planets_id(j);
+        flags(j) = 1;
+        if j > 1
+            for k = 1:j-1
+                if id == planets_id(k)
+                    flags(j) = 0;
+                end
+            end
+        end
+        if flags(j) == 1
+            [kep1,~] = uplanet(t*TU, id);
+            [r1,~] = kep2car(kep1, mu_S);
+            pos_plot(:,j,i) = r1/DU;
+        end        
     end
-    i = i+1;
 end
 
-plot3(squeeze(pos_plot(1,1,:)),squeeze(pos_plot(2,1,:)),squeeze(pos_plot(3,1,:)),'k','DisplayName','Earth Orbit')
-plot3(squeeze(pos_plot(1,2,:)),squeeze(pos_plot(2,2,:)),squeeze(pos_plot(3,3,:)),'k','DisplayName','Venus Orbit')
-plot3(squeeze(pos_plot(1,4,:)),squeeze(pos_plot(2,4,:)),squeeze(pos_plot(3,4,:)),'k','DisplayName','Jupiter Orbit')
-plot3(squeeze(pos_plot(1,5,:)),squeeze(pos_plot(2,5,:)),squeeze(pos_plot(3,5,:)),'k','DisplayName','Saturn Orbit')
+for i = 1:(N+2)
+    if flags(i) == 1
+        plot3(squeeze(pos_plot(1,i,:)),squeeze(pos_plot(2,i,:)),squeeze(pos_plot(3,i,:)),'k')
+    end
+end
 
 
+col = {'b','r','c','m'};
+leg2 = zeros(1,N+1);
+leg3 = zeros(1,N+1);
 for i = 1:N+1
-    scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),20,'filled','MarkerFaceColor','k')%,'DisplayName',['DSM ',num2str(i)])
+    scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k')
     [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
-    plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),'linewidth',1,'DisplayName',['Arc ', num2str(i)])
+    leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),'.1']);
     [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
-    plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:))
+    leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),col{i},'DisplayName',['Arc ', num2str(i),'.2']);
 end
-
-
+legend([leg1,leg2,leg3])
 
 
 

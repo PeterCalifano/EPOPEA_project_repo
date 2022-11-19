@@ -28,13 +28,13 @@ t2 = t2/TU;
 % Define trajectory features (N of FBs and sequence)
 N = 3; % NUMBER OF FBs
 
-%planets = {'Earth','Venus','Earth','Jupiter','Saturn'};
+planets = {'Earth','Venus','Earth','Jupiter','Saturn'};
 
 planets_id = [3,2,3,5,6];
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
-Rp_target = 20*R_Saturn;
+Rp_target = 3*R_Saturn;
 
 %% OPTIMIZATION
 clc
@@ -64,10 +64,9 @@ DV = fmincon(@(var) objfun_EarthSaturntransfer2(var,N,planets,Ra_target,Rp_targe
 
 %% Analyze solution
 
-initial_guess = NLPoptset_local(52,:,3);
+initial_guess = NLPoptset_local(33,:,7);
 
-DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, Ra_target, Rp_target);
-
+DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
 
 
 

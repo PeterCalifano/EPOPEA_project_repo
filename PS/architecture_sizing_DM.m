@@ -97,6 +97,16 @@ tank.sigma = 950e6 ;
 mdot_reg = 0.135;
 mdot_blow = 0.0035;
 %%%%%%%%
+n_flyby = 4 ;
+% Margins
+MAR_010 = 1.05;          % Deterministic maneuvers
+MAR_020 = 2;             % Stochastic
+MAR_050 = 1.2;           % Apply on LANDING
+MAR_030 = 2;             % Attitude maneuvres
+MAR_080 = 30;            % [m/s] Launcher dispersion - apply only on primary
+MAR_090 = 15*n_flyby;    % [m/s] For each flyby
+MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
+MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER
 dV_reg = 30 + 1.05*0.5e+3 + 1.05*0.9e+3 + 2*1.1e+3 + 10;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100

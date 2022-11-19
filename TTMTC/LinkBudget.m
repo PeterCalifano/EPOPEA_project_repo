@@ -12,19 +12,20 @@ min_EbNo_sci = 4.2; % [dB] science case -> BER = 1e-5
 min_EbNo_tel = 5.1; % [dB] telemetry case -> BER = 1e-7
 
 % Frequency selection
-f_ka = 32e9; % [Hz] between 27 and 40GHz, for science 
-f_x = 8.5e9; % between 7 and 10.7 GHz, for interplanetary
+% f_ka = 32e9; % [Hz] between 27 and 40GHz, for science 
+f_x = 8.45e9; % between 7 and 10.7 GHz, for science
 f_s = 3e9; % between 2 and 4 GHz, for O-L comm
-f_opt = 1e12; %Optical, TBD what frequency is most commonly used
+% f_opt = 1e12; %Optical, TBD what frequency is most commonly used
 
 % Antenna data
-D_hga = 3; % [m] took from Orbilander paper, page 21 -> WE WOULD NEED 0.165m of diameter to have 3dB margin in uplink
+D_hga = 3.5; % [m] took from Orbilander paper, page 21 -> WE WOULD NEED 0.165m of diameter to have 3dB margin in uplink
 D_gs = 70; % [m] GS antenna, Cebreros considered (all the same, for ESTRACK DSA)
 D_lga = 0.065; % [m] from datasheets of existing helix antennas (by RUAG space)
 D_patch = 0.040; % [m] from datasheets of existing patch antenna (by ISIS – Innovative Solutions In Space)
 
 % Power transmitted
-P_on_board = 150; % [W] based on orbitander paper page 27
+P_on_board = 160; % [W] based on orbitander paper page 27
+P_Lander = 15; % [W]
 P_gs = 400; %[W] not 100% sure, taken from https://www.esa.int/Enabling_Support/Operations/ESA_Ground_Stations/Cebreros_-_DSA_2
 
 % Antenna efficiency, depending on the shape
@@ -40,7 +41,7 @@ T_hga = 250; % [K] of the HGA on board
 T_lga = 250; % [K] of the LGA on board
 
 %DATA RATES
-R_sci = 82.5*1e3; % data rate [bit/s], as coming from the PL, Data rate for Deep space communication
+R_sci = 41.3*1e3; % data rate [bit/s], as coming from the PL, Data rate for Deep space communication
 R_LtoO = 272.5*1e3; % data rate [bit/s], as coming from the PL, Data rate for Lander - Orbiter communication
 R_NN = 2.8*4 *1e3; % data rate [bit/s]as coming from the PL, Data rate for non-nominal (Housekeeping & Telemetry)
 R_NN_OL = 2.8*4 *1e3; % data rate [bit/s]as coming from the PL, Data rate for non-nominal (Housekeeping & Telemetry)
@@ -48,7 +49,7 @@ R_NN_OL = 2.8*4 *1e3; % data rate [bit/s]as coming from the PL, Data rate for no
 R_up = 700; % [bps] from Orbilander paper, page 133
 
 %% SL + NSO
-R_SLNSO = 81.06*1e3; % bit/s science data downlink
+R_SLNSO = R_sci; % bit/s science data downlink
 [EbNo_down_SLNSO, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_SLNSO, max_distance_Earth, D_hga, D_gs, f_x, P_on_board, eta_hga, eta_gs, T_gs);
 [EbNo_up_SLNSO, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
 
@@ -57,7 +58,7 @@ marginEbNo_down_SLNSO = EbNo_down_SLNSO - min_EbNo_sci % must be > 3dB
 marginEbNo_up_SLNSO = EbNo_up_SLNSO - min_EbNo_tel % must be > 3dB
 
 %% SL + SO
-R_SLSO = 82.56*1e3; % bit/s science data downlink
+R_SLSO = R_sci; % bit/s science data downlink
 [EbNo_down_SLSO, ~] = link_budget('to_Earth', 'downlink', 'atmosphere', R_SLSO, max_distance_Earth, D_hga, D_gs, f_x, P_on_board, eta_hga, eta_gs, T_gs);
 [EbNo_up_SLSO, ~] = link_budget('to_Earth', 'uplink', 'atmosphere', R_up, max_distance_Earth, D_gs, D_hga, f_x, P_gs, eta_gs, eta_hga, T_hga);
 
@@ -66,8 +67,7 @@ marginEbNo_down_SLSO = EbNo_down_SLSO - min_EbNo_sci % must be > 3dB
 marginEbNo_up_SLSO = EbNo_up_SLSO - min_EbNo_tel % must be > 3dB
 
 %% L to O
-R_LtoO = 8.76 * 1e3; % bit/s
-[EbNo_LtoO, ~] = link_budget('L_to_O', 'uplink', 'no_atmosphere', R_LtoO, max_distance_OL, D_lga, D_lga, f_s, P_on_board, eta_lga, eta_lga, T_lga);
+[EbNo_LtoO, ~] = link_budget('L_to_O', 'uplink', 'no_atmosphere', R_LtoO, max_distance_OL, D_lga, D_lga, f_s, P_Lander, eta_lga, eta_lga, T_lga);
 marginEbNo_down_LtoO = EbNo_LtoO - min_EbNo_sci % must be > 3dB
 
 
@@ -111,8 +111,8 @@ if strcmp(condition, 'to_Earth')
         La = 0; % [dB] if no atmospheric losses are considere (L-O comm)
     end
 
-    % Reciever gain %TO BE CHECKED WITH GS DATASHEET
-    Grx = 61.5;%10*log10(pi*Drx^2*eta_rx/lambda^2);
+    % Reciever gain
+    Grx = 74.6;%10*log10(pi*Drx^2*eta_rx/lambda^2);
 
     % Compute beamwidth (parabolic reflector case)
     theta_tx = 65.3*lambda/Dtx; % [deg]

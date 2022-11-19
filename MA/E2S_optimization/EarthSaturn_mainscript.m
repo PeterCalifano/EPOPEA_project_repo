@@ -36,42 +36,45 @@ planets_id = [3,2,3,5,6];
 Ra_target = 200*R_Saturn;
 Rp_target = 3*R_Saturn;
 
-%% OPTIMIZATION
-clc
-
-% Initial guess
-guess_0 = [t1, 4, 0.2, 0.4,...
-    200, 500, 3000, 5500,...
-    0.4, 0.5, 0.6, 0.6,...
-    1.7, 1.5, 1.7, ...
-    pi/2, pi/9, pi/8];
-
-
-
-
-tic
-DV = objfun_EarthSaturntransfer_2(guess_0, planets_id, Ra_target, Rp_target);
-toc
-%% Define linear constraints
-
-% - t_1 < t_initial = (2030)
-
-A = [];
-b = [];
-
-% Optimizer
-DV = fmincon(@(var) objfun_EarthSaturntransfer2(var,N,planets,Ra_target,Rp_target,TU),guess_0,A,b);
-
 %% Analyze solution
 
 initial_guess = NLPoptset_local(33,:,7);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
 
+%% Plot the space of the variables
+n1 = length(squeeze(NLPoptset_local(:,1,1)));
+n2 = length(squeeze(NLPoptset_local(1,:,1)));
+n3_th = length(squeeze(NLPoptset_local(1,1,:)));
 
+% Find the actual number of iterations performed
+n3 = n3_th;
+for k = 1:n3_th
+    if squeeze(NLPoptset_local(:,:,k)) == zeros(n1,n2)
+        n3 = n3 - 1;
+    end
+end
 
+ind_v = [1,N+2:(N+2+N)];
+ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$','$ToF_3$','$ToF_4$'};
+count = 1;
+for j = ind_v
+    figure
+    title(ind_names{count})
+    ylabel('Cost [Km/s]')
+    xlabel(ind_names{count})
+    hold on
+    grid minor
+    for k = 1:n3
+        variables = squeeze(NLPoptset_local(:,j,k));
+        costs = squeeze(feval_local(:,1,k));
+        if j == 1
+            variables = (variables - t1)/365.5;
+        end
 
-
-
-
+        scatter(variables,costs,10,'filled','DisplayName',['Iter: ',num2str(k)])
+    end
+    legend()
+    count = count + 1;
+end
 

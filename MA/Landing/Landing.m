@@ -1,11 +1,17 @@
 %% Landing problem: Collocation method
+set(groot,'defaultAxesTickLabelInterpreter','latex');  
+set(groot,'defaultLegendInterpreter','latex');
+set(groot,'defaulttextinterpreter','latex');
+set(0,'defaultAxesFontSize', 16)
+
+%%
 clearvars; close all; clc 
 
 % step1: vehicle par (TO CHANGE!!!)
 Tmax = 4*110e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
 Isp = 228;                      %[s] Specific Impulse
 g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
-m0 = 95+75.4;                   % [kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
+m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
 m_dry = 75.4;
 
 % Enceladus par
@@ -37,12 +43,9 @@ par(3) = g0;
 par(4) = mu;
 par(5) = Re;
 
-N = 150; 
+N = 100;
 
-% INITIAL CONDITION : pericenter conditions of Enceladus Orbit
-% xi = Re+400;   
-% vyi = 0.1;
-% INITIAL ORBIT : circular, polar, altitude = 20 km. (TO CHANGE!!)
+% INITIAL ORBIT : circular, polar (TO CHANGE!!)
 h = 100/DU;
 r_mod = Re+h;
 xi = -r_mod/sqrt(2);
@@ -56,13 +59,17 @@ state_i = [xi yi vxi vyi m0];
 step_st = length(state_i);           % 5: rr,vv,m
 step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 
-t1 = 0/TU;                              %initial time guess
-tN = 0.75*3600/TU;                          %final time guess
+%shift to satisfy boundaries
+eps = 1e-6;
+
+% t1 = 0/TU;                              %initial time guess
+t1 = eps;
+tN = 0.6*3600/TU;                          %final time guess
 h = (tN-t1)/(N-1);
 s0 = state_i;
 guess = zeros(step_var*N+2, 1);
 guess(1:5,1) = s0;
-guess(6) = 1;
+guess(6) = 1-eps;
 guess(7:8) = -s0(3:4)'/norm(s0(3:4));
 options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 
@@ -78,9 +85,9 @@ for k = 1:N-1
     s0 = output(end,1:5);
     vv_vers = s0(3:4)'/norm(s0(3:4));
     if k == N-1
-        uk = [1; -vv_vers];
+        uk = [1-eps; -vv_vers];
     else
-        uk = [0; -vv_vers];
+        uk = [eps; -vv_vers];
     end
 
     guess(k*step_var+1:(k+1)*step_var) = [s0'; uk];
@@ -95,27 +102,31 @@ guess(end-1:end) = [t1; tN];
 circ = 0:pi/1e4:2*pi;
 r_i = state_i(1:2)';
 v_i = state_i(3:4)';
-t_range = [t1 10*tN];
+t_range = [t1 15*tN];
 [~, circ_orb] = ode113(@dyn, t_range, [r_i;v_i], options, par);
 r_guess = circ_orb(:,1:2);
 L = length(r_guess(:,1));
 figure; hold on; grid on; grid minor
 for k = 1:N
     plot(guess((k-1)*step_var+1), guess((k-1)*step_var+2), '.r', 'LineWidth', 1.2);
-    plot(r_guess(:,1), r_guess(:,2), '--r', 'LineWidth', 1.2);
+    plot(r_guess(:,1), r_guess(:,2), '-m', 'LineWidth', 0.5);
     plot(Re*exp(1i*circ),'-b')
     axis equal
 end
-plot(output1(:,1), output1(:,2), 'm', 'LineWidth', 1.2)
+plot(output1(:,1), output1(:,2), '.r', 'LineWidth', 1.2)
+title('Initial Guess')
+xlabel('$x$')
+ylabel('$y$')
 
 % check if initial guess satisfies constraints
 for k = 1:N
-    mass_check = guess(step_var*(k-1)+5);
-    u_check = guess(step_var*(k-1)+6);
+    mass_check(k) = guess(step_var*(k-1)+5);
+    u_check(k) = guess(step_var*(k-1)+6);
 end
 flag_mass = find(mass_check < m_dry);
 flag_umin = find(u_check < 0);
 flag_umax = find(u_check > 1);
+
 
 % constraints for fmincon
 A = [zeros(step_var*N,1); 1; -1]';
@@ -133,34 +144,64 @@ end
 lb(end-1) = 0;
 lb(end) = 0;
 
+%%
+options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point',...
+    'MaxIter', 1000, 'MaxFunctionEvaluations', 1e5);
 
-%call solver
-% options = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-10, ...
- %   'StepTolerance', 1e-10, 'OptimalityTolerance', 1e-10, 'MaxIter', 1000, ...
-%    'MaxFunctionEvaluations', 1000000);
-options = optimoptions('fmincon', 'Display', 'iter', ...
-   'MaxIter', 1000, ...
-    'MaxFunctionEvaluations', 1e5);
+% options = optimoptions('fmincon', 'Display', 'iter', ...
+%     'MaxIter', 1000, 'MaxFunctionEvaluations', 1.5*1e5);
+
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i, par, N),options);
 
+%%
+% Trajectory
 figure; hold on; grid on; grid minor
 for k = 1:N
     plot(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), '.r', 'LineWidth', 1.2);
-    plot(r_guess(:,1), r_guess(:,2), '--r', 'LineWidth', 1.2);
+    plot(r_guess(:,1), r_guess(:,2), '-m', 'LineWidth', 0.5);
     plot(Re*exp(1i*circ),'-b')
     axis equal
 end
+title('Optimized Landing Trajectory')
+xlabel('$x$')
+ylabel('$y$')
 
+
+% Control law
 figure; hold on; grid on; grid minor
 t_plt = linspace(x_final(end-1), x_final(end), N);
 for k = 1:N
-    plot(t_plt(k),x_final((k-1)*step_var+6), 'ob');
+    control(k) = x_final((k-1)*step_var+6);
+    plot(t_plt(k),control(k), 'ob');
 end
+title('Control Law')
+xlabel('$t$')
+ylabel('$u$')
+
+% Thrust
+Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
+
+% Final Velocity
+vv_fin = x_final(end-7:end-6)*VU;
+v_fin = norm(vv_fin)*1e3;                    %[m/s]
+
+% Propellant Mass
+m_fin = x_final(end-5)*MM;
+m0 = m0*MM;
+m_prop = m0 - m_fin;
+
+% Print Results
+fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]', Thrust_min, v_fin, m_prop);
+
 
 % TO DO:
-% plot final solution
-% change FE with Hermite-Simpson and trapezoidal with Gauss
-% change initial guess (?)
-% increase N
+% Change initial guess (?)
+% Insert attitude
+
+% ASK Guadagnini:
+% Downrange as path constraint
+% Initial guess: Do we need to divide landing if altitude is high?
+
+
 

@@ -17,8 +17,8 @@ iter = 1;
 maxiter = 4; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 140; % Stop time for ga solver
-maxtime =  20*3600; % Max allowable execution time
+stoptime = 160; % Stop time for ga solver
+maxtime =  17*3600; % Max allowable execution time
 
 rng shuffle
 
@@ -29,8 +29,8 @@ heursolver_selector = 0;
 
 % GA options
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-12, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 2200, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.75, 'MaxStallGenerations', 3, 'MaxStallTime', 0.15*stoptime);
+    'UseParallel', true, 'PopulationSize', 500, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.15*stoptime);
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-10,...
     'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 5e3, 'MaxIterations', 100, ...
@@ -47,7 +47,7 @@ switch Sequence_selector
     case 1 % E-VEJ-S,
 
         fb_sequence = [2, 3, 5];
-        LBt_launchdate = cspice_str2et('2042-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2034-01-01 00:00:00.000 UTC')./(3600*24); % [days]
         UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
@@ -189,7 +189,7 @@ while converge_flag ~= 1
 
 
     % Evaluate convergence criterion
-    if min(feval_local(:, 1, iter)) <=  cost_thr
+    if min(feval_local(:, 1, iter)) <= cost_thr
         converge_flag = 1;
     end
 

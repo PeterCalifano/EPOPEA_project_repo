@@ -38,7 +38,7 @@ Rp_target = 3*R_Saturn;
 
 %% Analyze solution
 
-initial_guess = NLPoptset_local(33,:,7);
+initial_guess = NLPoptset_local(19,:,1);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
 
@@ -55,8 +55,8 @@ for k = 1:n3_th
     end
 end
 
-ind_v = [1,N+2:(N+2+N)];
-ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$','$ToF_3$','$ToF_4$'};
+ind_v = [1,N+2:(N+2+N),13:15];
+ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$','$ToF_3$','$ToF_4$','$rp_1$','$rp_2$','$rp_3$'};
 count = 1;
 for j = ind_v
     figure

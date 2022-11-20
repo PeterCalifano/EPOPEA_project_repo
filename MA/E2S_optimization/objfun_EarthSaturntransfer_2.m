@@ -207,7 +207,7 @@ end
 
 mu_end = mu_planets(end);
 
-Vinf_entry = v_FB_in - v_planets(:,end);
+Vinf_entry = v_FB_in' - v_planets(:,end);
 
 norm_Vinf_entry = norm(Vinf_entry);
 

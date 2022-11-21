@@ -17,29 +17,36 @@ step_st = length(state_i);           % 5: rr,vv,m
 step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 
 F = 0;
+u_k = zeros(N,1);
 for k = 1:(N-1)
-   u_k = var((step_st+1)+step_var*(k-1));
+   u_k(k) = var((step_st+1)+step_var*(k-1));
    u_next = var((step_st+1)+step_var*(k));
-   F = F+(u_k+u_next)*h/2;            % trapezoidal. change in Gauss!
+   F = F+(u_k(k)+u_next)*h/2;            % trapezoidal. change in Gauss!
 end
 
 
 % add derivative
-JF = zeros(step_var*N+2,1);
-if nargout>1
-    for k = 6:step_var:(step_var*N+2)-4
-        if k == 6 || k == (step_var*N+2)-4
-            JF(k) = h/2;
-        else
-            JF(k) = h;
-        end
-    end
-% u1 = var(6);
-% u2 = var(14);
-% uN_1 = var(end-12);
-% uN = var(end-4);
-% JF(end-1) = -(u1+u2)/2; %%%%%%%%%%%%%%%%%
-% JF(end) = (uN_1+uN)/2;  %%%%%%%%%%%%%%%%%
-end
+% if nargout>1
+% JF = zeros(step_var*N+2,1);
+%     for k = 6:step_var:(step_var*N+2)-4
+%         if k == 6 || k == (step_var*N+2)-4
+%             JF(k) = h/2;
+%         else
+%             JF(k) = h;
+%         end
+%     end
+% 
+%     for k =  1:N
+%         if k == 1 || k == N
+%             JF(end-1) = JF(end-1) - u_k(k);
+%             JF(end) = JF(end) + u_k(k);
+%         else
+%             JF(end-1) = JF(end-1) - 2*u_k(k);
+%             JF(end) = JF(end) + 2*u_k(k);
+%         end
+%     end
+% JF(end-1) = JF(end-1)/(2*(N-1));
+% JF(end) = JF(end)/(2*(N-1));
+% end
 
 end

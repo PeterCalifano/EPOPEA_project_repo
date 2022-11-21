@@ -69,3 +69,13 @@ load("Saft_VES16_LiIonCell")
 V_required = 28; % [V] voltage required to power the system
 C_required = TheoreticalBattCapacity_Wh_withmargin; % [Wh] required capacity, coming from the preliminary analysis
 [nSeries, nParallel, V_real, C_real] = refinedBatterySizing_withRTG(Cell_data, C_required, V_required)
+
+% Compute volume:
+D_cell = 0.033; % diameter [m]
+H_cell = 0.06; % height [m]
+
+Tot_volume = D_cell^2*pi/4*H_cell*(nSeries*nParallel);
+
+% Compute mass:
+M_cell = 0.155; % mass [kg]
+Tot_mass = M_cell*(nSeries*nParallel);

@@ -1,4 +1,4 @@
-function [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Battery_data, Batt_capacityMargin_percent, powerRegulationMethod )
+function [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Battery_data, Batt_capacityMargin_percent, powerRegulationMethod )
 %% PROTOTYPE 
 % [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing( PowerDefect_watt, PowerDefectDuration_hours, Battery_data, Batt_capacityMargin_percent, powerRegulationMethod )
 %% DESCRIPTION

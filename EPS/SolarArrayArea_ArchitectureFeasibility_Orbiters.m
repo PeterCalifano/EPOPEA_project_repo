@@ -44,13 +44,13 @@ end
 distance_Saturn = ( 1514.50e6 + 1352.55e6 ) / 2 ; % [km] - ~9.5 AU
 
 % Lifetime
-lifetime_start = 7 ; % Estimated arrival at Saturn system                              
-lifetime_end = lifetime_start+6 ; % Estimated 2.5 year moon tour + 3.5 year mission (1.5 on orbit + 2 on ground)
+lifetime_start = 15 ; % Estimated arrival at Saturn system                              
+lifetime_end = lifetime_start+5 ; % Estimated 2.5 year moon tour + 3.5 year mission (1.5 on orbit + 2 on ground)
 
 % Power requirement
 Te = 0 ;                                          % As a first approximation, assume that during interplanetary leg you have no eclipse
 Pe_watt = 0 ;                                     % Can be any number, since this is unused in case with no eclipses
-Pd_watt = [ 100, 200, 350 ] ;               % [W] - Range of possible NOMINAL power requirements of each architecture, of onle the lander
+Pd_watt = [ 100, 200, 400 ] ;               % [W] - Range of possible NOMINAL power requirements of each architecture, of onle the lander
 Td = 1 ;                                          % Can be any number, since this is unused in case with no eclipses
 
 % Select which solar array data to use, from loaded ones above

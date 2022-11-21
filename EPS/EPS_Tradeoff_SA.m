@@ -22,15 +22,27 @@ SaturnMeanDistance_km = 9.6 * ASMADconstants('AU') ; % [km]
 % Define system design parameters
 powerRegulationMethod = 'DET' ;
 
+% Power requirements
+P_req_NSOSL_orb = 400 ;
+P_req_NSOSL_lan = 750 ;
+P_req_SOSL_orb = 850 ;
+P_req_SOSL_lan = 750 ;
+
+% EoL
+lifetime_years_NSOSL_orb = 20 ; % EoL conditions
+lifetime_years_NSOSL_lan = 20 ; % EoL conditions
+lifetime_years_SOSL_orb = 20 ; % EoL conditions
+lifetime_years_SOSL_lan = 20 ; % EoL conditions
+
+
 %% Compute first SA sizing for NSOSL (orbiter) architecture, with no eclipses
 % --------------------------------------
 
 % Worst-case requirements
 Pe_watt_NSOSL_orb = 0 ;
 Te_NSOSL_orb = 0 ;
-Pd_watt_NSOSL_orb = 350 ;
+Pd_watt_NSOSL_orb = P_req_NSOSL_orb ;
 Td_NSOSL_orb = 1 ;
-lifetime_years_NSOSL_orb = 11 ; % EoL conditions
 
 % Size SA
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
@@ -43,9 +55,8 @@ A_SA_theoretical_NSOSL_orb = SAsizing_theoretical( SaturnMeanDistance_km, Pe_wat
 % Worst-case requirements
 Pe_watt_NSOSL_lan = 0 ;
 Te_NSOSL_lan = 0 ;
-Pd_watt_NSOSL_lan = 800 ;
+Pd_watt_NSOSL_lan = P_req_NSOSL_lan ;
 Td_NSOSL_lan = 1 ;
-lifetime_years_NSOSL_lan = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
 SA_data.alpha_incidence_degrees = 0 ; % Best case
@@ -58,9 +69,8 @@ A_SA_theoretical_NSOSL_lan = SAsizing_theoretical( SaturnMeanDistance_km, Pe_wat
 % Worst-case requirements
 Pe_watt_SOSL_orb = 0 ;
 Te_SOSL_orb = 0 ;
-Pd_watt_SOSL_orb = 850 ;
+Pd_watt_SOSL_orb = P_req_SOSL_orb ;
 Td_SOSL_orb = 1 ;
-lifetime_years_SOSL_orb = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
 SA_data.alpha_incidence_degrees = 0 ; % Best case
@@ -72,9 +82,8 @@ A_SA_theoretical_SOSL_orb = SAsizing_theoretical( SaturnMeanDistance_km, Pe_watt
 % Worst-case requirements
 Pe_watt_SOSL_lan = 0 ;
 Te_SOSL_lan = 0 ;
-Pd_watt_SOSL_lan = 800 ;
+Pd_watt_SOSL_lan = P_req_SOSL_lan ;
 Td_SOSL_lan = 1 ;
-lifetime_years_SOSL_lan = 11 ; % EoL conditions
 
 SA_data = SA_data_C4MJ_CVP_Spectrolab ; % Considering future cell technologies using concentrators --> This imposes stricter pointing requirements on ADCS, with respect to no concentrators
 SA_data.alpha_incidence_degrees = 0 ; % Best case

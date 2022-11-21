@@ -25,8 +25,15 @@ end
 
 
 % add derivative
+JF = zeros(step_var*N);
 if nargout>1
-   JF = [];
+    for k = 6:step_var:N-4
+        if k == 6 || k == N-4
+            JF(k) = h/2;
+        else
+            JF(k) = h;
+        end
+    end
 end
 
 end

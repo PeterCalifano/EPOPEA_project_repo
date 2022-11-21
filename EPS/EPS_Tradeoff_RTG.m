@@ -34,12 +34,10 @@ catch
     error('Remember to add complete EPOPEA repository to path')
 end
 
-
-
 % Real RTG data - Used to select which type of RTG to consider
- RTG_data = RTG_data_nextGenRTG16 ; % This RTG type can be tuned since it is modular, do this once power is known.
-% RTG_data = RTG_data_GPHSRTG ; 
-%RTG_data = RTG_data_MMRTG ; 
+RTG_data = RTG_data_nextGenRTG16 ; % This RTG type can be tuned since it is modular, do this once power is known.
+%RTG_data = RTG_data_GPHSRTG ; 
+% RTG_data = RTG_data_MMRTG ; 
 % RTG_data = RTG_data_ASRG ; 
 
 % Power requirements

@@ -60,7 +60,7 @@ step_st = length(state_i);           % 5: rr,vv,m
 step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
 
 %shift to satisfy boundaries
-eps = 1e-6;
+eps = 1e-10;
 
 % t1 = 0/TU;                              %initial time guess
 t1 = eps;
@@ -145,11 +145,9 @@ lb(end-1) = 0;
 lb(end) = 0;
 
 %%
-options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point',...
-    'MaxIter', 1000, 'MaxFunctionEvaluations', 1e5);
 
-% options = optimoptions('fmincon', 'Display', 'iter', ...
-%     'MaxIter', 1000, 'MaxFunctionEvaluations', 1.5*1e5);
+options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point',...
+    'SpecifyObjectiveGradient', true, 'MaxIter', 1000, 'MaxFunctionEvaluations', 1e5);
 
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i, par, N),options);

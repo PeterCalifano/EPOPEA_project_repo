@@ -25,8 +25,21 @@ end
 
 
 % add derivative
+JF = zeros(step_var*N+2,1);
 if nargout>1
-   JF = [];
+    for k = 6:step_var:(step_var*N+2)-4
+        if k == 6 || k == (step_var*N+2)-4
+            JF(k) = h/2;
+        else
+            JF(k) = h;
+        end
+    end
+% u1 = var(6);
+% u2 = var(14);
+% uN_1 = var(end-12);
+% uN = var(end-4);
+% JF(end-1) = -(u1+u2)/2; %%%%%%%%%%%%%%%%%
+% JF(end) = (uN_1+uN)/2;  %%%%%%%%%%%%%%%%%
 end
 
 end

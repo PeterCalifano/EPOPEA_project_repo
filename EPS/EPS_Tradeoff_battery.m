@@ -19,9 +19,9 @@ load("Batt_data_LiIon_generic_singleBatt.mat")
 
 % Set inputs
 powerRegulationMethod = 'DET';
-Batt_capacityMargin_percent = 0.13; 
-PowerDefect_watt = 77.3;
-PowerDefectDuration_hours = 5690/3600; % [h]
+Batt_capacityMargin_percent = 0.33; 
+PowerDefect_watt = 84.16;
+PowerDefectDuration_hours = 4; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
 
 %% Eaglepicher battery
@@ -30,7 +30,7 @@ load("Batt_data_LiIon_EP_LP33165_singleBatt.mat")
 
 % Set inputs
 powerRegulationMethod = 'DET';
-Batt_capacityMargin_percent = 0.13;
+Batt_capacityMargin_percent = 0.33;
 PowerDefect_watt = 77.3;
 PowerDefectDuration_hours = 5690/3600; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
@@ -41,8 +41,8 @@ load("Batt_data_LiIon_Saft_VES16_singleBatt.mat")
 
 % Set inputs
 powerRegulationMethod = 'DET';
-Batt_capacityMargin_percent = 0.13; 
-PowerDefect_watt = 77.3;
+Batt_capacityMargin_percent = 0.33; 
+PowerDefect_watt = 18.3;
 PowerDefectDuration_hours = 5690/3600; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
 
@@ -52,9 +52,9 @@ load("Batt_data_LiIon_Saft_VES16_small_singleBatt.mat")
 
 % Set inputs
 powerRegulationMethod = 'DET';
-Batt_capacityMargin_percent = 0.13; 
-PowerDefect_watt = 77.3;
-PowerDefectDuration_hours = 5690/3600; % [h]
+Batt_capacityMargin_percent = 0.33; 
+PowerDefect_watt = 146.76;
+PowerDefectDuration_hours = 4; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
 
 %% REFINED ANALYSIS -> EaglePicher cells

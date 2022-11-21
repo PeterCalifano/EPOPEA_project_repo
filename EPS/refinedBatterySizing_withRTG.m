@@ -14,8 +14,8 @@ function [nSeries, nParallel, V_real, C_real] = refinedBatterySizing_withRTG(Cel
 % V_required [1x1]: required system voltage. Depends on the SC needs.
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
-% nSeries [1x1]: number of strings of cells
-% nParallel [1x1]: number of cells per each string
+% nSeries [1x1]: number of cells in a string
+% nParallel [1x1]: number of strings in parallel
 % V_real [1x1]: real voltage of the battery (as voltage of a single string)
 % C_real [1x1]: real capacity of the battery (sum of the string capacities, in Wh)
 % -------------------------------------------------------------------------------------------------------------
@@ -42,6 +42,14 @@ nParallel = ceil(C_required/C_string);
 
 % Define real battery capacity
 C_real = nParallel*C_string; % [Wh]
+
+% Check in case of one cell failure -> one string is lost
+if C_real/nParallel * (nParallel-1) - C_required < 0
+    nParallel = nParallel+1; % add one string to be sure
+end
+
+% Update new C_real
+C_real = nParallel*C_string;
 
 end
 

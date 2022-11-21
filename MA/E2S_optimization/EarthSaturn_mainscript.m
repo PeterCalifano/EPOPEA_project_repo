@@ -7,6 +7,7 @@ cspice_furnsh('spice_kernels/pck00010.tpc')
 cspice_furnsh('spice_kernels/naif0012.tls')
 cspice_furnsh('spice_kernels/gm_de431.tpc')
 cspice_furnsh('spice_kernels/de440s.bsp')
+
 %% DATA:
 % Radius of Saturn from Spice
 R_Saturn = astroConstants(26); % [km]
@@ -46,7 +47,7 @@ DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_
 n1 = length(squeeze(NLPoptset_local(:,1,1)));
 n2 = length(squeeze(NLPoptset_local(1,:,1)));
 n3_th = length(squeeze(NLPoptset_local(1,1,:)));
-
+t1 = LB(1, 1);
 % Find the actual number of iterations performed
 n3 = n3_th;
 for k = 1:n3_th

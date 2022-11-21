@@ -12,13 +12,13 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 100; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 15; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 4; % Number of maximum allowed iteration of while loop
-perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
+perc = [60*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 160; % Stop time for ga solver
-maxtime =  17*3600; % Max allowable execution time
+stoptime = 16*60; % Stop time for ga solver
+maxtime =  7.5*3600; % Max allowable execution time
 
 rng shuffle
 
@@ -27,10 +27,14 @@ Sequence_selector = 1;
 % Solver selection: 0) ga, 1) SA
 heursolver_selector = 0;
 
+fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepTolerance', 1e-12, 'Display', 'iter',...
+    'MaxFunctionEvaluations', 10e3, 'MaxIterations', 300);
+
 % GA options
-opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-12, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 500, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.15*stoptime);
+opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
+    'UseParallel', true, 'PopulationSize', 150, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime,...
+    'HybridFcn', {@fmincon, fminconopts_hyb});
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-10,...
     'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 5e3, 'MaxIterations', 100, ...
@@ -47,8 +51,8 @@ switch Sequence_selector
     case 1 % E-VEJ-S,
 
         fb_sequence = [2, 3, 5];
-        LBt_launchdate = cspice_str2et('2034-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2055-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 5; % [km/s]
@@ -58,21 +62,21 @@ switch Sequence_selector
         LBv = 0;
         UBv = 1;
 
-        LBtof = [60, 120, 400, 2000];
-        UBtof = [500, 500, 2000, 3500];
+        LBtof = [100, 120, 400, 2000];
+        UBtof = [500, 500, 2000, 4000];
         LBeta = [0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8];
 
 
-        LBRp_seq = [1.04, 1.035, 45];
-        UBRp_seq = [8, 8, 160];
+        LBRp_seq = [1.035, 1.035, 20];
+        UBRp_seq = [6, 6, 160];
         LBbeta = [-pi, -pi, -pi];
         UBbeta = [pi, pi, pi];
 
     case 2 % E-VEE-S
 
         fb_sequence = [2, 3, 3];
-        LBt_launchdate = cspice_str2et('2032-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
         UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
@@ -93,6 +97,30 @@ switch Sequence_selector
         LBbeta = [-pi, -pi, -pi];
         UBbeta = [pi, pi, pi];
 
+case 3 % E-VEVE-S
+
+        fb_sequence = [2, 3, 2, 3];
+        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+
+        LBvinfdep = 3; % [km/s]
+        UBvinfdep = 6; % [km/s]
+
+        LBu = 0;
+        UBu = 1;
+        LBv = 0;
+        UBv = 1;
+
+        LBtof = [60, 60, 260, 200, 2000];
+        UBtof = [400, 400, 400, 600, 5000];
+        LBeta = [0.2, 0.2, 0.2, 0.2, 0.2];
+        UBeta = [0.8, 0.8, 0.8, 0.8, 0.8];
+
+        LBRp_seq = [1.02, 1.035, 1.02, 1.035];
+        UBRp_seq = [8, 8, 8, 8];
+        LBbeta = [-pi, -pi, -pi, -pi];
+        UBbeta = [pi, pi, pi, pi];
+       
 end
 
 planet_seq = [3, fb_sequence, 6];
@@ -117,8 +145,25 @@ exitflag_local = zeros(N1, 1, maxiter);
 
 
 % Assign INITIAL [LB, UB] for all decision variable
+% Hardcoding: From cycle 21/11/2022 with 2.53 km/s minimum
+
 LB(1, :) = [LBt_launchdate, LBvinfdep, LBu, LBv, LBtof, LBeta, LBRp_seq, LBbeta];
 UB(1, :) = [UBt_launchdate, UBvinfdep, UBu, UBv, UBtof, UBeta, UBRp_seq, UBbeta];
+
+LB(1, :) = [18247.3952550500	3.26130504680723	0.0324887957649668	0.189517384867105	193.843108455067	195.149083580162...
+    1076.04934255018	2000	0.273248141971223	0.200000000000000	0.268231439504458	0.200000000000000	1.03500000000000	1.03500000000000	20	-2.96849811064606	-2.29537257370371	-3.14159265358979];
+
+LB(1, :) = [19115.8626158843	3.26130504680723	0.0324887957649668	0.271301686637625	362.679289372678	321.136406208845	1284.15975992840	2336.71867169394	0.273248141971223	0.200000000000000	0.365356692727062	0.200000000000000	1.97193075293984	1.03500000000000	20	-2.31365697597635	-1.97940059660343	-2.07801819011155];
+
+% LB(1, :) = [19309.4503293261	4.73919575702108	0.166301572030575	0.372404898833974	420.445385260946	326.703286978812	1719.97665009843	2336.71867169394	0.293620249145098	0.200000000000000	0.524295065983319	0.200000000000000	1.97193075293984	1.03500000000000	21.7499035228576	-1.84493640620792	-1.95474812899966	-1.52469084880116];
+
+
+UB(1, :) = [20088.5008007396	5	0.799013207324930	1	500	500	2000	3983.95312149453	0.660292846622087	0.595740136725434	0.745463688009700	0.479757256374570	5.74061410103485	3.45401057453000...
+    87.0058491653975	0.499998723341889	-0.537386178820938	-0.294587772674394];
+
+UB(1, :) = [20088.5008007396	5	0.776731281897155	0.967113179061435	486.053509121667	500	2000	3940.28528958966	0.660292846622087	0.595740136725434	0.646857580574019	0.325493377968005	5.74061410103485	3.04574697897508	79.8681087476366	0.422314250478805	-0.978503910504675	-1.20258857081786];
+
+% UB(1, :) = [19481.9586081478	5	0.733665862975332	0.824548471909893	469.111589320308	500	2000	3917.17612884743	0.658438147296497	0.595740136725434	0.621382648236797	0.325493377968005	3.82595662874976	1.45936367922071	50.7642710398457	-0.695990821093950	-1.44600683903938	-1.27626914095766];
 
 % Simulated Annealing options
 InitialTempVec = UB(1, :) - LB(1, :);
@@ -203,10 +248,21 @@ while converge_flag ~= 1
     maskid_perc = feval_temp < perc_value;
     % Extract decision vectors corresponding to these solutions
     NLPopts_perc = NLPoptset_local(maskid_perc == 1, :, iter);
+
+    [min_feval, minpos] = min(feval_local(:, :, iter));
+    [max_feval, maxpos] = max(feval_local(:, :, iter));
+
     % Find minimum of decision variables perc percentile
     LB_min = min(NLPopts_perc, [], 1);
     % Find maximum of decision variables perc percentile
     UB_max = max(NLPopts_perc, [], 1);
+
+    LB_min = NLPopts_perc(minpos, :);
+
+    % Find maximum of decision variables perc percentile
+    %     UB_max = max(NLPopts_perc, [], 1);
+
+    UB_max = NLPopts_perc(maxpos, :);
 
     % Redefine LB for iter+1
     %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
@@ -289,7 +345,7 @@ end
 % Best solution
 for iter_id = 1:iter
     [min_at_iter(iter_id), min_pos(iter_id)] = min(feval_local(:, 1, iter_id), [], 1);
-    fprintf('\nBest solution found at iter = %2g in position %4g', min_at_iter(iter_id), min_pos(iter_id));
+    fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter_id), min_pos(iter_id));
 end
 
 if converge_flag == 1

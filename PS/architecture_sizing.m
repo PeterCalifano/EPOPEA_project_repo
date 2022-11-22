@@ -32,7 +32,7 @@ dV_int = MAR_080 + MAR_020*0.5e+3 + MAR_010*0.9e+3 + MAR_020*1.1e+3 + MAR_100 + 
 Isp_int = 321; m_dry_int = 1279;                          % Orbiter + lander
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
-% Compute maneuvering time
+% Compute maneuvering  time
 m_prop_int1 = preliminary_prop_mass(MAR_020*0.5e+3,m_dry_int,Isp_int) ;
 dt_int = m_prop_int1 / mdot_bip ;
 m_prop_cap = preliminary_prop_mass(MAR_010*0.9e+3,m_dry_int,Isp_int) ;

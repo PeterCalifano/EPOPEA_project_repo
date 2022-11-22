@@ -43,10 +43,12 @@ Rp_target = 3*R_Saturn;
 
 %% Analyze solution
 
-initial_guess = NLPoptset_local(33,:,3);
+[m,index_iter] = min(min_at_iter(min_at_iter > 0));
+index_pos = min_pos(index_iter);
+initial_guess = NLPoptset_local(index_pos,:,index_iter);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
-%%
+%
 dep_time = cspice_et2utc(initial_guess(1)*3600*24,'C',0 )
 arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N) ) );
 arr_time = cspice_et2utc(arr_time,'C',0 )

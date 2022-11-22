@@ -274,7 +274,7 @@ for i = 1:(N+2)
 end
 
 
-col = {'b','r','c','m'};
+col = {'b','r','c','m','g', 'k'};
 leg2 = zeros(1,N+1);
 leg3 = zeros(1,N+1);
 for i = 1:N+1

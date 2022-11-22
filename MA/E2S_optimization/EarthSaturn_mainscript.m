@@ -3,10 +3,10 @@ clear; close all; clc
 
 %% Load SPICE Kernels
 cspice_kclear();
-cspice_furnsh('spice_kernels/pck00010.tpc')
-cspice_furnsh('spice_kernels/naif0012.tls')
-cspice_furnsh('spice_kernels/gm_de431.tpc')
-cspice_furnsh('spice_kernels/de440s.bsp')
+cspice_furnsh('..\..\spice_kernels/pck00010.tpc')
+cspice_furnsh('..\..\spice_kernels/naif0012.tls')
+cspice_furnsh('..\..\spice_kernels/gm_de431.tpc')
+cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% DATA:
 % Radius of Saturn from Spice
@@ -26,12 +26,14 @@ date_2 = '2050-12-31 00:00:00.00 UTC'; % First available date to launch
 t2 = cspice_str2et(date_2);
 t2 = t2/TU;
 
+load('NewGlobalMin22112022.mat')
+
 % Define trajectory features (N of FBs and sequence)
 N = 3; % NUMBER OF FBs
 
-planets = {'Earth','Venus','Earth','Jupiter','Saturn'};
+planets = {'Earth','Venus','Earth', 'Earth' 'Jupiter','Saturn'};
 
-planets_id = [3,2,3,5,6];
+planets_id = [3,2,3,3,5,6];
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
@@ -39,7 +41,7 @@ Rp_target = 3*R_Saturn;
 
 %% Analyze solution
 
-initial_guess = NLPoptset_local(19,:,1);
+initial_guess = NLPoptset_local(33,:,3);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
 

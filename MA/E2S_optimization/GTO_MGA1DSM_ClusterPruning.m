@@ -18,7 +18,7 @@ maxiter = 8; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
 stoptime = 16*60; % Stop time for ga solver
-maxtime =  16*3600; % Max allowable execution time
+maxtime =  11*3600; % Max allowable execution time
 
 rng shuffle
 
@@ -28,11 +28,11 @@ Sequence_selector = 4;
 heursolver_selector = 0;
 
 fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepTolerance', 1e-12, 'Display', 'iter',...
-    'MaxFunctionEvaluations', 1e5, 'MaxIterations', 500);
+    'MaxFunctionEvaluations', 10e3, 'MaxIterations', 400);
 
 % GA options
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 600, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'UseParallel', true, 'PopulationSize', 400, 'Display', 'iter', 'MaxGenerations', 1e3,...
     'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime,...
     'HybridFcn', {@fmincon, fminconopts_hyb});
 % Fminunc options
@@ -134,8 +134,8 @@ case 3 % E-VEVE-S
 
         fb_sequence = [2, 3, 3, 5];
 
-        LBt_launchdate = cspice_str2et('2050-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2056-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2052-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 6; % [km/s]
@@ -145,16 +145,16 @@ case 3 % E-VEVE-S
         LBv = 0;
         UBv = 1;
 
-        LBtof = [350, 520, 300, 1500, 1800];
-        UBtof = [500, 600, 600, 1850, 2300];
+        LBtof = [300, 120, 300, 300, 600];
+        UBtof = [500, 500, 600, 2000, 3000];
         LBeta = [0.2, 0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8, 0.8];
 
 
         LBRp_seq = [1.035, 1.035, 1.035, 20];
-        UBRp_seq = [5, 5, 8, 65];
-        LBbeta = [-3, -1, -3, -3];
-        UBbeta = [-1, 2, -0.5, 0.2];
+        UBRp_seq = [5, 4, 8, 120];
+        LBbeta = [-pi, -pi, -pi, -pi];
+        UBbeta = [pi, pi, pi, pi];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';

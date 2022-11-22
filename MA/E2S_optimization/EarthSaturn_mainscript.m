@@ -31,9 +31,9 @@ load('NewGlobalMin22112022.mat')
 % Define trajectory features (N of FBs and sequence)
 N = 3; % NUMBER OF FBs
 
-planets = {'Earth','Venus', 'Earth', 'Earth','Jupiter', 'Saturn'};
+planets = {'Earth','Venus','Earth', 'Earth' 'Jupiter','Saturn'};
 
-planets_id = [3,2,3,3, 5, 6];
+planets_id = [3,2,3,3,5,6];
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
@@ -58,11 +58,9 @@ for k = 1:n3_th
     end
 end
 
-ind_v = [1,N+2:(N+2+N),15:18, 19:22];
-ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$',...
-    '$ToF_3$','$ToF_4$','ToF_5','rp_1','rp_2','rp_3','rp_4', 'beta1', 'beta2', 'beta3', 'beta4'};
+ind_v = [1,N+2:(N+2+N),13:15];
+ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$','$ToF_3$','$ToF_4$','$rp_1$','$rp_2$','$rp_3$'};
 count = 1;
-
 for j = ind_v
     figure
     title(ind_names{count})
@@ -83,5 +81,3 @@ for j = ind_v
     count = count + 1;
 end
 
-% Find total time of flight
-total_tof = sum(NLPoptset_local(N+2:(N+2+N)))./365.5;

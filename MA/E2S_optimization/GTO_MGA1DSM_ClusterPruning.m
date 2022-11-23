@@ -342,13 +342,6 @@ while converge_flag ~= 1
     % Find maximum of decision variables perc percentile
     UB_max = max(NLPopts_perc, [], 1);
 
-    LB_min = NLPoptset_local(minpos, :, iter);
-
-    % Find maximum of decision variables perc percentile
-    UB_max = max(NLPopts_perc, [], 1);
-
-    UB_max = NLPoptset_local(minpos, :, iter);
-
     % Redefine LB for iter+1
     %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
     LB_new = LB_min - (UB(iter, :) - LB(iter, :))*perc(iter)/100/2;
@@ -377,14 +370,17 @@ while converge_flag ~= 1
     end
 
     %% "Emergency" pruning
-    if sum(and(LB(iter+1, :) == LB(iter, :), UB(iter+1, :) == UB(iter, :))) > 2*15
+    % If 1 in mask --> no change both in LB and in UB for the ith variable
+    if sum(or(LB(iter+1, :) == LB(iter, :), UB(iter+1, :) == UB(iter, :))) > floor((4*N_fb+6)./4)
         warning('Emergency pruning triggered')
         % Redefine LB for iter+1
         %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
+        LB_min = NLPoptset_local(minpos, :, iter);
         LB_new = LB_min - (UB(iter, :) - LB(iter, :))*perc(iter)/100/4;
 
         % Redefine UB for iter+1
         %        UB_max = max(NLPoptset_local(:, :, iter), [], 1); % Find maximum of decision variables
+        UB_max = NLPoptset_local(minpos, :, iter);
         UB_new = UB_max + (UB(iter, :) - LB(iter, :))*perc(iter)/100/4;
 
         for idVar = 1:length(NLPvars)
@@ -411,6 +407,9 @@ while converge_flag ~= 1
     %%
     % Check if allowed maxiter reached
     elapsedtime = toc(time_limit);
+
+    [min_at_iter(iter_id), min_pos(iter_id)] = min(feval_local(:, 1, iter_id), [], 1);
+    fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter_id), min_pos(iter_id));
 
     if iter == maxiter
         break;

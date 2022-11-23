@@ -1,0 +1,9 @@
+max massa finale: J = -mf;
+ripropagare dinamica con controllo di output
+2d -> 3d
+soft constraint landing site
+
+check t0 orbita inziale
+cambiare punto partenza iniziale di propagazione dell'orbita di partenza
+
+

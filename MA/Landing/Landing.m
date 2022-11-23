@@ -185,9 +185,17 @@ Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
 % Final Velocity
 vv_fin = x_final(end-7:end-6)*VU;
 v_fin = norm(vv_fin)*1e3;                    %[m/s]
+vel = zeros(N,2);
+vel_norm = zeros(N,1);
 for k =1:N
-    
+    vel(k,:) = x_final((k-1)*step_var+3:(k-1)*step_var+4);
+    vel_norm(k) = norm(vel(k,:)); 
 end
+figure; hold on; grid on; grid minor
+plot(t_plt, vel_norm, 'ob', 'LineWidth', 1.2)
+title('Velocity')
+xlabel('$time [s]$')
+ylabel('$v [km/s]$')
 
 % Propellant Mass
 m_fin = x_final(end-5)*MM;

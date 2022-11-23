@@ -114,8 +114,9 @@ Tmax = 125 ; % [ N ] - Maximum thrust
 mdot_land = 0.03925 ;
 
 m_dry_land = 746;           % Sampling lander
-m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
-m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
+% m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
+% m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
+m_prop_land = 15 * MAR_020 + MAR_hazard ; % From MA 
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;
@@ -311,8 +312,9 @@ Tmax = 125 ; % [ N ] - Maximum thrust
 mdot_land = 0.03925 ;
 
 m_dry_land = 746;           % Sampling lander
-m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
-m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
+% m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
+% m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
+m_prop_land = 15 * MAR_020 + MAR_hazard ; % From MA 
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;

@@ -1,4 +1,4 @@
-function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target)
+function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target,typeofplot)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_ta
 %% CHANGELOG
 % 17/11/2022 - Matteo Lusvarghi - First version
 % 19/11/2022 - Matteo Lusvarghi - Fixed the plotting legend
+% 23/11/2022 - Matteo Lusvarghi - Added dynamic plot
 % -------------------------------------------------------------------------------------------------------------
 %% EXPLANATION OF VAR VECTOR
 %
@@ -231,7 +232,8 @@ DV_capture = DV_capture * VU;
 
 DV = (DV_capture + sum(DV_DSM));
 
-%% PLOT
+%% PLOT POSITION OF PLANETS
+
 t_v = linspace(ephtimes(1),ephtimes(end),1000);
 leg1 = zeros(1,N+2);
 figure
@@ -273,20 +275,122 @@ for i = 1:(N+2)
     end
 end
 
+%% PLOT TRAJECTORY
 
-col = {'b','r','c','m','g', 'k'};
-leg2 = zeros(1,N+1);
-leg3 = zeros(1,N+1);
-for i = 1:N+1
-    scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k')
-    [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
-    leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),'.1']);
-    [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
-    leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),col{i},'DisplayName',['Arc ', num2str(i),'.2']);
+col = {'b','r','g','m','c','k'};
+
+if strcmp(typeofplot,'static')
+    % STATIC PLOT
+    leg2 = zeros(1,N+1);
+    leg3 = zeros(1,N+1);
+    for i = 1:N+1
+        scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k')
+        [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+        leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Pre DSM']);
+        [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+        leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),col{i},'DisplayName',['Arc ', num2str(i),' - Post DSM']);
+    end
+    legend([leg1,leg2,leg3])
+
+elseif strcmp(typeofplot,'dynamic')
+    % DYNAMIC PLOT
+    for i = 1:N+1
+        scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k','DisplayName',['DSM ',num2str(i)])
+        [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+        [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+        h = animatedline('LineWidth',1.5,'Color',col{i},'DisplayName','Trajectory');
+        for k = 1:length(r_prop1(1,:))
+            addpoints(h,r_prop1(1,k),r_prop1(2,k),r_prop1(3,k));
+            drawnow
+        end
+        %delete(h)
+        h = animatedline('LineWidth',1.5,'Color',col{i},'DisplayName','Trajectory');
+        for k2 = 1:length(r_prop2(1,:))
+            addpoints(h,r_prop2(1,k2),r_prop2(2,k2),r_prop2(3,k2));
+            drawnow
+        end
+        %delete(h)
+    end
+    legend(leg1)
+elseif strcmp(typeofplot,'VVE')
+
+    leg1 = zeros(1,N+2);
+    figure
+    hold on
+    grid minor
+    xlabel('X [AU]')
+    ylabel('Y [AU]')
+    zlabel('Z [AU]')
+    axis equal
+    pos_plot = zeros(3,N+2,length(t_v));
+    flags = zeros(1,N+2);
+    for i = 1:length(t_v)
+        t = t_v(i);
+        for j = 1:N+2
+            id = planets_id(j);
+            flags(j) = 1;
+            if j > 1
+                for k = 1:j-1
+                    if id == planets_id(k)
+                        flags(j) = 0;
+                    end
+                end
+            end
+            if flags(j) == 1
+                [kep1,~] = uplanet(t*TU, id);
+                [r1,~] = kep2car(kep1, mu_S);
+                pos_plot(:,j,i) = r1/DU;
+            end        
+        end
+    end
+    
+    for i = 1:(N+1)
+        if flags(i) == 1
+            plot3(squeeze(pos_plot(1,i,:)),squeeze(pos_plot(2,i,:)),squeeze(pos_plot(3,i,:)),'k')
+        end
+    end
+    leg1(1) = scatter3(r_planets(1,1),r_planets(2,1),r_planets(3,1),50,'filled','DisplayName','Earth DEP');
+    leg1(2) = scatter3(r_planets(1,2),r_planets(2,2),r_planets(3,2),50,'filled','DisplayName','Venus FB1/FB2');
+    leg1(3) = scatter3(r_planets(1,4),r_planets(2,4),r_planets(3,4),50,'filled','DisplayName','Earth FB3');
+    legend()
+
+
+    leg2 = zeros(1,N);
+    leg3 = zeros(1,N);
+    for i = 1:3
+        if i > 2
+            size_dot = 20;
+        else
+            size_dot = 10;
+        end
+        scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),size_dot,'filled','MarkerFaceColor','k','DisplayName',['DSM ',num2str(i)])
+        [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+        if i == 2
+            leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i)]);
+        else
+            leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Pre DSM']);
+        end
+        if i ~= 2
+            [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+            leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{i},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
+        end
+    end
+    legend([leg1(leg1>0),leg2,leg3(leg3>0)])
+    %axis([-2,1.5,-1.5,2])
+    title('Inner Solar System Tour')
+
+    leg1(4) = scatter3(r_planets(1,5),r_planets(2,5),r_planets(3,5),50,'filled','DisplayName','Saturn ARR');
+    scatter3(r_DSM(1,4),r_DSM(2,4),r_DSM(3,4),10,'filled','MarkerFaceColor','k')
+    plot3(squeeze(pos_plot(1,5,:)),squeeze(pos_plot(2,5,:)),squeeze(pos_plot(3,5,:)),'k')
+    [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,4);VV_FB(:,4)], alpha_DSM(4) * tof(4), mu_S);
+    leg4(1) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{4},'linewidth',1,'DisplayName',['Arc ', num2str(4),' - Pre DSM']);
+    [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,4);squeeze(v_DSM(:,4,2))], (1 - alpha_DSM(4)) * tof(4), mu_S);
+    leg4(2) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{4},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
+
+    legend([leg1(leg1>0),leg2,leg3(leg3>0),leg4])
+    title('Interplanetary Tour')
+
 end
-legend([leg1,leg2,leg3])
-
-
 
 
 end

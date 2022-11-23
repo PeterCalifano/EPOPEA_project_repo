@@ -233,13 +233,13 @@ DV_capture = DV_capture * VU;
 DV = (DV_capture + sum(DV_DSM));
 
 %% PLOT POSITION OF PLANETS
-
+planets = {'Earth DEP','Venus FB 1','Earth FB 2','Jupiter FB 3','Saturn ARR'};
 t_v = linspace(ephtimes(1),ephtimes(end),1000);
 leg1 = zeros(1,N+2);
 figure
 hold on
 for i = 1:N+2
-    leg1(i) = scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),30,'filled','DisplayName',planets{i});
+    leg1(i) = scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),50,'filled','DisplayName',planets{i});
 end
 grid minor
 xlabel('X [AU]')
@@ -288,10 +288,15 @@ if strcmp(typeofplot,'static')
         [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
         leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Pre DSM']);
         [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
-        leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),col{i},'DisplayName',['Arc ', num2str(i),' - Post DSM']);
+        leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{i},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
+        if i == N-1
+            legend([leg1(1:N),leg2(leg2>0),leg3(leg3>0)])
+            title('E-VEJ-S Inner Solar System Tour')
+            a = 1;
+        end
     end
     legend([leg1,leg2,leg3])
-
+    title('E-VEJ-S Transfer')
 elseif strcmp(typeofplot,'dynamic')
     % DYNAMIC PLOT
     for i = 1:N+1
@@ -377,7 +382,7 @@ elseif strcmp(typeofplot,'VVE')
     end
     legend([leg1(leg1>0),leg2,leg3(leg3>0)])
     %axis([-2,1.5,-1.5,2])
-    title('Inner Solar System Tour')
+    title('E-VVE-S Inner Solar System Tour')
 
     leg1(4) = scatter3(r_planets(1,5),r_planets(2,5),r_planets(3,5),50,'filled','DisplayName','Saturn ARR');
     scatter3(r_DSM(1,4),r_DSM(2,4),r_DSM(3,4),10,'filled','MarkerFaceColor','k')
@@ -388,7 +393,7 @@ elseif strcmp(typeofplot,'VVE')
     leg4(2) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{4},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
 
     legend([leg1(leg1>0),leg2,leg3(leg3>0),leg4])
-    title('Interplanetary Tour')
+    title('E-VVE-S Transfer')
 
 end
 

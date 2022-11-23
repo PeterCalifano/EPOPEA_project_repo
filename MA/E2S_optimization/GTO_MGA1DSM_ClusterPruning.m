@@ -12,12 +12,12 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 100; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 20; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 8; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 16*60; % Stop time for ga solver
+stoptime = 1.5*60; % Stop time for ga solver
 maxtime =  16*3600; % Max allowable execution time
 
 rng shuffle
@@ -25,7 +25,7 @@ rng shuffle
 % Sequences: 1) E-VEJ-S, 2) E-VEE-S, 3), 4) E-VEEJ-S
 Sequence_selector = 4;
 % Solver selection: 0) ga, 1) SA
-heursolver_selector = 0;
+heursolver_selector = 1;
 
 fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepTolerance', 1e-12, 'Display', 'iter',...
     'MaxFunctionEvaluations', 1e5, 'MaxIterations', 500);
@@ -46,13 +46,15 @@ opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1
 N_fb = 3;
 NLPvars = ones(4*N_fb + 6, 1)';
 
+% 2042-2050
+
 % Define sequence and constant parameters
 switch Sequence_selector
     case 1 % E-VEJ-S,
 
         fb_sequence = [2, 3, 5];
-        LBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2055-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2042-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2050-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 5; % [km/s]
@@ -79,8 +81,8 @@ switch Sequence_selector
     case 2 % E-VEE-S
 
         fb_sequence = [2, 3, 3];
-        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 5; % [km/s]
@@ -134,24 +136,24 @@ case 3 % E-VEVE-S
 
         fb_sequence = [2, 3, 3, 5];
 
-        LBt_launchdate = cspice_str2et('2050-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2056-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
-        UBvinfdep = 6; % [km/s]
+        UBvinfdep = 6.05; % [km/s]
 
         LBu = 0;
         UBu = 1;
         LBv = 0;
         UBv = 1;
 
-        LBtof = [350, 520, 300, 1500, 1800];
-        UBtof = [500, 600, 600, 1850, 2300];
+        LBtof = [60, 60, 300, 800, 1000];
+        UBtof = [500, 500, 500, 1600, 2300];
         LBeta = [0.2, 0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8, 0.8];
 
 
-        LBRp_seq = [1.035, 1.035, 1.035, 20];
+        LBRp_seq = [1.035, 1.035, 1.035, 10];
         UBRp_seq = [5, 5, 8, 65];
         LBbeta = [-3, -1, -3, -3];
         UBbeta = [-1, 2, -0.5, 0.2];
@@ -258,7 +260,7 @@ while converge_flag ~= 1
 
     elseif heursolver_selector == 1
 
-        for idsol = 1:N1
+        parfor idsol = 1:N1
             % Heuristic optimization: produce f_ga costs [N1x1] and corresponding
             % decision variables NLPoptset_ga(idsol, :, iter)
             [NLPoptset_simulanneal(idsol, :, iter), feval_simulanneal(idsol, 1, iter), exitflag_simulanneal(idsol, 1, iter)] =...
@@ -391,7 +393,7 @@ end
 
 
 % Best solution
-for iter_id = 1:iter
+for iter_id = 1:2
     [min_at_iter(iter_id), min_pos(iter_id)] = min(feval_local(:, 1, iter_id), [], 1);
     fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter_id), min_pos(iter_id));
 end

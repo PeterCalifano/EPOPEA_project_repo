@@ -147,7 +147,7 @@ lb(end) = 0;
 %%
 
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point',...
-    'SpecifyObjectiveGradient', true, 'MaxIter', 1000, 'MaxFunctionEvaluations', 1e5);
+    'SpecifyObjectiveGradient', true, 'MaxIter', 1000, 'MaxFunctionEvaluations', 1.5*1e5);
 
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i, par, N),options);

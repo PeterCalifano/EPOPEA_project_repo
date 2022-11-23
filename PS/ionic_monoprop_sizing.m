@@ -80,7 +80,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_010 * 2.25e+3 + MAR_010 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 2.25e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 oxidizer.rho = 1443 ;                                                             % [ kg / m ^ 3 ] - Oxidizer density
@@ -268,7 +268,7 @@ alpha_Sat = rad2deg( alpha_Sat )
 dV_EOI_nomar = 1.1e3 ;                                                            % [ m / s ] - Total impulse for moon tour and Encelaudt orbit insertion with no margins
 dV_mis_EOI = 1 ;
 
-m_prop_EOI = preliminary_prop_mass( dV_EOI_nomar * MAR_010, m_dry_int, Isp_int);  % [ kg ]
+m_prop_EOI = preliminary_prop_mass( dV_EOI_nomar * MAR_020, m_dry_int, Isp_int);  % [ kg ]
 m_EOI = m_dry_int + m_prop_EOI ;                                                  % [ kg ] - Total mass during moon tour and Enceladus orbit insertion
 
 dt_EOI = m_prop_EOI / mdot_bip ;                                                  % [ s ] -  Maneuvering time
@@ -277,7 +277,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_010 * 2.25e+3 + MAR_010 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 2.25e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 %m_prop_int = 2691.9;                    % from preliminary sizing

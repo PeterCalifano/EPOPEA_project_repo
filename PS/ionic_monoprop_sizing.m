@@ -34,12 +34,12 @@ mdot_bip = 0.135 ;                                                              
 m_dry_int = 1279;                                                                 % [ kg ] Orbiter + lander
 
 %%%%%%%% Earth-Saturn transfer
-dV_int_leg_nomar = 0.5e+3 ;
+dV_int_leg_nomar = 1.79e+3 ;
 
 %n_maneuver = 4 ;
 % dV_mis_int_leg =dV_int_leg_nomar * MAR_010 / n_maneuver ;
 
-dV_mis_int_leg = ( MAR_010 * 0.9e3 - dV_int_leg_nomar ) * 0.01 ;                   % [ m / s ] - Maximum misalignment loss acceptable for interplanetary leg
+% dV_mis_int_leg = ( MAR_010 * 1.79e3 - dV_int_leg_nomar ) * 0.01 ;                   % [ m / s ] - Maximum misalignment loss acceptable for interplanetary leg
 
 dV_mis_int_leg = 1 ; % [ m / s ] - Lo imponiamo noi
 
@@ -52,8 +52,8 @@ alpha_int_leg = acos( 1 - ( dV_mis_int_leg * m_int_leg ) / ( dt_int_leg * Tmax )
 alpha_int_leg = rad2deg( alpha_int_leg )
 
 %%%%%%%% Capture at Saturn
-dV_Sat_nomar = 0.9e3 ;
-dV_mis_Sat = ( MAR_010 * 0.9e3 - dV_Sat_nomar ) * 0.01 ;                           % [ m / s ] - Maximum misalignment loss acceptable for capture at saturn
+dV_Sat_nomar = 0.46e3 ;
+% dV_mis_Sat = ( MAR_010 * 0.46e3 - dV_Sat_nomar ) * 0.01 ;                           % [ m / s ] - Maximum misalignment loss acceptable for capture at saturn
 
 dV_mis_Sat = 1 ;
 
@@ -67,7 +67,7 @@ alpha_Sat = rad2deg( alpha_Sat )
 
 %%%%%%%% Moon tour and orbit insertion
 dV_EOI_nomar = 1.1e3 ;                                                            % [ m / s ] - Total impulse for moon tour and Encelaudt orbit insertion with no margins
-dV_mis_EOI = ( 1.1e3 * MAR_020 - dV_EOI_nomar ) * 0.01 ;                           % [ m / s ] - Maximum misalignment loss acceptable for moon tour and EOI
+% dV_mis_EOI = ( 1.1e3 * MAR_020 - dV_EOI_nomar ) * 0.01 ;                           % [ m / s ] - Maximum misalignment loss acceptable for moon tour and EOI
 
 dV_mis_EOI = 1 ;
 
@@ -80,7 +80,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_020 * 0.5e+3 + MAR_010 * 0.9e3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 2.25e+3 + MAR_010 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 oxidizer.rho = 1443 ;                                                             % [ kg / m ^ 3 ] - Oxidizer density
@@ -236,14 +236,14 @@ mdot_bip = 0.135 ;                                                              
 m_dry_int = 928 ;                                                                 % [ kg ] Orbiter + lander
 
 %%%%%%%% Earth-Saturn transfer
-dV_int_leg_nomar = 0.5e+3 ;
+dV_int_leg_nomar = 1.79e+3 ;
 
 %n_maneuver = 4 ;
 % dV_mis_int_leg =dV_int_leg_nomar * MAR_010 / n_maneuver ;
 
 dV_mis_int_leg = 1 ; % [ m / s ] - Lo imponiamo noi
 
-m_prop_int_leg = preliminary_prop_mass( dV_int_leg_nomar * MAR_020, m_dry_int, Isp_int ) ; % [ kg ] - Propellant mass
+m_prop_int_leg = preliminary_prop_mass( dV_int_leg_nomar * MAR_010, m_dry_int, Isp_int ) ; % [ kg ] - Propellant mass
 m_int_leg = m_dry_int + m_prop_int_leg ;                                          % [ kg ] - Total mass during interplanetary leg
 
 dt_int_leg = m_prop_int_leg / mdot_bip ;                                          % [ s ] - Maneuvering time
@@ -252,7 +252,7 @@ alpha_int_leg = acos( 1 - ( dV_mis_int_leg * m_int_leg ) / ( dt_int_leg * Tmax )
 alpha_int_leg = rad2deg( alpha_int_leg )
 
 %%%%%%%% Capture at Saturn
-dV_Sat_nomar = 0.9e3 ;
+dV_Sat_nomar = 0.46e3 ;
 dV_mis_Sat = 1 ;
 
 m_prop_Sat = preliminary_prop_mass( dV_Sat_nomar * MAR_010, m_dry_int, Isp_int);  % [ kg ] - Propellant mass
@@ -267,7 +267,7 @@ alpha_Sat = rad2deg( alpha_Sat )
 dV_EOI_nomar = 1.1e3 ;                                                            % [ m / s ] - Total impulse for moon tour and Encelaudt orbit insertion with no margins
 dV_mis_EOI = 1 ;
 
-m_prop_EOI = preliminary_prop_mass( dV_EOI_nomar * MAR_020, m_dry_int, Isp_int);  % [ kg ]
+m_prop_EOI = preliminary_prop_mass( dV_EOI_nomar * MAR_010, m_dry_int, Isp_int);  % [ kg ]
 m_EOI = m_dry_int + m_prop_EOI ;                                                  % [ kg ] - Total mass during moon tour and Enceladus orbit insertion
 
 dt_EOI = m_prop_EOI / mdot_bip ;                                                  % [ s ] -  Maneuvering time
@@ -276,7 +276,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_020 * 0.5e+3 + MAR_010 * 0.9e3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 2.25e+3 + MAR_010 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 %m_prop_int = 2691.9;                    % from preliminary sizing

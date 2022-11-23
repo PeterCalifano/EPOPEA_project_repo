@@ -34,7 +34,7 @@ mdot_bip = 0.135 ;                                                         % [ k
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
 % Compute maneuvering  time
-m_prop_int1 = preliminary_prop_mass(MAR_010*2.04e3,m_dry_int,Isp_int) ;
+m_prop_int1 = preliminary_prop_mass(MAR_010*1.79e3,m_dry_int,Isp_int) ;
 m_int = m_prop_int1 + m_dry_int ;
 dt_int = m_prop_int1 / mdot_bip ;
 
@@ -198,7 +198,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----------- BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER ----------- 
 
-dV_int = MAR_080 + MAR_010*2.5e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_080 + MAR_010*2.25e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_int = 321;
 Tmax = 440;
 m_dry_int = 928;                                                           % Orbiter + lander
@@ -206,7 +206,7 @@ mdot_bip = 0.135 ;
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
 % Compute maneuvering time
-m_prop_int1 = preliminary_prop_mass(MAR_010*2.04e+3,m_dry_int,Isp_int) ;
+m_prop_int1 = preliminary_prop_mass(MAR_010*1.79e+3,m_dry_int,Isp_int) ;
 m_int = m_prop_int1 + m_dry_int ;
 dt_int = m_prop_int1 / mdot_bip ;
 

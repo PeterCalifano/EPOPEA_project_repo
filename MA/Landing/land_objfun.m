@@ -25,28 +25,28 @@ for k = 1:(N-1)
 end
 
 
-% add derivative
-% if nargout>1
-% JF = zeros(step_var*N+2,1);
-%     for k = 6:step_var:(step_var*N+2)-4
-%         if k == 6 || k == (step_var*N+2)-4
-%             JF(k) = h/2;
-%         else
-%             JF(k) = h;
-%         end
-%     end
-% 
-%     for k =  1:N
-%         if k == 1 || k == N
-%             JF(end-1) = JF(end-1) - u_k(k);
-%             JF(end) = JF(end) + u_k(k);
-%         else
-%             JF(end-1) = JF(end-1) - 2*u_k(k);
-%             JF(end) = JF(end) + 2*u_k(k);
-%         end
-%     end
-% JF(end-1) = JF(end-1)/(2*(N-1));
-% JF(end) = JF(end)/(2*(N-1));
-% end
+%add derivative
+if nargout>1
+JF = zeros(step_var*N+2,1);
+    for k = 6:step_var:(step_var*N+2)-4
+        if k == 6 || k == (step_var*N+2)-4
+            JF(k) = h/2;
+        else
+            JF(k) = h;
+        end
+    end
+
+    for k =  1:N
+        if k == 1 || k == N
+            JF(end-1) = JF(end-1) - u_k(k);
+            JF(end) = JF(end) + u_k(k);
+        else
+            JF(end-1) = JF(end-1) - 2*u_k(k);
+            JF(end) = JF(end) + 2*u_k(k);
+        end
+    end
+JF(end-1) = JF(end-1)/(2*(N-1));
+JF(end) = JF(end)/(2*(N-1));
+end
 
 end

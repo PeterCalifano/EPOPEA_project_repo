@@ -28,12 +28,17 @@ t2 = t2/TU;
 
 load('NewGlobalMin22112022.mat')
 
-% Define trajectory features (N of FBs and sequence)
-N = 3; % NUMBER OF FBs
+%% Define trajectory features (N of FBs and sequence)
+marker = 1;
+% 1 --> E-VEJ-S
+% 2 --> E-VEE-S
+% 3 --> E-VEVE-S
+% 4 --> E-VEEJ-S
 
 planets = {'Earth','Venus','Earth', 'Earth' 'Jupiter','Saturn'};
 
 planets_id = [3,2,3,3,5,6];
+[planets_id,planets,N] = sequence_selector(marker);
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
@@ -44,6 +49,11 @@ Rp_target = 3*R_Saturn;
 initial_guess = NLPoptset_local(33,:,3);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target);
+
+%%
+dep_time = cspice_et2utc(initial_guess(1)*3600*24,'C',0 )
+arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N) ) );
+arr_time = cspice_et2utc(arr_time,'C',0 )
 
 %% Plot the space of the variables
 n1 = length(squeeze(NLPoptset_local(:,1,1)));
@@ -58,9 +68,15 @@ for k = 1:n3_th
     end
 end
 
-ind_v = [1,N+2:(N+2+N),13:15];
-ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$','$ToF_3$','$ToF_4$','$rp_1$','$rp_2$','$rp_3$'};
+N = length(planets_id) - 2;
+ind_v = [1,5:(5+N),(2*N + 7):(2*N+7 +N-1)];
+
+
+ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$',...
+    '$ToF_3$','$ToF_4$','$ToF_5$','$rp_1$','$rp_2$','$rp_3$','$rp_4$'};
+
 count = 1;
+
 for j = ind_v
     figure
     title(ind_names{count})
@@ -81,3 +97,5 @@ for j = ind_v
     count = count + 1;
 end
 
+% Find total time of flight
+total_tof = sum(NLPoptset_local(N+2:(N+2+N)))./365.5;

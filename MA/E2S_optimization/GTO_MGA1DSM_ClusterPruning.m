@@ -12,18 +12,18 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 100; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 30; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 8; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 16*60; % Stop time for ga solver
+stoptime = 1.5*60; % Stop time for ga solver
 maxtime =  16*3600; % Max allowable execution time
 
 rng shuffle
 
-% Sequences: 1) E-VEJ-S, 2) E-VEE-S, 3), 4) E-VEEJ-S
-Sequence_selector = 4;
+% Sequences: 1) E-VEJ-S, 2) E-VEE-S, 3)E-VEVE-S, 4) E-VEEJ-S , % 5) E-J-S
+Sequence_selector = 5;
 % Solver selection: 0) ga, 1) SA
 heursolver_selector = 0;
 
@@ -31,28 +31,35 @@ fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepToler
     'MaxFunctionEvaluations', 1e5, 'MaxIterations', 500);
 
 % GA options
+% opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
+%     'UseParallel', true, 'PopulationSize', 200, 'Display', 'iter', 'MaxGenerations', 1e3,...
+%     'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime,...
+%     'HybridFcn', {@fmincon, fminconopts_hyb});
+
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 600, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime,...
-    'HybridFcn', {@fmincon, fminconopts_hyb});
+    'UseParallel', true, 'PopulationSize', 200, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime);
+
 % Fminunc options
-opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-10,...
-    'OptimalityTolerance', 1e-9, 'MaxFunctionEvaluations', 5e3, 'MaxIterations', 100, ...
-    'StepTolerance', 1e-10);
+opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-14,...
+    'OptimalityTolerance', 1e-12, 'MaxFunctionEvaluations', 5e4, 'MaxIterations', 300, ...
+    'StepTolerance', 1e-11);
 
 
 
 % Number of flybys
-N_fb = 3;
+N_fb = 4;
 NLPvars = ones(4*N_fb + 6, 1)';
+
+% 2042-2050
 
 % Define sequence and constant parameters
 switch Sequence_selector
     case 1 % E-VEJ-S,
 
         fb_sequence = [2, 3, 5];
-        LBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2055-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2042-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2050-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 5; % [km/s]
@@ -79,8 +86,8 @@ switch Sequence_selector
     case 2 % E-VEE-S
 
         fb_sequence = [2, 3, 3];
-        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 5; % [km/s]
@@ -106,19 +113,19 @@ switch Sequence_selector
 case 3 % E-VEVE-S
 
         fb_sequence = [2, 3, 2, 3];
-        LBt_launchdate = 18000./(3600*24);% cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2060-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2036-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2046-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
-        UBvinfdep = 6; % [km/s]
+        UBvinfdep = 6.06; % [km/s]
 
         LBu = 0;
         UBu = 1;
         LBv = 0;
         UBv = 1;
 
-        LBtof = [60, 60, 260, 200, 1000];
-        UBtof = [400, 400, 400, 600, 3000];
+        LBtof = [60, 60, 260, 200, 300];
+        UBtof = [400, 400, 400, 600, 700];
         LBeta = [0.2, 0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8, 0.8];
 
@@ -134,36 +141,65 @@ case 3 % E-VEVE-S
 
         fb_sequence = [2, 3, 3, 5];
 
-        LBt_launchdate = cspice_str2et('2050-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2056-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+
+        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
-        UBvinfdep = 6; % [km/s]
+        UBvinfdep = 6.05; % [km/s]
 
         LBu = 0;
         UBu = 1;
         LBv = 0;
         UBv = 1;
 
-        LBtof = [350, 520, 300, 1500, 1800];
-        UBtof = [500, 600, 600, 1850, 2300];
+        LBtof = [60, 60, 300, 800, 1000];
+        UBtof = [500, 500, 500, 1600, 2300];
         LBeta = [0.2, 0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8, 0.8];
 
 
-        LBRp_seq = [1.035, 1.035, 1.035, 20];
-        UBRp_seq = [5, 5, 8, 65];
+        LBRp_seq = [1.035, 1.035, 1.035, 25];
+        UBRp_seq = [5, 5, 8, 50];
         LBbeta = [-3, -1, -3, -3];
         UBbeta = [-1, 2, -0.5, 0.2];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';
         
+    case 5 % E-J-S
+        fb_sequence = [5];
+
+        LBt_launchdate = cspice_str2et('2037-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2039-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+
+        LBvinfdep = 3; % [km/s]
+        UBvinfdep = 6.5; % [km/s]
+
+        LBu = 0;
+        UBu = 1;
+        LBv = 0;
+        UBv = 1;
+
+        LBtof = [365.5*1.5, 365.5*6];
+        UBtof = [365.5*4, 365.5*10];
+
+        LBeta = [0.1, 0.1];
+        UBeta = [0.9, 0.9];
+
+
+        LBRp_seq = [5];
+        UBRp_seq = [50];
+        LBbeta = [-pi];
+        UBbeta = [pi];
+
+        N_fb = length(fb_sequence);
+        NLPvars = ones(4*N_fb + 6, 1)';
 end
 
 planet_seq = [3, fb_sequence, 6];
 Ra_target = 200*astroConstants(26);
-Rp_target = 3*astroConstants(26);
+Rp_target = 2.55*astroConstants(26);
 
 % Static allocation
 LB = zeros(maxiter, length(NLPvars));
@@ -218,8 +254,8 @@ InitialTempVec = UB(1, :) - LB(1, :);
 
 opts_simulanneal = optimoptions('simulannealbnd', 'Display', 'iter',...
     'FunctionTolerance', 1e-14, 'MaxTime', stoptime,...
-    'MaxFunctionEvaluations', 1e6, 'MaxStallIterations', 100, ...
-    InitialTemperature=InitialTempVec, ReannealInterval=200, TemperatureFcn='temperatureexp');
+    'MaxFunctionEvaluations', 1e6, 'MaxStallIterations', 500, ...
+    InitialTemperature=InitialTempVec, ReannealInterval=300, TemperatureFcn='temperatureexp');
 
 % Define convergence criterion
 converge_flag = 0;
@@ -230,15 +266,15 @@ time_limit = tic();
 %        -args {N1, iter, NLPvars, planet_seq, Ra_target, Rp_target, LB, UB, params, NLPoptset_ga, feval_ga, exitflag_ga} ...
 %        -nargout {1} HeuristicOptimization
 
-codegen -config:mex objfun_EarthSaturntransfer_X.m -args {NLPvars, planet_seq, Ra_target, Rp_target} -nargout 1 -lang::c -report
+% codegen -config:mex objfun_EarthSaturntransfer_X.m -args {NLPvars, planet_seq, Ra_target, Rp_target} -nargout 1 -lang::c -report
 
 % cfg = coder.config('mex');
 % cfg.IntegrityChecks = false;
 % cfg.SaturateOnIntegerOverflow = false;
 % cfg.DynamicMemoryAllocation = 'Off';
 
-codegen -config:mex LocalOptimization.m -args {NLPoptset_ga(:, :, 1), planet_seq, Ra_target, Rp_target, LB(iter, :), UB(iter, :), N1}...
-    -nargout 3 -O enable:openmp -lang::c -report
+% codegen -config:mex LocalOptimization.m -args {NLPoptset_ga(:, :, 1), planet_seq, Ra_target, Rp_target, LB(iter, :), UB(iter, :), N1}...
+%     -nargout 3 -O enable:openmp -lang::c -report
 
 
 while converge_flag ~= 1
@@ -258,27 +294,28 @@ while converge_flag ~= 1
 
     elseif heursolver_selector == 1
 
-        for idsol = 1:N1
+        parfor idsol = 1:N1
             % Heuristic optimization: produce f_ga costs [N1x1] and corresponding
             % decision variables NLPoptset_ga(idsol, :, iter)
             [NLPoptset_simulanneal(idsol, :, iter), feval_simulanneal(idsol, 1, iter), exitflag_simulanneal(idsol, 1, iter)] =...
                 simulannealbnd(@(NLPvars) objfun_EarthSaturntransfer_2(NLPvars, planet_seq, Ra_target, Rp_target),...
                 NLPvars, LB(iter, :), UB(iter, :), opts_simulanneal);
+            
         end
     end
 
     %% Local solver step
-    [NLPoptset_local(:, :, iter), feval_local(:, 1, iter), exitflag_local(:, 1, iter)] =...
-        LocalOptimization_mex(NLPoptset_ga(:, :, iter), ...
-        planet_seq, Ra_target, Rp_target, LB(iter, :), UB(iter, :), N1);
+%     [NLPoptset_local(:, :, iter), feval_local(:, 1, iter), exitflag_local(:, 1, iter)] =...
+%         LocalOptimization_mex(NLPoptset_ga(:, :, iter), ...
+%         planet_seq, Ra_target, Rp_target, LB(iter, :), UB(iter, :), N1);
 
-    %     parfor idsol = 1:N1
-    %         % Local optimization (refinement): produce f_local costs [N1x1] and
-    %         % corresponding decision variables NLPoptset_local(idsol, :, iter)
-    %         [NLPoptset_local(idsol, :, iter), feval_local(idsol, 1, iter), exitflag_local(idsol, 1, iter)] = ...
-    %             fmincon(@(NLPvars) objfun_EarthSaturntransfer_2(NLPvars, planet_seq, Ra_target, Rp_target),...
-    %             NLPoptset_ga(idsol, :, iter), [], [], [], [], LB(iter, :), UB(iter, :), [], opts_fmincon);
-    %     end
+        parfor idsol = 1:N1
+            % Local optimization (refinement): produce f_local costs [N1x1] and
+            % corresponding decision variables NLPoptset_local(idsol, :, iter)
+            [NLPoptset_local(idsol, :, iter), feval_local(idsol, 1, iter), exitflag_local(idsol, 1, iter)] = ...
+                fmincon(@(NLPvars) objfun_EarthSaturntransfer_2(NLPvars, planet_seq, Ra_target, Rp_target),...
+                NLPoptset_ga(idsol, :, iter), [], [], [], [], LB(iter, :), UB(iter, :), [], opts_fmincon);
+        end
 
 
     % Evaluate convergence criterion
@@ -304,13 +341,6 @@ while converge_flag ~= 1
     LB_min = min(NLPopts_perc, [], 1);
     % Find maximum of decision variables perc percentile
     UB_max = max(NLPopts_perc, [], 1);
-
-    LB_min = NLPoptset_local(minpos, :, iter);
-
-    % Find maximum of decision variables perc percentile
-    UB_max = max(NLPopts_perc, [], 1);
-
-    UB_max = NLPoptset_local(minpos, :, iter);
 
     % Redefine LB for iter+1
     %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
@@ -340,14 +370,17 @@ while converge_flag ~= 1
     end
 
     %% "Emergency" pruning
-    if sum(and(LB(iter+1, :) == LB(iter, :), UB(iter+1, :) == UB(iter, :))) > 2*15
+    % If 1 in mask --> no change both in LB and in UB for the ith variable
+    if sum(or(LB(iter+1, :) == LB(iter, :), UB(iter+1, :) == UB(iter, :))) > floor((4*N_fb+6)./4)
         warning('Emergency pruning triggered')
         % Redefine LB for iter+1
         %        LB_min = min(NLPoptset_local(:, :, iter), [], 1); % Find minimum of decision variables
+        LB_min = NLPoptset_local(minpos, :, iter);
         LB_new = LB_min - (UB(iter, :) - LB(iter, :))*perc(iter)/100/4;
 
         % Redefine UB for iter+1
         %        UB_max = max(NLPoptset_local(:, :, iter), [], 1); % Find maximum of decision variables
+        UB_max = NLPoptset_local(minpos, :, iter);
         UB_new = UB_max + (UB(iter, :) - LB(iter, :))*perc(iter)/100/4;
 
         for idVar = 1:length(NLPvars)
@@ -374,6 +407,9 @@ while converge_flag ~= 1
     %%
     % Check if allowed maxiter reached
     elapsedtime = toc(time_limit);
+
+    [min_at_iter(iter_id), min_pos(iter_id)] = min(feval_local(:, 1, iter_id), [], 1);
+    fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter_id), min_pos(iter_id));
 
     if iter == maxiter
         break;

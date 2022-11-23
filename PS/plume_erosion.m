@@ -18,7 +18,7 @@ g0 = 9.81 ; % [ m/s ] - Gravitational acceleration on Earth at sea level
 mdot = T / ( Isp * g0 ) ; % [ kg/s ] - Mass flow raterequired to generate thrust T
 
 alpha = 45 ; % [ deg ] - Half-cone angle representing exhaust plume expansion -> height and ardius of the cone are equal
-h_vect = linspace( 2, 50, 50 ) ; % [ m ] - Height from ground at which we turn off the thrusters
+h_vect = linspace( 2, 30, 50 ) ; % [ m ] - Height from ground at which we turn off the thrusters
 v = 0.75 ; % [ m / s ] - Velocity at landing (assumed from literature)
 
 m_fluence = zeros( length( h_vect ), 1 ) ; % Initialize vector
@@ -41,9 +41,11 @@ hold, grid on
 plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
 xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$g/m^2$]' )
 title( 'Exhaust plume deposition' )
-legend( 'Exhaust plume deposition', 'Ammonia deposition', 'location', 'best' )
+legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
-%% Plume erosion
+%% Ice melting
+
+
 
 
 

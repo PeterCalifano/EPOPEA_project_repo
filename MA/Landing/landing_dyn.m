@@ -18,6 +18,6 @@ alpha = uvec(2:3);
 % dynamics 
 dxdt = [v; 
         -mu/(norm(r)^3).*r + (Tmax/m)*u*alpha;
-        -Tmax*u/g0/Isp];
+        -Tmax*u/(g0*Isp)];
 
 end

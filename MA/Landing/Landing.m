@@ -8,7 +8,7 @@ set(0,'defaultAxesFontSize', 16)
 clearvars; close all; clc 
 
 % step1: vehicle par (TO CHANGE!!!)
-Tmax = 4*110e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
+Tmax = 4*125e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
 Isp = 228;                      %[s] Specific Impulse
 g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
 m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
@@ -43,10 +43,10 @@ par(3) = g0;
 par(4) = mu;
 par(5) = Re;
 
-N = 100;
+N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-h = 100/DU;
+h = 60/DU;
 r_mod = Re+h;
 xi = -r_mod/sqrt(2);
 yi = -r_mod/sqrt(2);
@@ -64,7 +64,8 @@ eps = 1e-10;
 
 % t1 = 0/TU;                              %initial time guess
 t1 = eps;
-tN = 0.6*3600/TU;                          %final time guess
+tN = 0.4*3600/TU;                         %final time guess
+% tN = 0.6*3600/TU;
 h = (tN-t1)/(N-1);
 s0 = state_i;
 guess = zeros(step_var*N+2, 1);
@@ -146,8 +147,8 @@ lb(end) = 0;
 
 %%
 
-options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'interior-point',...
-    'SpecifyObjectiveGradient', true, 'MaxIter', 1000, 'MaxFunctionEvaluations', 1.5*1e5);
+options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
+    'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i, par, N),options);
@@ -179,10 +180,14 @@ ylabel('$u$')
 
 % Thrust
 Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
+Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
 
 % Final Velocity
 vv_fin = x_final(end-7:end-6)*VU;
 v_fin = norm(vv_fin)*1e3;                    %[m/s]
+for k =1:N
+    
+end
 
 % Propellant Mass
 m_fin = x_final(end-5)*MM;

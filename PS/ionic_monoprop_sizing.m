@@ -34,7 +34,8 @@ mdot_bip = 0.135 ;                                                              
 m_dry_int = 1279;                                                                 % [ kg ] Orbiter + lander
 
 %%%%%%%% Earth-Saturn transfer
-dV_int_leg_nomar = 1.79e+3 ;
+% dV_int_leg_nomar = 1.79e+3 ; old value
+dV_int_leg_nomar = 0.8494 ;
 
 %n_maneuver = 4 ;
 % dV_mis_int_leg =dV_int_leg_nomar * MAR_010 / n_maneuver ;
@@ -52,7 +53,8 @@ alpha_int_leg = acos( 1 - ( dV_mis_int_leg * m_int_leg ) / ( dt_int_leg * Tmax )
 alpha_int_leg = rad2deg( alpha_int_leg )
 
 %%%%%%%% Capture at Saturn
-dV_Sat_nomar = 0.46e3 ;
+%dV_Sat_nomar = 0.46e3 ; old value
+dV_Sat_nomar = 0.2485 ;
 % dV_mis_Sat = ( MAR_010 * 0.46e3 - dV_Sat_nomar ) * 0.01 ;                           % [ m / s ] - Maximum misalignment loss acceptable for capture at saturn
 
 dV_mis_Sat = 1 ;
@@ -80,7 +82,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_010 * 2.25e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 1.0978e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 oxidizer.rho = 1443 ;                                                             % [ kg / m ^ 3 ] - Oxidizer density
@@ -116,7 +118,7 @@ mdot_land = 0.03925 ;
 m_dry_land = 746;           % Sampling lander
 % m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
 % m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
-m_prop_land = 15 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;
@@ -237,7 +239,8 @@ mdot_bip = 0.135 ;                                                              
 m_dry_int = 928 ;                                                                 % [ kg ] Orbiter + lander
 
 %%%%%%%% Earth-Saturn transfer
-dV_int_leg_nomar = 1.79e+3 ;
+%dV_int_leg_nomar = 1.79e+3 ; old value
+dV_int_leg_nomar = 0.8494 ;
 
 %n_maneuver = 4 ;
 % dV_mis_int_leg =dV_int_leg_nomar * MAR_010 / n_maneuver ;
@@ -253,7 +256,8 @@ alpha_int_leg = acos( 1 - ( dV_mis_int_leg * m_int_leg ) / ( dt_int_leg * Tmax )
 alpha_int_leg = rad2deg( alpha_int_leg )
 
 %%%%%%%% Capture at Saturn
-dV_Sat_nomar = 0.46e3 ;
+%dV_Sat_nomar = 0.46e3 ; old
+dV_Sat_nomar = 0.2485 ;
 dV_mis_Sat = 1 ;
 
 m_prop_Sat = preliminary_prop_mass( dV_Sat_nomar * MAR_010, m_dry_int, Isp_int);  % [ kg ] - Propellant mass
@@ -277,7 +281,7 @@ alpha_EOI = acos( 1 - ( dV_mis_EOI * m_EOI ) / ( dt_EOI * Tmax ) ) ;            
 alpha_EOI = rad2deg( alpha_EOI )
 
 %%%%%%%% Cumulative bipropellant sizing
-dV_int = MAR_010 * 2.25e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_010 * 1.0978e+3 + MAR_020 * 1.1e3 + MAR_080 + MAR_090 + MAR_100 ;  % [ m / s ] - Total cumulative impulse plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 m_prop_int = preliminary_prop_mass( dV_int, m_dry_int, Isp_int);                  % [ kg ] - Cumulative mass
 
 %m_prop_int = 2691.9;                    % from preliminary sizing
@@ -314,7 +318,7 @@ mdot_land = 0.03925 ;
 m_dry_land = 746;           % Sampling lander
 % m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
 % m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
-m_prop_land = 15 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;

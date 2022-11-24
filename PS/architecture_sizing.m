@@ -26,7 +26,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----------- BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER -----------
 
-dV_int = MAR_080 + MAR_010*2.25e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;   % [m/s] - Interplanetary + capture + moon toru and EOI
+dV_int = MAR_080 + MAR_010*1.098e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;   % [m/s] - Interplanetary + capture + moon toru and EOI
 Isp_int = 321; 
 Tmax = 440 ; % [N] - Maximum thrust
 m_dry_int = 1279;                                                          % Orbiter + lander
@@ -34,11 +34,13 @@ mdot_bip = 0.135 ;                                                         % [ k
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
 % Compute maneuvering  time
-m_prop_int1 = preliminary_prop_mass(MAR_010*1.79e3,m_dry_int,Isp_int) ;
+dV_int_leg_nomar = 0.8494 ;
+m_prop_int1 = preliminary_prop_mass(MAR_010*dV_int_leg_nomar,m_dry_int,Isp_int) ;
 m_int = m_prop_int1 + m_dry_int ;
 dt_int = m_prop_int1 / mdot_bip ;
 
-m_prop_cap = preliminary_prop_mass(MAR_010*0.46e3,m_dry_int,Isp_int) ;
+dV_Sat_nomar = 0.2485 ;
+m_prop_cap = preliminary_prop_mass(MAR_010*dV_Sat_nomar,m_dry_int,Isp_int) ;
 m_cap = m_prop_cap + m_dry_int ;
 dt_cap = m_prop_cap / mdot_bip ;
 
@@ -199,7 +201,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----------- BIPROPELLANT - 400N BI-PROPELLANT APOGEE THRUSTER ----------- 
 
-dV_int = MAR_080 + MAR_010*2.25e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_int = MAR_080 + MAR_010*1.098e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_int = 321;
 Tmax = 440;
 m_dry_int = 928;                                                           % Orbiter + lander
@@ -207,11 +209,13 @@ mdot_bip = 0.135 ;
 m_prop_int = preliminary_prop_mass(dV_int,m_dry_int,Isp_int);
 
 % Compute maneuvering time
-m_prop_int1 = preliminary_prop_mass(MAR_010*1.79e+3,m_dry_int,Isp_int) ;
+dV_int_leg_nomar = 0.8494 ;
+m_prop_int1 = preliminary_prop_mass(MAR_010*dV_int_leg_nomar,m_dry_int,Isp_int) ;
 m_int = m_prop_int1 + m_dry_int ;
 dt_int = m_prop_int1 / mdot_bip ;
 
-m_prop_cap = preliminary_prop_mass(MAR_010*0.46e+3,m_dry_int,Isp_int) ;
+dV_Sat_nomar = 0.2485 ;
+m_prop_cap = preliminary_prop_mass(MAR_010*dV_Sat_nomar,m_dry_int,Isp_int) ;
 m_cap = m_prop_cap + m_dry_int ;
 dt_cap = m_prop_cap / mdot_bip ;
 

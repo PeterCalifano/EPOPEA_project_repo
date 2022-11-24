@@ -29,7 +29,7 @@ t2 = t2/TU;
 %load('NewGlobalMin22112022.mat')
 
 %% Define trajectory features (N of FBs and sequence)
-marker = 6;
+marker = 1;
 % 1 --> E-VEJ-S
 % 2 --> E-VEE-S
 % 3 --> E-VEVE-S
@@ -43,13 +43,12 @@ Ra_target = 200*R_Saturn;
 Rp_target = 3*R_Saturn;
 
 %% Analyze solution
-[m,index_pos] = min(min_at_iter(min_at_iter>0));
-index_iter = min_pos(index_pos);
-if marker == 6
-    index_iter = index_pos;
-    index_pos = index_iter;
-end
-initial_guess = NLPoptset_local(index_pos,:,index_iter);
+[m,index_iter] = min(min_at_iter(min_at_iter>0));
+index_pos = min_pos(index_iter);
+
+
+
+initial_guess = NLPoptset_local(index_iter,:,index_iter);
 
 DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
 

@@ -3,11 +3,17 @@ clear; close all; clc
 
 %% Load SPICE Kernels
 cspice_kclear();
-cspice_furnsh('spice_kernels/pck00010.tpc')
-cspice_furnsh('spice_kernels/naif0012.tls')
-cspice_furnsh('spice_kernels/gm_de431.tpc')
-cspice_furnsh('spice_kernels/de440s.bsp')
-
+try
+    cspice_furnsh('spice_kernels/pck00010.tpc')
+    cspice_furnsh('spice_kernels/naif0012.tls')
+    cspice_furnsh('spice_kernels/gm_de431.tpc')
+    cspice_furnsh('spice_kernels/de440s.bsp')
+catch
+    cspice_furnsh('..\..\spice_kernels/pck00010.tpc')
+    cspice_furnsh('..\..\spice_kernels/naif0012.tls')
+    cspice_furnsh('..\..\spice_kernels/gm_de431.tpc')
+    cspice_furnsh('..\..\spice_kernels/de440s.bsp')
+end
 %% DATA:
 % Radius of Saturn from Spice
 R_Saturn = astroConstants(26); % [km]
@@ -18,23 +24,25 @@ TU = 24*3600; % 1 day
 DU = 1.495978707e+8; % 1 AU
 
 % Initial Time manipulation
-date_1 = '2030-01-01 00:00:00.00 UTC'; % First available date to launch
-t1 = cspice_str2et(date_1);
-t1 = t1/TU;
+% date_1 = '2030-01-01 00:00:00.00 UTC'; % First available date to launch
+% t1 = cspice_str2et(date_1);
+% t1 = t1/TU;
 
-date_2 = '2050-12-31 00:00:00.00 UTC'; % First available date to launch
-t2 = cspice_str2et(date_2);
-t2 = t2/TU;
+% date_2 = '2050-12-31 00:00:00.00 UTC'; % First available date to launch
+% t2 = cspice_str2et(date_2);
+% t2 = t2/TU;
 
 %load('NewGlobalMin22112022.mat')
 
 %% Define trajectory features (N of FBs and sequence)
-marker = 1;
+marker = 7;
 % 1 --> E-VEJ-S
 % 2 --> E-VEE-S
 % 3 --> E-VEVE-S
 % 4 --> E-VEEJ-S
 % 5 --> E-VVE-S
+% 6 --> E-J-S
+% 7 --> E-EEJ-S
 
 [planets_id,planets,N] = sequence_selector(marker);
 
@@ -43,18 +51,24 @@ Ra_target = 200*R_Saturn;
 Rp_target = 3*R_Saturn;
 
 %% Analyze solution
-[m,index_iter] = min(min_at_iter(min_at_iter>0));
+load('E_EEJ_S_bestvalue1.016.mat');
+
+[m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 
 
+initial_guess = NLPoptset_local(index_pos, :, index_iter);
 
-initial_guess = NLPoptset_local(index_iter,:,index_iter);
-
-DV_opt = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
+[DV_opt, DV_breakdown] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
 
 %%
 dep_time = cspice_et2utc(initial_guess(1)*3600*24,'C',0 )
-arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N) ) );
+
+time1stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5)))*3600*24,'C',0 )
+time2stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:6)))*3600*24,'C',0 )
+time3stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:7)))*3600*24,'C',0 )
+
+arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N)) );
 arr_time = cspice_et2utc(arr_time,'C',0 )
 
 %% Plot the space of the variables

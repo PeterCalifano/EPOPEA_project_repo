@@ -12,18 +12,19 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 30; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 150; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
-maxiter = 8; % Number of maximum allowed iteration of while loop
+maxiter = 4; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 1.5*60; % Stop time for ga solver
-maxtime =  16*3600; % Max allowable execution time
+stoptime = 2*60; % Stop time for ga solver
+maxtime =  8*3600; % Max allowable execution time
 
 rng shuffle
 
-% Sequences: 1) E-VEJ-S, 2) E-VEE-S, 3)E-VEVE-S, 4) E-VEEJ-S , % 5) E-J-S
-Sequence_selector = 5;
+% Sequences: 1) E-VEJ-S, 2) E-VEE-S, 3)E-VEVE-S, 4) E-VEEJ-S , % 5) E-J-S,
+% 6) E-EEJ-S
+Sequence_selector = 6;
 % Solver selection: 0) ga, 1) SA
 heursolver_selector = 0;
 
@@ -37,8 +38,8 @@ fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepToler
 %     'HybridFcn', {@fmincon, fminconopts_hyb});
 
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 200, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime);
+    'UseParallel', true, 'PopulationSize', 500, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.65, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime);
 
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-14,...
@@ -66,8 +67,8 @@ switch Sequence_selector
 
         LBu = 0;
         UBu = 1;
-        LBv = 0;
-        UBv = 1;
+        LBv = 0.4;
+        UBv = 0.8;
 
         LBtof = [100, 120, 400, 1000];
         UBtof = [500, 500, 2000, 3000];
@@ -94,8 +95,8 @@ switch Sequence_selector
 
         LBu = 0;
         UBu = 1;
-        LBv = 0;
-        UBv = 1;
+        LBv = 0.4;
+        UBv = 0.8;
 
         LBtof = [60, 60, 300, 2000];
         UBtof = [400, 400, 400, 5000];
@@ -117,12 +118,12 @@ case 3 % E-VEVE-S
         UBt_launchdate = cspice_str2et('2046-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
-        UBvinfdep = 6.06; % [km/s]
+        UBvinfdep = 6.5; % [km/s]
 
         LBu = 0;
         UBu = 1;
-        LBv = 0;
-        UBv = 1;
+        LBv = 0.4;
+        UBv = 0.8;
 
         LBtof = [60, 60, 260, 200, 300];
         UBtof = [400, 400, 400, 600, 700];
@@ -142,7 +143,7 @@ case 3 % E-VEVE-S
         fb_sequence = [2, 3, 3, 5];
 
 
-        LBt_launchdate = cspice_str2et('2040-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
         UBt_launchdate = cspice_str2et('2045-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
@@ -150,8 +151,8 @@ case 3 % E-VEVE-S
 
         LBu = 0;
         UBu = 1;
-        LBv = 0;
-        UBv = 1;
+        LBv = 0.4;
+        UBv = 0.8;
 
         LBtof = [60, 60, 300, 800, 1000];
         UBtof = [500, 500, 500, 1600, 2300];
@@ -161,8 +162,8 @@ case 3 % E-VEVE-S
 
         LBRp_seq = [1.035, 1.035, 1.035, 25];
         UBRp_seq = [5, 5, 8, 50];
-        LBbeta = [-3, -1, -3, -3];
-        UBbeta = [-1, 2, -0.5, 0.2];
+        LBbeta = [-pi, -pi, -pi, -p];
+        UBbeta = [pi, pi, pi, pi];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';
@@ -170,8 +171,8 @@ case 3 % E-VEVE-S
     case 5 % E-J-S
         fb_sequence = [5];
 
-        LBt_launchdate = cspice_str2et('2037-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2039-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2044-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
         LBvinfdep = 3; % [km/s]
         UBvinfdep = 6.5; % [km/s]
@@ -179,14 +180,13 @@ case 3 % E-VEVE-S
         LBu = 0;
         UBu = 1;
         LBv = 0;
-        UBv = 1;
+        UBv = 0.4;
 
-        LBtof = [365.5*1.5, 365.5*6];
-        UBtof = [365.5*4, 365.5*10];
+        LBtof = [365.5*2, 365.5*3];
+        UBtof = [365.5*5, 365.5*10];
 
         LBeta = [0.1, 0.1];
         UBeta = [0.9, 0.9];
-
 
         LBRp_seq = [5];
         UBRp_seq = [50];
@@ -195,6 +195,36 @@ case 3 % E-VEVE-S
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';
+
+    case 6 % E-EEJ-S
+
+        fb_sequence = [3, 3, 5];
+
+        LBt_launchdate = cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2046-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+
+        LBvinfdep = 3; % [km/s]
+        UBvinfdep = 6.5; % [km/s]
+
+        LBu = 0;
+        UBu = 1;
+        LBv = 0;
+        UBv = 0.5;
+
+        LBtof = [365.5*0.6, 365.5*0.8, 365.5*1, 365.5*2];
+        UBtof = [365.5*2, 365.5*2, 365.5*5, 365.5*8];
+
+        LBeta = [0.1, 0.1, 0.1, 0.1];
+        UBeta = [0.9, 0.9, 0.9, 0.9];
+
+        LBRp_seq = [1.035, 1.035, 5];
+        UBRp_seq = [8, 8, 100];
+        LBbeta = [-pi, -pi, -pi];
+        UBbeta = [pi, pi, pi];
+
+        N_fb = length(fb_sequence);
+        NLPvars = ones(4*N_fb + 6, 1)';
+
 end
 
 planet_seq = [3, fb_sequence, 6];
@@ -408,8 +438,8 @@ while converge_flag ~= 1
     % Check if allowed maxiter reached
     elapsedtime = toc(time_limit);
 
-    [min_at_iter(iter_id), min_pos(iter_id)] = min(feval_local(:, 1, iter_id), [], 1);
-    fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter_id), min_pos(iter_id));
+    [min_at_iter(iter), min_pos(iter)] = min(feval_local(:, 1, iter), [], 1);
+    fprintf('\nBest solution found at iter = %2g in position %4g \n', min_at_iter(iter), min_pos(iter));
 
     if iter == maxiter
         break;

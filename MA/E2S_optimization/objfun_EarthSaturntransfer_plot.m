@@ -1,4 +1,4 @@
-function DV = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target,typeofplot)
+function [DV,DV_breakdown] = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target,typeofplot)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -232,8 +232,9 @@ DV_capture = DV_capture * VU;
 
 DV = (DV_capture + sum(DV_DSM));
 
+DV_breakdown = [DV_DSM,DV_capture];
 %% PLOT POSITION OF PLANETS
-planets = {'Earth DEP','Venus FB 1','Earth FB 2','Jupiter FB 3','Saturn ARR'};
+planets = {'Earth DEP','Venus FB 1','Earth FB 2','Earth FB 3','Saturn ARR'};
 t_v = linspace(ephtimes(1),ephtimes(end),1000);
 leg1 = zeros(1,N+2);
 figure
@@ -280,6 +281,8 @@ end
 col = {'b','r','g','m','c','k'};
 
 if strcmp(typeofplot,'static')
+
+
     % STATIC PLOT
     leg2 = zeros(1,N+1);
     leg3 = zeros(1,N+1);
@@ -289,14 +292,16 @@ if strcmp(typeofplot,'static')
         leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Pre DSM']);
         [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
         leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{i},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
-        if i == N-1
+        if i == N
             legend([leg1(1:N),leg2(leg2>0),leg3(leg3>0)])
-            title('E-VEJ-S Inner Solar System Tour')
+            title('E-VEE-S Inner Solar System Tour')
             a = 1;
         end
     end
     legend([leg1,leg2,leg3])
-    title('E-VEJ-S Transfer')
+    title('E-VEE-S Transfer')
+
+
 elseif strcmp(typeofplot,'dynamic')
     % DYNAMIC PLOT
     for i = 1:N+1

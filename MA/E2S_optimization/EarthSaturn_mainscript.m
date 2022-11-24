@@ -53,11 +53,11 @@ Rp_target = 3*R_Saturn;
 %% Analyze solution
 load('E_EEJ_S_bestvalue1.016.mat');
 
-[m,index_iter] = min(min_at_iter(min_at_iter>0));
+[m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 
 
-initial_guess = NLPoptset_local(index_iter,:,index_iter);
+initial_guess = NLPoptset_local(index_pos, :, index_iter);
 
 [DV_opt, DV_breakdown] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
 

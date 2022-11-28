@@ -20,7 +20,7 @@ tank.sigma = 950e6 ;
 mdot_reg = 0.135;
 mdot_blow = 0.0035;
 %%%%%%%%
-n_flyby = 4;             % Number of flybys
+n_flyby = 3;             % Number of flybys
 
 % Margins
 MAR_010 = 1.05;          % Deterministic maneuvers
@@ -132,7 +132,7 @@ mdot_reg = 0.135;
 mdot_blow = 0.0035;
 %%%%%%%%
 
-n_flyby = 4 ;
+n_flyby = 3 ;
 
 % Margins
 MAR_010 = 1.05;          % Deterministic maneuvers

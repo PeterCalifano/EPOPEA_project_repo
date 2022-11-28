@@ -12,7 +12,7 @@ tank.rho = 2780 ;
 tank.sigma = 950e6 ;
 %%%%%%%%
 
-n_flyby = 4;             % Number of flybys
+n_flyby = 3;             % Number of flybys
 
 % Margins
 MAR_010 = 1.05;          % Deterministic maneuvers
@@ -82,13 +82,13 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_SOSL_INT, sizing_ox_SOSL_INT, sizing_fu_SOSL_INT, sizing_gas_SOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster ) ;
 
 % ---------------- MONOPROPELLANT - LANDING - MR107T 110 N ----------------
-dV_land = 258*MAR_050;                                                     % Additional MAR-DV-020
+dV_land = 173.35*MAR_050;                                                     % Additional MAR-DV-020
 Isp_land = 228; 
 Tmax = 125 ;
 m_dry_land = 746;                                                          % Sampling lander
 mdot_land = 0.03925;                                                       % [kg/s]
-% m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
-m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
+m_prop_land = m_prop_land + MAR_hazard ; % From MA 
 m_land = m_prop_land + m_dry_land ;
 
 % Compute maneuvering time
@@ -187,7 +187,7 @@ tank.rho = 2780 ;
 tank.sigma = 950e6 ;
 %%%%%%%%
 
-n_flyby = 4;             % Number of flybys
+n_flyby = 3;             % Number of flybys
 
 % Margins
 MAR_010 = 1.05;          % Deterministic maneuvers
@@ -257,13 +257,13 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_NSOSL_INT, sizing_ox_NSOSL_INT, sizing_fu_NSOSL_INT, sizing_gas_NSOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster ) ;
 
 % ---------------- MONOPROPELLANT - LANDING - MR107T 110 N ---------------- 
-dV_land = 258*MAR_050;                            % Additional MAR-DV-020
+dV_land = 173.35*MAR_050;                            % Additional MAR-DV-020
 Isp_land = 228; 
 Tmax = 125 ;
 m_dry_land = 746;           % Sampling lander
 mdot_land = 0.03925;  % [kg/s]
-% m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
-m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
+m_prop_land = m_prop_land * MAR_020 + MAR_hazard ; % From MA 
 m_land = m_prop_land + m_dry_land ;
 
 % Compute maneuvering time

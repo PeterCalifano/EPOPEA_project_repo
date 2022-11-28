@@ -11,7 +11,7 @@ pressurant.gamma = 1.667 ;
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
 
-n_flyby = 4 ;
+n_flyby = 3 ;
 
 % MARGINS
 MAR_010 = 1.05 ;                                                                  % Deterministic maneuver (only capture at Saturn)
@@ -106,8 +106,8 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_SOSL_INT, sizing_ox_SOSL_INT, sizing_fu_SOSL_INT, sizing_gas_SOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster ) ;
 
 % MONOPROPELLANT - LANDING - Conceptual idea (ADN-based thruster)
-dV_land_nomar = 258 ;                          
-dV_mis_land = ( 258 * MAR_050 - dV_land_nomar ) * 0.01 ;
+dV_land_nomar = 173.35 ;                          
+dV_mis_land = ( 173.35 * MAR_050 - dV_land_nomar ) * 0.01 ;
 
 dV_mis_land = 1 ;
 
@@ -116,9 +116,8 @@ Tmax = 125 ; % [ N ] - Maximum thrust
 mdot_land = 0.03925 ;
 
 m_dry_land = 746;           % Sampling lander
-% m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
-% m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
-m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
+m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;
@@ -216,7 +215,7 @@ pressurant.gamma = 1.667 ;
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
 
-n_flyby = 4 ;
+n_flyby = 3 ;
 %%%%%%%%
 
 % MARGINS
@@ -307,7 +306,7 @@ thruster.chamber_pressure = 10.35e5 ;
 [ M_PS_NSOSL_INT, sizing_ox_NSOSL_INT, sizing_fu_NSOSL_INT, sizing_gas_NSOSL_INT ] = bipropellant_sizing( oxidizer, fuel, pressurant, tank, thruster ) ;
 
 % MONOPROPELLANT - LANDING - MR107T 110 N
-dV_land_nomar = 258 ;                          
+dV_land_nomar = 173.35 ;                          
 
 dV_mis_land = 1 ;
 
@@ -316,9 +315,8 @@ Tmax = 125 ; % [ N ] - Maximum thrust
 mdot_land = 0.03925 ;
 
 m_dry_land = 746;           % Sampling lander
-% m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
-% m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
-m_prop_land = 65 * MAR_020 + MAR_hazard ; % From MA 
+m_prop_land = preliminary_prop_mass( dV_land_nomar * MAR_050, m_dry_land, Isp_land );
+m_prop_land = m_prop_land + MAR_hazard ; % Accounts also for hazard maneuevres
 m_land = m_dry_land + m_prop_land ;
 
 dt_land = m_prop_land / mdot_land ;

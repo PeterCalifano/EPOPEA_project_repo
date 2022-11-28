@@ -50,40 +50,52 @@ par(5) = Re;
 N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-% h = 100/DU;
-h = 60/DU;
-r_mod = Re+h;
-xi = -r_mod/sqrt(2);
-yi = -r_mod/sqrt(2);
-v_mod = sqrt(mu/norm([xi; yi]));
-vxi = v_mod/sqrt(2);
-vyi = -v_mod/sqrt(2);
-state_i = [xi yi vxi vyi m0];
+initial = 1;
+switch initial
+    case 1
+        h = 60/DU;
+        r_mod = Re+h;
+        xi = -r_mod/sqrt(2);
+        yi = -r_mod/sqrt(2);
+        zi = 0;
+        v_mod = sqrt(mu/norm([xi; yi]));
+        vxi = v_mod/sqrt(2);
+        vyi = -v_mod/sqrt(2);
+        vzi = 0;
+        state_i = [xi yi zi vxi vyi vzi m0];
+        tN = 0.7*3600/TU;              %final time guess if h = 100 km
+    case 2
+        h = 100/DU;
+        r_mod = Re+h;
+        xi = -r_mod;
+        yi = 0;
+        %zi = ;
+        v_mod = sqrt(mu/norm([xi; yi]));
+        vxi = 0;
+        vyi = -v_mod;
+        %vzi = ;
+        %state_i = [xi yi zi vxi vyi vzi m0];
+        tN = 0.9*3600/TU;              %final time guess if h = 100 km
+end
 
-% xi = -r_mod;
-% yi = 0;
-% v_mod = sqrt(mu/norm([xi; yi]));
-% vxi = 0;
-% vyi = -v_mod;
-% state_i = [xi yi vxi vyi m0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
-step_st = length(state_i);           % 5: rr,vv,m
-step_var = 5+3;                      % 8: rr,vv,m,u,ax,ay
+step_st = length(state_i);           % 7: rr,vv,m
+step_var = step_st + 4;              % 11: rr,vv,m,u,ax,ay,az
 
-%shift to satisfy boundaries
+% Shift to satisfy boundaries
 eps = 1e-10;
 
-% t1 = 0/TU;                              %initial time guess
-t1 = eps;
-% tN = 0.9*3600/TU;                         %final time guess if h = 100 km
-tN = 0.7*3600/TU;
+% Initial time guess
+t1 = eps;                             
+
+% Time grid and initial guess fill
 h = (tN-t1)/(N-1);
 s0 = state_i;
 guess = zeros(step_var*N+2, 1);
-guess(1:5,1) = s0;
-guess(6) = 1-eps;
-guess(7:8) = -s0(3:4)'/norm(s0(3:4));
+guess(1:step_st,1) = s0;
+guess(step_st+1) = 1-eps;
+guess(step_st+2:step_st+4) = -s0(4:6)'/norm(s0(4:6));
 options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 
 tspan_l(1) = t1;
@@ -92,11 +104,11 @@ for k = 2:N-1
     tspan_l(k) = t1 + h*(k-1);
 end
 
-uk = guess(6:8);
+uk = guess(step_st+1:step_st+4);
 for k = 1:N-1
     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0', options, uk, par);
-    s0 = output(end,1:5);
-    vv_vers = s0(3:4)'/norm(s0(3:4));
+    s0 = output(end,1:step_st);
+    vv_vers = s0(4:6)'/norm(s0(4:6));
     if k == N-1
         uk = [1-eps; -vv_vers];
     else
@@ -109,32 +121,32 @@ end
 guess(end-1:end) = [t1; tN];
 
 %one integration starting from second point
-[~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(9:13)', options, [0;0;0], par);
+[~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options, [0;0;0;0], par);
 
 % Check guess points
 circ = 0:pi/1e4:2*pi;
-r_i = state_i(1:2)';
-v_i = state_i(3:4)';T_orbit = 2*pi*sqrt(norm([xi; yi])^3/mu);
+r_i = state_i(1:3)';
+v_i = state_i(4:6)';T_orbit = 2*pi*sqrt(norm([xi; yi; zi])^3/mu);
 t_range = [t1 T_orbit];
 [~, circ_orb] = ode113(@dyn, t_range, [r_i;v_i], options, par);
-r_guess = circ_orb(:,1:2);
+r_guess = circ_orb(:,1:3);
 L = length(r_guess(:,1));
 figure; hold on; grid on; grid minor
 for k = 1:N
-    plot(guess((k-1)*step_var+1), guess((k-1)*step_var+2), '.r', 'LineWidth', 1.2);
-    plot(r_guess(:,1), r_guess(:,2), '-m', 'LineWidth', 0.5);
-    plot(Re*exp(1i*circ),'-b')
+    plot3(guess((k-1)*step_var+1), guess((k-1)*step_var+2), guess((k-1)*step_var+3), '.r', 'LineWidth', 1.2);
+    plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '-m', 'LineWidth', 0.5);
+%     plot3(Re*exp(1i*circ),'-b')
     axis equal
 end
-plot(output1(:,1), output1(:,2), '.r', 'LineWidth', 1.2)
+plot3(output1(:,1), output1(:,2), output1(:,3), '.r', 'LineWidth', 1.2)
 title('Initial Guess')
 xlabel('$x$')
 ylabel('$y$')
 
 % check if initial guess satisfies constraints
 for k = 1:N
-    mass_check(k) = guess(step_var*(k-1)+5);
-    u_check(k) = guess(step_var*(k-1)+6);
+    mass_check(k) = guess(step_var*(k-1)+step_st);
+    u_check(k) = guess(step_var*(k-1)+(step_st+1));
 end
 flag_mass = find(mass_check < m_dry);
 flag_umin = find(u_check < 0);
@@ -150,9 +162,9 @@ beq = [];
 lb = -Inf*ones(1,step_var*N+2);
 ub = Inf*ones(1,step_var*N+2);
 for k = 1:N
-    lb(step_var*(k-1)+5) = m_dry;
-    lb(step_var*(k-1)+6) = 0;
-    ub(step_var*(k-1)+6) = 1;
+    lb(step_var*(k-1)+step_st) = m_dry;
+    lb(step_var*(k-1)+(step_st+1)) = 0;
+    ub(step_var*(k-1)+(step_st+1)) = 1;
 end
 lb(end-1) = 0;
 lb(end) = 0;
@@ -169,9 +181,9 @@ options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
 % Trajectory
 figure; hold on; grid on; grid minor
 for k = 1:N
-    plot(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), '.r', 'LineWidth', 1.2);
-    plot(r_guess(:,1), r_guess(:,2), '-m', 'LineWidth', 0.5);
-    plot(Re*exp(1i*circ),'-b')
+    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 1.2);
+    plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '-m', 'LineWidth', 0.5);
+    %plot3(Re*exp(1i*circ),'-b')
     axis equal
 end
 title('Optimized Landing Trajectory')
@@ -183,7 +195,7 @@ ylabel('$y$')
 figure; hold on; grid on; grid minor
 t_plt = linspace(x_final(end-1), x_final(end), N);
 for k = 1:N
-    control(k) = x_final((k-1)*step_var+6);
+    control(k) = x_final((k-1)*step_var+step_st+1);
     plot(t_plt(k),control(k), 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
 end
 title('Control Law')
@@ -195,12 +207,12 @@ Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
 Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
 
 % Final Velocity
-vv_fin = x_final(end-7:end-6)*VU;
+vv_fin = x_final(end-9:end-7)*VU;
 v_fin = norm(vv_fin)*1e3;                    %[m/s]
-vel = zeros(N,2);
+vel = zeros(N,3);
 vel_norm = zeros(N,1);
 for k =1:N
-    vel(k,:) = x_final((k-1)*step_var+3:(k-1)*step_var+4);
+    vel(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6);
     vel_norm(k) = norm(vel(k,:)); 
 end
 figure; hold on; grid on; grid minor
@@ -213,7 +225,7 @@ ylabel('$v\ [km/s]$')
 figure; hold on; grid on; grid minor
 t_plt = linspace(x_final(end-1), x_final(end), N);
 for k = 1:N
-    mass(k) = x_final((k-1)*step_var+5);
+    mass(k) = x_final((k-1)*step_var+step_st);
     plot(t_plt(k),mass(k)*MM, 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
 end
 title('Mass variation')
@@ -222,7 +234,7 @@ ylabel('$M\ [kg]$')
 
 
 % Propellant Mass
-m_fin = x_final(end-5)*MM;
+m_fin = x_final(end-6)*MM;
 m0_dim = m0*MM;
 m_prop = m0_dim - m_fin;
 
@@ -239,34 +251,36 @@ fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropell
 % validation and plot
 % propagate initial orbit from t0 to t1
 % propagate vector of NLP variables and check consistency
+
 Enceladus_3D(1, [0 0 0]);
 hold on; grid on; grid minor
 t1 = x_final(end-1);
 tN = x_final(end);
-Enceladus_plot = Re*exp(1i*circ);
-plot3(r_guess(:,1), r_guess(:,2), zeros(length(r_guess(:,2)),1), '--k', 'LineWidth', 1); % initial orbit
+plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '--k', 'LineWidth', 1); % initial orbit
 [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
 circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
-landing_site = Re*exp(1i*circ_admissible);
-plot(landing_site,'-g','LineWidth',10)
-% plot(output_initial_orbit(:,1),output_initial_orbit(:,2));
-s0 = x_final(1:5);
-view(2);
+% landing_site = Re*exp(1i*circ_admissible);
+% plot(landing_site,'-g','LineWidth',10)
 
+
+s0 = x_final(1:6);
+view(3);
 
 tspan = linspace(t1,tN,N);
-u_plot = x_final(6);
-x_plot = []; y_plot = [];
+u_plot = x_final(step_st+1);
+x_plot = []; y_plot = []; z_plot = [];
 for k = 1:N-1
     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
-    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+3);
+    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options, u_plot, par);
     x_plot = [x_plot;output(:,1)];
     y_plot = [y_plot;output(:,2)];
+    z_plot = [z_plot;output(:,3)];
 end
-plot(x_plot,y_plot,'b','LineWidth',1.5)
+plot3(x_plot,y_plot,z_plot,'b','LineWidth',1.5)
+
 for k = 1:N
-    plot(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
     axis equal
 end
 

@@ -1,8 +1,8 @@
 function [dxdt] = dyn (~, state, par)
 % UNFOLD
 % state: r, v
-r = state(1:2);
-v = state(3:4);
+r = state(1:3);
+v = state(4:6);
 
 % par: mu
 mu = par(4);

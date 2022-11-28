@@ -51,7 +51,7 @@ par(6) = mass_ratio;
 N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-initial = 1;
+initial = 3;
 switch initial
     case 1
         h = 60/DU;
@@ -65,6 +65,8 @@ switch initial
         vzi = 0;
         state_i = [xi yi zi vxi vyi vzi m0];
         tN = 0.7*3600/TU;              %final time guess if h = 100 km
+        % Initial time guess
+        t1 = eps; 
     case 2
         h = 100/DU;
         r_mod = Re+h;
@@ -76,19 +78,31 @@ switch initial
         vyi = -v_mod;
         %vzi = ;
         %state_i = [xi yi zi vxi vyi vzi m0];
-        tN = 0.9*3600/TU;              %final time guess if h = 100 km
+        % Initial time guess
+        t1 = eps; 
+        % Final time guess if h = 100 km
+        tN = 0.9*3600/TU;             
+    case 3
+        xi = 1.000062853735440;
+        yi = 0;
+        zi = -0.00117884381145460;
+        vxi = 0;
+        vyi = 0.0168877463349484;
+        vzi = 0;
+        state_i = [xi yi zi vxi vyi vzi m0];
+        % Initial time guess
+        t1 = 8*3600/TU; 
+        % Final time guess 
+        tN = 0.7*3600/TU + t1;        
 end
 
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
-step_st = length(state_i);           % 7: rr,vv,m
-step_var = step_st + 4;              % 11: rr,vv,m,u,ax,ay,az
+step_st = length(state_i);            % 7: rr,vv,m
+step_var = step_st + 4;               % 11: rr,vv,m,u,ax,ay,az
 
 % Shift to satisfy boundaries
-eps = 1e-10;
-
-% Initial time guess
-t1 = eps;                             
+eps = 1e-10;                            
 
 % Time grid and initial guess fill
 h = (tN-t1)/(N-1);
@@ -121,6 +135,7 @@ end
 
 guess(end-1:end) = [t1; tN];
 
+%%
 %one integration starting from second point
 [~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options, [0;0;0;0], par);
 
@@ -154,6 +169,7 @@ flag_umin = find(u_check < 0);
 flag_umax = find(u_check > 1);
 
 
+%%
 % constraints for fmincon
 A = [zeros(step_var*N,1); 1; -1]';
 b = 0;

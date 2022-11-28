@@ -48,14 +48,14 @@ x_L2=[x_L2_fzero;0;0];
 
 
 %CRTBP dynamics, function handle
-r1=@(t,x) ((x(1)+mu).^2+x(2).^2+x(3).^2).^0.5;
-r2=@(t,x) ((x(1)+mu-1).^2+x(2).^2+x(3).^2).^0.5;
-f=@(t,x,mu) [x(4);
-             x(5);
-             x(6);
-             2*x(5)+x(1)-(1-mu)*(x(1)+mu)/(r1(t,x)).^3 - mu/(r2(t,x)).^3*(x(1)+mu-1);
-            -2*x(4)+x(2)-(1-mu)*x(2)/r1(t,x).^3-mu/(r2(t,x)).^3*x(2);
-            -(1-mu)/(r1(t,x)).^3*x(3)-mu/(r2(t,x).^3)*x(3)];  %CRTBP dynamics
+% r1=@(t,x) ((x(1)+mu).^2+x(2).^2+x(3).^2).^0.5;
+% r2=@(t,x) ((x(1)+mu-1).^2+x(2).^2+x(3).^2).^0.5;
+% f=@(t,x,mu) [x(4);
+%              x(5);
+%              x(6);
+%              2*x(5)+x(1)-(1-mu)*(x(1)+mu)/(r1(t,x)).^3 - mu/(r2(t,x)).^3*(x(1)+mu-1);
+%             -2*x(4)+x(2)-(1-mu)*x(2)/r1(t,x).^3-mu/(r2(t,x)).^3*x(2);
+%             -(1-mu)/(r1(t,x)).^3*x(3)-mu/(r2(t,x).^3)*x(3)];  %CRTBP dynamics
        
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 
@@ -76,7 +76,7 @@ tf=FlightDays*24*3600/TU; %final time of propagation
 
 
 %propagation - Halo
-[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) f(t,x,mu),[t0 tf],state0_Halo,options_ode);
+[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf],state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
@@ -101,7 +101,7 @@ state0_P=[x0_P,y0_P,z0_P,vx0_P,vy0_P,vz0_P]';
 %propagation - P
 tf_P=0.9896641998233017*1e+6/TU; %1 period - actually if you plot it for
 %more time if gets lost (different model used in the paper)
-[t_vec_P,state_vec_P]=ode113(@(t,x) f(t,x,mu),[t0 tf_P],state0_P,options_ode);
+[t_vec_P,state_vec_P]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf_P],state0_P,options_ode);
 state_vec_P=state_vec_P';
 
 
@@ -121,7 +121,7 @@ legend(P1,'Periodic orbit')
 %% Science orbit subdivision
 % propagation - half remote sensing arc
 tf_RS=0.75*3600/TU;
-[t_vec_RS,state_vec_RS]=ode113(@(t,x) f(t,x,mu),[t0 tf_RS],state0_Halo,options_ode);
+[t_vec_RS,state_vec_RS]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf_RS],state0_Halo,options_ode);
 state_vec_RS=state_vec_RS';
 state_vec_RS(1:3,:)=state_vec_RS(1:3,:)*DU;
 state_vec_RS(4:6,:)=state_vec_RS(4:6,:)*DU/TU;
@@ -131,7 +131,7 @@ state0_else=[state_vec_RS(1:3,end)/DU;state_vec_RS(4:6,end)*TU/DU];
 
 options_ode_event = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13,'Events',@(t,x) FirstZeroCrossing(t,x));
 
-[t_vec_else,state_vec_else,t_e,state_e,i_e]=ode113(@(t,x) f(t,x,mu),[tf_RS tf],state0_else,options_ode_event);
+[t_vec_else,state_vec_else,t_e,state_e,i_e]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_RS tf],state0_else,options_ode_event);
 state_vec_else=state_vec_else';
 state_vec_else(1:3,:)=state_vec_else(1:3,:)*DU;
 state_vec_else(4:6,:)=state_vec_else(4:6,:)*DU/TU;

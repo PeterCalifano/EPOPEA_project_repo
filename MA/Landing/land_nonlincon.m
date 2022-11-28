@@ -11,15 +11,16 @@ t1 = var(end-1);
 tN = var(end);
 
 % Orbit Propagator
+mass_ratio = par(6);
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 t_range = [0 t1];
-[~, output] = ode113(@CRTBP, t_range, [r_i;v_i], options, par);
+[~, output] = ode113(@CRTBP_dyn, t_range, [r_i;v_i], options, mass_ratio);
 state_rot_fin = output(end,1:6);     %CHECK WHETHER ITS COL OR ROW
-mu = par(4);
+
 
 % POST PROCESSING
 % From rotating Saturn-Enceladus to IAU_Enceladus
-state_in = rot2iau_enc(tN, state_rot_fin, mu);
+state_in = rot2iau_enc(tN, state_rot_fin, mass_ratio);
 r_in = state_in(1:3);
 v_in = state_in(4:6);
 

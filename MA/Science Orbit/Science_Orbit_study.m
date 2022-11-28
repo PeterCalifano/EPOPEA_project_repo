@@ -142,6 +142,7 @@ P1=plot3(state_vec_RS(1,:),state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',1
 P2=plot3(state_vec_else(1,:),state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',1.25);
 plot3(state_vec_RS(1,:),-state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',1.25);
 plot3(state_vec_else(1,:),-state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',1.25);
+plot3(x0_Halo*DU, y0_Halo*DU, z0_Halo*DU, 'o', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'k');
 grid minor
 legend([P1 P2],'Remote sensing arc','Communication and analysis arc')
 

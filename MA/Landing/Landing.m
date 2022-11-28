@@ -19,9 +19,9 @@ m_dry = 746;
 
 
 % Enceladus par
-Re = 251.1;                                             %[km] mean radius of Enceladus
-mu = (6.67430e-11 *8.6e19 )*10^(-9) ;                   % [km^3/s^2] Enceladus gravitational constant
-
+Re = 251.1;                                       %[km] mean radius of Enceladus
+mu = (6.67430e-11 *8.6e19 )*10^(-9) ;             % [km^3/s^2] Enceladus gravitational constant
+mass_ratio = 1.90095713928102*1e-7;               % Saturn-Enceladus mass ratio
 
 % Adimensionalization
 DU = Re;                        %[km]
@@ -46,6 +46,7 @@ par(2) = Isp;
 par(3) = g0;
 par(4) = mu;
 par(5) = Re;
+par(6) = mass_ratio;
 
 N = 50;
 

@@ -11,8 +11,12 @@ clearvars; close all; clc
 Tmax = 4*125e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
 Isp = 228;                      %[s] Specific Impulse
 g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
-m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
-m_dry = 75.4;
+% m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
+% m_dry = 75.4;
+
+m0 = 95+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
+m_dry = 746;
+
 
 % Enceladus par
 Re = 251.1;                                             %[km] mean radius of Enceladus
@@ -46,6 +50,7 @@ par(5) = Re;
 N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
+% h = 100/DU;
 h = 60/DU;
 r_mod = Re+h;
 xi = -r_mod/sqrt(2);
@@ -54,6 +59,13 @@ v_mod = sqrt(mu/norm([xi; yi]));
 vxi = v_mod/sqrt(2);
 vyi = -v_mod/sqrt(2);
 state_i = [xi yi vxi vyi m0];
+
+% xi = -r_mod;
+% yi = 0;
+% v_mod = sqrt(mu/norm([xi; yi]));
+% vxi = 0;
+% vyi = -v_mod;
+% state_i = [xi yi vxi vyi m0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);           % 5: rr,vv,m
@@ -64,8 +76,8 @@ eps = 1e-10;
 
 % t1 = 0/TU;                              %initial time guess
 t1 = eps;
-tN = 0.4*3600/TU;                         %final time guess
-% tN = 0.6*3600/TU;
+% tN = 0.9*3600/TU;                         %final time guess if h = 100 km
+tN = 0.7*3600/TU;
 h = (tN-t1)/(N-1);
 s0 = state_i;
 guess = zeros(step_var*N+2, 1);
@@ -102,8 +114,8 @@ guess(end-1:end) = [t1; tN];
 % Check guess points
 circ = 0:pi/1e4:2*pi;
 r_i = state_i(1:2)';
-v_i = state_i(3:4)';
-t_range = [t1 15*tN];
+v_i = state_i(3:4)';T_orbit = 2*pi*sqrt(norm([xi; yi])^3/mu);
+t_range = [t1 T_orbit];
 [~, circ_orb] = ode113(@dyn, t_range, [r_i;v_i], options, par);
 r_guess = circ_orb(:,1:2);
 L = length(r_guess(:,1));
@@ -172,10 +184,10 @@ figure; hold on; grid on; grid minor
 t_plt = linspace(x_final(end-1), x_final(end), N);
 for k = 1:N
     control(k) = x_final((k-1)*step_var+6);
-    plot(t_plt(k),control(k), 'ob');
+    plot(t_plt(k),control(k), 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
 end
 title('Control Law')
-xlabel('$t$')
+xlabel('$t\ [hours]$')
 ylabel('$u$')
 
 % Thrust
@@ -192,20 +204,79 @@ for k =1:N
     vel_norm(k) = norm(vel(k,:)); 
 end
 figure; hold on; grid on; grid minor
-plot(t_plt, vel_norm, 'ob', 'LineWidth', 1.2)
+plot(t_plt, vel_norm*VU, 'ob', 'LineWidth', 1.2)
 title('Velocity')
-xlabel('$time [s]$')
-ylabel('$v [km/s]$')
+xlabel('$time\ [hours]$')
+ylabel('$v\ [km/s]$')
+
+% Mass
+figure; hold on; grid on; grid minor
+t_plt = linspace(x_final(end-1), x_final(end), N);
+for k = 1:N
+    mass(k) = x_final((k-1)*step_var+5);
+    plot(t_plt(k),mass(k)*MM, 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
+end
+title('Mass variation')
+xlabel('$t\ [hours]$')
+ylabel('$M\ [kg]$')
+
 
 % Propellant Mass
 m_fin = x_final(end-5)*MM;
-m0 = m0*MM;
-m_prop = m0 - m_fin;
+m0_dim = m0*MM;
+m_prop = m0_dim - m_fin;
+
+% DV: Tsiolkowsky
+Is_dim = Isp*TU;
+g0_dim = g0*acc;
+dV = Is_dim*g0_dim*log(m0_dim/m_fin);
 
 % Print Results
-fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]', Thrust_min, v_fin, m_prop);
+fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, v_fin, m_prop, dV);
 
 
+%%
+% validation and plot
+% propagate initial orbit from t0 to t1
+% propagate vector of NLP variables and check consistency
+Enceladus_3D(1, [0 0 0]);
+hold on; grid on; grid minor
+t1 = x_final(end-1);
+tN = x_final(end);
+Enceladus_plot = Re*exp(1i*circ);
+plot3(r_guess(:,1), r_guess(:,2), zeros(length(r_guess(:,2)),1), '--k', 'LineWidth', 1); % initial orbit
+[~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
+circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
+landing_site = Re*exp(1i*circ_admissible);
+plot(landing_site,'-g','LineWidth',10)
+% plot(output_initial_orbit(:,1),output_initial_orbit(:,2));
+s0 = x_final(1:5);
+view(2);
+
+
+tspan = linspace(t1,tN,N);
+u_plot = x_final(6);
+x_plot = []; y_plot = [];
+for k = 1:N-1
+    s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
+    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+3);
+    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options, u_plot, par);
+    x_plot = [x_plot;output(:,1)];
+    y_plot = [y_plot;output(:,2)];
+end
+plot(x_plot,y_plot,'b','LineWidth',1.5)
+for k = 1:N
+    plot(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+    axis equal
+end
+
+
+title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
+xlabel('$x\ [DU]$')
+ylabel('$y\ [DU]$')
+legend('Enceladus','Initial orbit $h = 60\ km$','Admissible landing','Landing trajectory','NLP points')
+
+%%
 % TO DO:
 % Change initial guess (?)
 % Insert attitude

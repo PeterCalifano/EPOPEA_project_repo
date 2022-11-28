@@ -1,8 +1,9 @@
 function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i, par, N)
 
-%Initial state: probably apocenter
+%Initial REFERENCE state on Halo orbit
 r_i = state_i(1:3)';
 v_i = state_i(4:6)';
+
 m_i = state_i(7);
 
 %Initial and final time
@@ -12,9 +13,22 @@ tN = var(end);
 % Orbit Propagator
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 t_range = [0 t1];
-[~, output] = ode113(@dyn, t_range, [r_i;v_i], options, par);
-r1 = output(end,1:3)';
-v1 = output(end,4:6)';
+[~, output] = ode113(@CRTBP, t_range, [r_i;v_i], options, par);
+state_rot_fin = output(end,1:6);     %CHECK WHETHER ITS COL OR ROW
+mu = par(4);
+
+% POST PROCESSING
+% From rotating Saturn-Enceladus to IAU_Enceladus
+state_in = rot2iau_enc(tN, state_rot_fin, mu);
+r_in = state_in(1:3);
+v_in = state_in(4:6);
+
+% DCM Matrix: rigid rotation around X
+A_rotx = [1  0  0
+          0  0  1
+          0 -1  0];
+r1 = A_rotx*r_in;
+v1 = A_rotx*v_in;
 m1 = m_i;
 R_orb = norm(r1);
 
@@ -66,7 +80,7 @@ for k = 1:(N-1)
     vec_def(step_st*(k-1)+1:step_st*(k-1)+step_st) = zk;
     vec_alpha(k) = q_k;
 
-    %Inequality constraints
+    %Inequality constraints: CHECK (REASON) ON SECOND CONSTRAINT
     C((k-1)*2+1:2*k) = [Re - norm(x_k(1:3)); norm(x_k(1:3)) - R_orb];
 
 end

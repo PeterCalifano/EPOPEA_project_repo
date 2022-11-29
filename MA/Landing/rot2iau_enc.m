@@ -11,7 +11,7 @@ X = (xr+mu-1)*cos(t) - yr*sin(t);
 Y = (xr+mu-1)*sin(t) + yr*cos(t);
 Z = zr;
 VX = (vxr-yr)*cos(t) - (vyr+xr+mu-1)*sin(t);
-VY = (vxr-yr)*sin(t) - (vyr+xr+mu-1)*cos(t);
+VY = (vxr-yr)*sin(t) + (vyr+xr+mu-1)*cos(t);
 VZ = vzr;
 
 state_in = [X; Y; Z; VX; VY; VZ];

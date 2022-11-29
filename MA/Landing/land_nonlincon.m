@@ -10,16 +10,16 @@ m_i = state_i(7);
 t1 = var(end-1);
 tN = var(end);
 
-cd('..');
-cd('Science Orbit')
+% cd('..');
+% cd('Science Orbit')
 % Orbit Propagator
 mass_ratio = par(6);
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 t_range = [0 t1];
-[~, output] = ode113(@CRTBP_dyn, t_range, [r_i;v_i], options, mass_ratio);
+[~, output] = ode113(@CR3BP_dyn, t_range, [r_i;v_i], options, mass_ratio);
 state_rot_fin = output(end,1:6);     %CHECK WHETHER ITS COL OR ROW
-cd('..')
-cd('Landing')
+% cd('..')
+% cd('Landing')
 
 % POST PROCESSING
 % From rotating Saturn-Enceladus to IAU_Enceladus

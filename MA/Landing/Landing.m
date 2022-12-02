@@ -16,7 +16,7 @@ g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
 % m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
 % m_dry = 75.4;
 
-m0 = 95+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
+m0 = 105+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
 m_dry = 746;
 
 
@@ -24,6 +24,7 @@ m_dry = 746;
 Re = 251.1;                                       %[km] mean radius of Enceladus
 mu = (6.67430e-11 *8.6e19 )*10^(-9) ;             % [km^3/s^2] Enceladus gravitational constant
 mass_ratio = 1.90095713928102*1e-7;               % Saturn-Enceladus mass ratio
+we = (1/32.9)*2*pi/3600;                          %[rad/s] enceladus angular rate
 
 % Adimensionalization
 DU = Re;                        %[km]
@@ -41,6 +42,7 @@ m0 = m0/MM;
 m_dry = m_dry/MM;
 Re = Re/DU;
 mu = mu/GM;
+we = we*TU;
 
 % organize par 
 par(1) = Tmax;
@@ -49,11 +51,12 @@ par(3) = g0;
 par(4) = mu;
 par(5) = Re;
 par(6) = mass_ratio;
+par(7) = we;
 
-N = 50;
+N = 20;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-initial = 4;
+initial = 3;
 switch initial
     case 1
         h = 60/DU;
@@ -68,50 +71,8 @@ switch initial
         state_i = [xi yi zi vxi vyi vzi m0];
         tN = 0.7*3600/TU;              %final time guess if h = 100 km
         % Initial time guess
-        t1 = eps; 
+        t1 = eps;            
     case 2
-        h = 100/DU;
-        r_mod = Re+h;
-        xi = -r_mod;
-        yi = 0;
-        %zi = ;
-        v_mod = sqrt(mu/norm([xi; yi]));
-        vxi = 0;
-        vyi = -v_mod;
-        %vzi = ;
-        %state_i = [xi yi zi vxi vyi vzi m0];
-        % Initial time guess
-        t1 = eps; 
-        % Final time guess if h = 100 km
-        tN = 0.9*3600/TU;             
-    case 3
-        DD=238411468.296/1000; %km
-        TT=118760.57/(2*pi);
-        xi = 1.000062853735440;
-        yi = 0;
-        zi = -0.00117884381145460;
-        vxi = 0;
-        vyi = 0.0168877463349484;
-        vzi = 0;
-        state_i_rot = [xi yi zi vxi vyi vzi m0];
-        % Initial time guess
-        t1 = 7*3600/TU; 
-        % Final time guess 
-        tN = 0.7*3600/TU + t1;   
-
-        % From rotating Saturn-Enceladus to IAU_Enceladus
-        state_in = rot2iau_enc(t1, state_i_rot(1:end-1), mass_ratio);
-        r_in = state_in(1:3)*DD/DU;
-        v_in = state_in(4:6)*(DD/TT)/VU;
-        
-        % DCM Matrix: rigid rotation around X
-        A_rotx = [1  0  0
-                  0  0  1
-                  0 -1  0];
-        r1 = A_rotx*r_in;
-        v1 = A_rotx*v_in;
-        state_i = [r1' v1' m0];
-    case 4
         DD=238411468.296/1000;       %km
         TT=118760.57/(2*pi);         %s
         xi = 238479.035029632/DD;
@@ -127,7 +88,34 @@ switch initial
         tN = 0.7 + t1;   
 
         % From rotating Saturn-Enceladus to IAU_Enceladus
-        state_in = rot2iau_enc(t1, state_i_rot(1:end-1), mass_ratio);
+        state_in = rot2iau_enc(t1*(TU/TT), state_i_rot(1:end-1), mass_ratio);
+        r_in = state_in(1:3)*DD/DU;
+        v_in = state_in(4:6)*(DD/TT)/VU;
+        
+        % DCM Matrix: rigid rotation around X
+        A_rotx = [1  0  0
+                  0  0  1
+                  0 -1  0];
+        r1 = A_rotx*r_in;
+        v1 = A_rotx*v_in;
+        state_i = [r1' v1' m0];
+    case 3
+        DD=238411468.296/1000;       %km
+        TT=118760.57/(2*pi);         %s
+        xi = 238499.809917516/DD;
+        yi = -4.989057360755955e+02/DD;
+        zi = 14.352712909418244/DD;
+        vxi = -0.036329671799006/(DD/TT);
+        vyi = 0.082968629856578/(DD/TT);
+        vzi = -0.121113200205420/(DD/TT);
+        state_i_rot = [xi yi zi vxi vyi vzi m0];
+        % Initial time guess
+        t1 = eps; 
+        % Final time guess 
+        tN = 0.7 + t1;   
+
+        % From rotating Saturn-Enceladus to IAU_Enceladus
+        state_in = rot2iau_enc(t1*(TU/TT), state_i_rot(1:end-1), mass_ratio);
         r_in = state_in(1:3)*DD/DU;
         v_in = state_in(4:6)*(DD/TT)/VU;
         
@@ -140,6 +128,9 @@ switch initial
         state_i = [r1' v1' m0];
 end
 
+% Landing site
+lonlat = [-80; 20];
+lonlat = [-70; 0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m
@@ -238,8 +229,11 @@ lb(end) = 0;
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
     'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
+% [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%     @(var) land_nonlincon(var, state_i_rot, par, N),options);
+
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-    @(var) land_nonlincon(var, state_i_rot, par, N),options);
+    @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
 
 %%
 % Trajectory

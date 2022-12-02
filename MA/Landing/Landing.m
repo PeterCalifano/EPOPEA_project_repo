@@ -3,9 +3,10 @@ set(groot,'defaultAxesTickLabelInterpreter','latex');
 set(groot,'defaultLegendInterpreter','latex');
 set(groot,'defaulttextinterpreter','latex');
 set(0,'defaultAxesFontSize', 16)
+%
 
 %%
-clearvars; %close all; 
+clearvars; close all; 
 clc 
 
 % step1: vehicle par (TO CHANGE!!!)
@@ -52,7 +53,7 @@ par(6) = mass_ratio;
 N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-initial = 3;
+initial = 4;
 switch initial
     case 1
         h = 60/DU;
@@ -92,14 +93,41 @@ switch initial
         vxi = 0;
         vyi = 0.0168877463349484;
         vzi = 0;
-        state_i = [xi yi zi vxi vyi vzi m0];
+        state_i_rot = [xi yi zi vxi vyi vzi m0];
         % Initial time guess
         t1 = 7*3600/TU; 
         % Final time guess 
         tN = 0.7*3600/TU + t1;   
 
         % From rotating Saturn-Enceladus to IAU_Enceladus
-        state_in = rot2iau_enc(t1, state_i(1:end-1), mass_ratio);
+        state_in = rot2iau_enc(t1, state_i_rot(1:end-1), mass_ratio);
+        r_in = state_in(1:3)*DD/DU;
+        v_in = state_in(4:6)*(DD/TT)/VU;
+        
+        % DCM Matrix: rigid rotation around X
+        A_rotx = [1  0  0
+                  0  0  1
+                  0 -1  0];
+        r1 = A_rotx*r_in;
+        v1 = A_rotx*v_in;
+        state_i = [r1' v1' m0];
+    case 4
+        DD=238411468.296/1000;       %km
+        TT=118760.57/(2*pi);         %s
+        xi = 238479.035029632/DD;
+        yi = -443.388268197043/DD;
+        zi = -57.8313050277481/DD;
+        vxi = -0.0330981241105157/(DD/TT);
+        vyi = 0.103657810950128/(DD/TT);
+        vzi = -0.120139871111334/(DD/TT);
+        state_i_rot = [xi yi zi vxi vyi vzi m0];
+        % Initial time guess
+        t1 = eps; 
+        % Final time guess 
+        tN = 0.7 + t1;   
+
+        % From rotating Saturn-Enceladus to IAU_Enceladus
+        state_in = rot2iau_enc(t1, state_i_rot(1:end-1), mass_ratio);
         r_in = state_in(1:3)*DD/DU;
         v_in = state_in(4:6)*(DD/TT)/VU;
         
@@ -116,9 +144,7 @@ end
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m
 step_var = step_st + 4;               % 11: rr,vv,m,u,ax,ay,az
-
-% Shift to satisfy boundaries
-eps = 1e-10;                            
+                            
 
 % Time grid and initial guess fill
 h = (tN-t1)/(N-1);
@@ -145,44 +171,49 @@ for k = 1:N-1
     else
         uk = [eps; -vv_vers];
     end
-
     guess(k*step_var+1:(k+1)*step_var) = [s0'; uk];
 end
-
 guess(end-1:end) = [t1; tN];
 
-%%
-% %one integration starting from second point
-% [~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options, [0;0;0;0], par);
-% 
-% % Check guess points
-% circ = 0:pi/1e4:2*pi;
-% r_i = state_i(1:3)';
-% v_i = state_i(4:6)';T_orbit = 2*pi*sqrt(norm([xi; yi; zi])^3/mu);
-% t_range = [t1 T_orbit];
-% [~, circ_orb] = ode113(@dyn, t_range, [r_i;v_i], options, par);
-% r_guess = circ_orb(:,1:3);
-% L = length(r_guess(:,1));
-% figure; hold on; grid on; grid minor
-% for k = 1:N
-%     plot3(guess((k-1)*step_var+1), guess((k-1)*step_var+2), guess((k-1)*step_var+3), '.r', 'LineWidth', 1.2);
-%     plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '-m', 'LineWidth', 0.5);
-% %     plot3(Re*exp(1i*circ),'-b')
-%     axis equal
-% end
+%one integration starting from second point
+[~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options, [0;0;0;0], par);
+
+% Check guess point
+[time, output] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
+r_enc = zeros(length(time), 3);
+for k = 1:length(time)
+    % From rotating Saturn-Enceladus to IAU_Enceladus
+    state_in = rot2iau_enc(time(k), output(k,:), mass_ratio);
+    r_in = state_in(1:3)*DD/DU;
+    v_in = state_in(4:6)*(DD/TT)/VU;
+    
+    % DCM Matrix: rigid rotation around X
+    A_rotx = [1  0  0
+              0  0  1
+              0 -1  0];
+    r_enc(k,:) = A_rotx*r_in;
+end
+
+Enceladus_3D(1, [0 0 0]);
+hold on; grid on; grid minor
+for k = 1:N
+    plot3(guess((k-1)*step_var+1), guess((k-1)*step_var+2), guess((k-1)*step_var+3), '.r', 'LineWidth', 1.2);
+    axis equal
+end
+plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-m', 'LineWidth', 0.5);
 % plot3(output1(:,1), output1(:,2), output1(:,3), '.r', 'LineWidth', 1.2)
-% title('Initial Guess')
-% xlabel('$x$')
-% ylabel('$y$')
-% 
-% % check if initial guess satisfies constraints
-% for k = 1:N
-%     mass_check(k) = guess(step_var*(k-1)+step_st);
-%     u_check(k) = guess(step_var*(k-1)+(step_st+1));
-% end
-% flag_mass = find(mass_check < m_dry);
-% flag_umin = find(u_check < 0);
-% flag_umax = find(u_check > 1);
+title('Initial Guess')
+xlabel('$x$')
+ylabel('$y$')
+
+% check if initial guess satisfies constraints
+for k = 1:N
+    mass_check(k) = guess(step_var*(k-1)+step_st);
+    u_check(k) = guess(step_var*(k-1)+(step_st+1));
+end
+flag_mass = find(mass_check < m_dry);
+flag_umin = find(u_check < 0);
+flag_umax = find(u_check > 1);
 
 
 %%
@@ -207,15 +238,16 @@ lb(end) = 0;
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
     'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
-[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-    @(var) land_nonlincon(var, state_i, par, N),options);
+[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+    @(var) land_nonlincon(var, state_i_rot, par, N),options);
 
 %%
 % Trajectory
-figure; hold on; grid on; grid minor
+Enceladus_3D(1, [0 0 0]);
+hold on; grid on; grid minor
 for k = 1:N
     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 1.2);
-    plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '-m', 'LineWidth', 0.5);
+    plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-m', 'LineWidth', 0.5);
     %plot3(Re*exp(1i*circ),'-b')
     axis equal
 end
@@ -289,7 +321,7 @@ Enceladus_3D(1, [0 0 0]);
 hold on; grid on; grid minor
 t1 = x_final(end-1);
 tN = x_final(end);
-plot3(r_guess(:,1), r_guess(:,2), r_guess(:,3), '--k', 'LineWidth', 1); % initial orbit
+plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
 [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
 circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
 % landing_site = Re*exp(1i*circ_admissible);

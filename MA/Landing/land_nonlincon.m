@@ -1,31 +1,34 @@
-function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i, par, N)
+function [ C, Ceq, JC, JCeq ] = land_nonlincon(var, state_i_rot, par, N)
+
+% non-dimensional
+TT = 118760.57/(2*pi);   %[s]
+TU = 3600;               %[s]
+DD=238411468.296/1000;   %[km]
+DU = 251.1;              %[km]
 
 %Initial REFERENCE state on Halo orbit
-r_i = state_i(1:3)';
-v_i = state_i(4:6)';
+r_i = state_i_rot(1:3)';
+v_i = state_i_rot(4:6)';
 
-m_i = state_i(7);
+m_i = state_i_rot(7);
 
 %Initial and final time
 t1 = var(end-1);
 tN = var(end);
 
-% cd('..');
-% cd('Science Orbit')
+
 % Orbit Propagator
 mass_ratio = par(6);
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
-t_range = [0 t1];
-[~, output] = ode113(@CR3BP_dyn, t_range, [r_i;v_i], options, mass_ratio);
+t_range = [0 t1*(TU/TT)];
+[time, output] = ode113(@CR3BP_dyn, t_range, [r_i;v_i], options, mass_ratio);
 state_rot_fin = output(end,1:6);     %CHECK WHETHER ITS COL OR ROW
-% cd('..')
-% cd('Landing')
 
 % POST PROCESSING
 % From rotating Saturn-Enceladus to IAU_Enceladus
-state_in = rot2iau_enc(tN, state_rot_fin, mass_ratio);
-r_in = state_in(1:3);
-v_in = state_in(4:6);
+state_in = rot2iau_enc(time(end), state_rot_fin, mass_ratio);
+r_in = state_in(1:3)*DD/DU;
+v_in = state_in(4:6)*(DD/TT)/(DU/TU);
 
 % DCM Matrix: rigid rotation around X
 A_rotx = [1  0  0
@@ -42,15 +45,15 @@ h = (tN-t1)/(N-1);
 % Retrieve par
 Re = par(5);
 
-step_st = length(state_i);           % 7: rr,vv,m
+step_st = length(state_i_rot);           % 7: rr,vv,m
 step_var = step_st+4;                % 11: rr,vv,m,u,ax,ay,az
 
 % Non-linear equality constraints
 % Initialization
 vec_def = zeros(step_st*(N-1),1);
 vec_alpha = zeros(N,1);
-% C = zeros(2*N,1);
-C = zeros(2*N-1,1);
+C = zeros(2*N+1,1);
+% C = zeros(2*N-1,1);
 
 % Cycle to fill constraints
 for k = 1:(N-1)
@@ -103,8 +106,8 @@ Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs
 %add Final constraint to C (inequality)
 % lim defines semi-angle of possible landing cone 
 lim = deg2rad(20);          
-% C(end-1:end) = [abs(r_N(1)); r_N(2)] - [Re*sin(lim); -Re*cos(lim)];
-C(end) = r_N(2) + Re*cos(lim);
+C(end-2:end) = [abs(r_N(1)); r_N(2); abs(r_N(3))] - [Re*sin(lim); -Re*cos(lim); Re*sin(lim)];
+% C(end) = r_N(2) + Re*cos(lim);
 
 % derivative
 if nargout > 2

@@ -1,4 +1,4 @@
-function [ P_EoL_electric_unit1, P_EoL_electric_unit2 ] = RTGSizing_real( t_EoL_years, RTGdata1, RTGdata2 )
+function [ P_EoL_electric_unit1, P_EoL_electric_unit2 ] = Refined_RTGSizing_real( t_EoL_years, RTGdata1, RTGdata2 )
 %% PROTOTYPE
 % [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 % -------------------------------------------------------------------------------------------------------------

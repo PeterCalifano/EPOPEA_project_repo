@@ -3,6 +3,7 @@ set(groot,'defaultAxesTickLabelInterpreter','latex');
 set(groot,'defaultLegendInterpreter','latex');
 set(groot,'defaulttextinterpreter','latex');
 set(0,'defaultAxesFontSize', 16)
+%
 
 %%
 clearvars; close all; 

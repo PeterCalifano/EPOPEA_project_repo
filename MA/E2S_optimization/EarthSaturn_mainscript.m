@@ -87,11 +87,13 @@ for k = 1:n3_th
 end
 
 N = length(planets_id) - 2;
-ind_v = [1,5:(5+N),(2*N + 7):(2*N+7 +N-1)];
+ind_tof = 5:(5+N);
+ind_rp = (2*N + 7):(2*N+7 +N-1);
+
+ind_v = [ind_rp];
 
 
-ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$',...
-    '$ToF_3$','$ToF_4$','$ToF_5$','$rp_1$','$rp_2$','$rp_3$','$rp_4$'};
+ind_names = {'tof 1','tof 2','tof 3','tof 4'};
 
 count = 1;
 
@@ -106,7 +108,7 @@ for j = ind_v
         variables = squeeze(NLPoptset_local(:,j,k));
         costs = squeeze(feval_local(:,1,k));
         if j == 1
-            variables = (variables - t1)/365.5;
+            variables = (variables);% - t1)/365.5;
         end
 
         scatter(variables,costs,10,'filled','DisplayName',['Iter: ',num2str(k)])

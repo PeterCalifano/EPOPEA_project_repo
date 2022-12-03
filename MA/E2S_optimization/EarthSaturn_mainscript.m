@@ -48,7 +48,7 @@ marker = 7;
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
-Rp_target = 3*R_Saturn;
+Rp_target = 2.55*R_Saturn;
 
 %% Analyze solution
 load('E_EEJ_S_bestvalue1.016.mat');
@@ -56,18 +56,20 @@ load('E_EEJ_S_bestvalue1.016.mat');
 [m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 
-
 initial_guess = NLPoptset_local(index_pos, :, index_iter);
 
-[DV_opt, DV_breakdown] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
+[DV_opt, DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
 
+T_FB = T_FB/(24*3600);
 %%
 dep_time = cspice_et2utc(initial_guess(1)*3600*24,'C',0 )
-
+time1stdsm = cspice_et2utc((initial_guess(1) + initial_guess(9)*initial_guess(5))*3600*24,'C',0 )
 time1stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5)))*3600*24,'C',0 )
+time2nddsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5)) + initial_guess(10)*initial_guess(6))*3600*24,'C',0 )
 time2stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:6)))*3600*24,'C',0 )
+time3rddsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:6)) + initial_guess(11)*initial_guess(7))*3600*24,'C',0 )
 time3stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:7)))*3600*24,'C',0 )
-
+time4thdsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:7)) + initial_guess(12)*initial_guess(8))*3600*24,'C',0 )
 arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N)) );
 arr_time = cspice_et2utc(arr_time,'C',0 )
 

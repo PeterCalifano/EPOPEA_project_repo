@@ -12,13 +12,13 @@ cspice_furnsh('..\..\spice_kernels/de440s.bsp')
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 15; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 10; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 4; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
 stoptime = 2*60; % Stop time for ga solver
-maxtime =  2*3600; % Max allowable execution time
+maxtime =  1*3600; % Max allowable execution time
 
 rng shuffle
 

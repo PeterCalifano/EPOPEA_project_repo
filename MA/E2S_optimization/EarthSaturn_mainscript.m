@@ -51,7 +51,8 @@ Ra_target = 200*R_Saturn;
 Rp_target = 2.55*R_Saturn;
 
 %% Analyze solution
-load('E_EEJ_S_bestvalue1.016.mat');
+%load('E_EEJ_S_bestvalue1.016.mat');
+load('E_EEJ_S_1.033_FBhigh.mat');
 
 [m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);

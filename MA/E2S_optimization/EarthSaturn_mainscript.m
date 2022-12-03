@@ -90,10 +90,16 @@ N = length(planets_id) - 2;
 ind_tof = 5:(5+N);
 ind_rp = (2*N + 7):(2*N+7 +N-1);
 
-ind_v = [ind_rp];
+
+%%%%%% SELECT THE VARIABLES TO BE PLOTTED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ind_v = [1:2];
 
 
-ind_names = {'tof 1','tof 2','tof 3','tof 4'};
+ind_names_all = {'Departure Date','v inf','u','v','tof 1','tof 2','tof 3','tof 4',...
+    'eta 1','eta 2','eta 3','eta 4','rp 1','rp 2','rp 3','beta 1','beta 2',...
+    'beta 3','beta 4'};
+
+ind_names = ind_names_all(ind_v);
 
 count = 1;
 

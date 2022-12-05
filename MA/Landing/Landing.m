@@ -129,8 +129,9 @@ switch initial
 end
 
 % Landing site
-lonlat = [-80; 20];
-lonlat = [-70; 0];
+%lonlat = [-80; 20];
+% lonlat = [-70; 0];
+lonlat = [-90; 0];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m
@@ -229,23 +230,57 @@ lb(end) = 0;
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
     'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
-[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%    @(var) land_nonlincon(var, state_i_rot, par, N),options);
+%
+ %[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot,lonlat, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+  %  @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
+[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfunpp(var, state_i_rot,lonlat, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i_rot, par, N),options);
 
-% [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-%     @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
+
+
+%% Pin-point: plot target landing site
+% initial and final time
+t1 = x_final(end-1);
+tN = x_final(end);
+
+% Point latitude and longitude
+lat = deg2rad(lonlat(1));
+lon = deg2rad(lonlat(2));
+we = par(7);
+Re = par(5);
+
+% From latitudinal to cartesian
+r_xz = Re*cos(lat);
+Xrot = r_xz*sin(lon);
+Yrot = Re*sin(lat);
+Zrot = r_xz*cos(lon);
+vec_rot = [Xrot; Yrot; Zrot];
+
+% Enceladus rotation
+th_e = we*(tN-t1);
+
+% From rotating enceladus to IAU_Enceladus
+A_rot2IAU = [cos(th_e)    0     sin(th_e)
+                 0        1         0
+            -sin(th_e)    0     cos(th_e)];
+% desired final state
+vec_pp = A_rot2IAU*vec_rot;
+
 
 %%
 % Trajectory
 Enceladus_3D(1, [0 0 0]);
 hold on; grid on; grid minor
 for k = 1:N
-    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 1.2);
-    plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-m', 'LineWidth', 0.5);
+    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 2);
+    plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-b', 'LineWidth', 2);
     %plot3(Re*exp(1i*circ),'-b')
     axis equal
 end
 title('Optimized Landing Trajectory')
+plot3(vec_pp(1),vec_pp(2),vec_pp(3),'*')
 xlabel('$x$')
 ylabel('$y$')
 

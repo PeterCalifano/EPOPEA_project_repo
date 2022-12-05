@@ -23,11 +23,17 @@ cspice_furnsh('spice_kernels/dss.bsp')
 cspice_furnsh('spice_kernels/dss.tf')
 cspice_furnsh('spice_kernels/pck00010.tpc')
 cspice_furnsh('spice_kernels/plu058.bsp')
+cspice_furnsh ('spice_kernels\LATs.bsp');
+cspice_furnsh ('spice_kernels\LATs.tf');
 %% Propagate science orbit
 clc
 mu=1.90095713928102*1e-7;
 DU=238411468.296/1000; %km
 TU=118760.57/(2*pi); 
+
+% Define useful constants
+R_Enc = mean(cspice_bodvrd('602','RADII',3));
+R_Sat = mean(cspice_bodvrd('699','RADII',3));
 
 % Define initial time, final time, and grid of analysis:
 rot = 0.5*24*3600/TU;
@@ -57,6 +63,9 @@ state_vec_Halo=state_vec_Halo';
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 
+visibility_Sun = ones(size(tt));
+perc_nonvisiblity_Sun = zeros(size(tt));
+
 for i = 2:length(tt)
     time_1 = tt(i-1);
     time_2 = tt(i);    
@@ -65,76 +74,69 @@ for i = 2:length(tt)
     if time_vec(end) ~= time_2
         time_vec(end) = time_2;
     end
+    
+    check_Sun = zeros(size(time_vec));
 
     for j = 1:length(time_vec)
+
+        % Save the time
         time_j = time_vec(j);
+
+        % Compute all the relative positions between bodies
         Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
         Enc2Sat = cspice_spkpos('699', time_j*TU, 'ECLIPJ2000', 'NONE', '602');
-        Enc2Sun = Sat2Sun + Enc2Sat;
-        Sc2Enc = state_vec_Halo(1:3,j);
+        Enc2Sun = Enc2Sat + Sat2Sun;
+        Sc2Enc = - state_vec_Halo(1:3,j);
         Sc2Sun  = Sc2Enc + Enc2Sun;
+        Sc2Sat  = Sc2Enc + Enc2Sat;
+        
+        %%% Check on Sun %%%
+
+        % Check if Saturn is in the way
+        max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
+        if max_ang_Sat > pi/4 || max_ang_Sat < 0 
+            error('Error on maximum angle of Saturn')
+        end
+        ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
+
+        if ang_Sat < max_ang_Sat
+            check_Sun(j) = check_Sun(j) + 1;
+        end
+
+        % Check if Enceladus is in the way
+        max_ang_Enc = atan(R_Enc/norm(Sc2Enc));
+
+        if max_ang_Enc > pi/4 || max_ang_Enc < 0 
+            error('Error on maximum angle of Enceladus')
+        end
+
+        ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
+
+        if ang_Enc < max_ang_Enc
+            check_Sun(j) = check_Sun(j) + 2;
+        end
+    end
+
+    % Control if the vector of check_Sun is only made of zeros
+
+    if check_Sun == zeros(size(time_vec))
+
+        % In this case the sun is always visible in the i-th orbit of 
+        % the s/c, so nothing is changed since the vector visibility_Sun 
+        % was already initialized with only ones
+
+    else
+        
+        % The Sun is not visible
+        visibility_Sun(i) = 0;
+        
+        % Save only the instants in which the Sun is not visible
+        check_Sun_2 = check_Sun(check_Sun > 0);
+        
+        % Compute the percentage of non-visibility
+        perc_nonvisiblity_Sun = length(check_Sun_2)/length(check_Sun);
 
     end
 
 
 end
-%%
-
-
-
-
-ett_obs = tt*TU;
-
-
-
-
-max_el90 = zeros(1, length(ett_obs));
-max_el80 = zeros(1, length(ett_obs));
-max_el60 = zeros(1, length(ett_obs));
-max_el0 = zeros(1, length(ett_obs));
-for i=1:length(ett_obs)
-    if i == length(ett_obs)
-        continue
-    end
-    t1 = ett_obs(i);
-    t2 = ett_obs(i+1);
-    tspan = t1:60:t2;
-
-    state90 = cspice_spkpos('SUN', tspan, 'LAT90_TOPO', 'NONE', 'LAT90');
-    state80 = cspice_spkpos('SUN', tspan, 'LAT80_TOPO', 'NONE', 'LAT80');
-    state60 = cspice_spkpos('SUN', tspan, 'LAT60_TOPO', 'NONE', 'LAT60');
-    state0 = cspice_spkpos('SUN', tspan, 'LAT0_TOPO', 'NONE', 'LAT0');
-    [rho90, az90, el90] = cspice_reclat(state90);
-    [rho80, az80, el80] = cspice_reclat(state80);
-    [rho60, az60, el60] = cspice_reclat(state60);
-    [rho0, az0, el0] = cspice_reclat(state0);
-    max_el90(i) = max(rad2deg(el90));
-    max_el80(i) = max(rad2deg(el80));
-    max_el60(i) = max(rad2deg(el60));
-    max_el0(i) = max(rad2deg(el0));
-end
-
-%% Plots
-close all; clc
-
-figure;
-time = ett_obs/86400;
-shift = date2jd([2000,01,01,12,00,00])-date2jd([0000,01,01,12,00,00]);
-time = time + shift;
-plot(time, max_el90,'color', '#0072BD', 'LineWidth', 2);
-hold on
-plot(time, max_el80,'color', '#D95319', 'LineWidth', 2);
-plot(time, max_el60,'color', '#EDB120', 'LineWidth', 2);
-plot(time, max_el0,'color', '#77AC30', 'LineWidth', 2);
-grid on
-grid minor
-ax = gca;
-ax.XTick = time(1):2*365:time(end);
-datetick('x', 'yyyy mm dd', 'keeplimits', 'keepticks');
-xtickangle(45);
-xlim([time(1) time(end)]);
-ylim([0 90]);
-
-ylabel('Maximum Elevation [deg]')
-s = legend('0° long, -90° lat', '0° long, -80° lat', '0° long, -60° lat', '0° long, 0° lat');
-s.Location = 'best';

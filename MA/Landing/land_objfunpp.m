@@ -44,7 +44,7 @@ F_mass = -var(end-6);
 
 % weights ?????
 w_pos = 0.1;
-w_mass = 1;
+w_mass = 0.9;
 
 % obj fcn
 F = w_pos*F_pos+w_mass*F_mass;

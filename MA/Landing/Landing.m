@@ -129,9 +129,9 @@ switch initial
 end
 
 % Landing site
-%lonlat = [-80; 20];
-% lonlat = [-70; 0];
-lonlat = [-90; 0];
+lonlat = [-80; 20];
+%lonlat = [-70; 0];
+% lonlat = [-60; 60];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m

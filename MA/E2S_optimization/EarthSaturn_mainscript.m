@@ -48,26 +48,29 @@ marker = 7;
 
 % Target orbit at Saturn
 Ra_target = 200*R_Saturn;
-Rp_target = 3*R_Saturn;
+Rp_target = 2.55*R_Saturn;
 
 %% Analyze solution
-load('E_EEJ_S_bestvalue1.016.mat');
+%load('E_EEJ_S_bestvalue1.016.mat');
+load('E_EEJ_S_1.033_FBhigh.mat');
 
 [m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 
-
 initial_guess = NLPoptset_local(index_pos, :, index_iter);
 
-[DV_opt, DV_breakdown] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
+[DV_opt, DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
 
+T_FB = T_FB/(24*3600);
 %%
 dep_time = cspice_et2utc(initial_guess(1)*3600*24,'C',0 )
-
+time1stdsm = cspice_et2utc((initial_guess(1) + initial_guess(9)*initial_guess(5))*3600*24,'C',0 )
 time1stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5)))*3600*24,'C',0 )
+time2nddsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5)) + initial_guess(10)*initial_guess(6))*3600*24,'C',0 )
 time2stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:6)))*3600*24,'C',0 )
+time3rddsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:6)) + initial_guess(11)*initial_guess(7))*3600*24,'C',0 )
 time3stfb = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:7)))*3600*24,'C',0 )
-
+time4thdsm = cspice_et2utc((initial_guess(1) + sum(initial_guess(5:7)) + initial_guess(12)*initial_guess(8))*3600*24,'C',0 )
 arr_time = 24*3600*(initial_guess(1) + sum(initial_guess(5:5+N)) );
 arr_time = cspice_et2utc(arr_time,'C',0 )
 
@@ -85,11 +88,19 @@ for k = 1:n3_th
 end
 
 N = length(planets_id) - 2;
-ind_v = [1,5:(5+N),(2*N + 7):(2*N+7 +N-1)];
+ind_tof = 5:(5+N);
+ind_rp = (2*N + 7):(2*N+7 +N-1);
 
 
-ind_names = {'Departure Time [years from t1]','$ToF_1$','$ToF_2$',...
-    '$ToF_3$','$ToF_4$','$ToF_5$','$rp_1$','$rp_2$','$rp_3$','$rp_4$'};
+%%%%%% SELECT THE VARIABLES TO BE PLOTTED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ind_v = [1:2];
+
+
+ind_names_all = {'Departure Date','v inf','u','v','tof 1','tof 2','tof 3','tof 4',...
+    'eta 1','eta 2','eta 3','eta 4','rp 1','rp 2','rp 3','beta 1','beta 2',...
+    'beta 3','beta 4'};
+
+ind_names = ind_names_all(ind_v);
 
 count = 1;
 
@@ -104,7 +115,7 @@ for j = ind_v
         variables = squeeze(NLPoptset_local(:,j,k));
         costs = squeeze(feval_local(:,1,k));
         if j == 1
-            variables = (variables - t1)/365.5;
+            variables = (variables);% - t1)/365.5;
         end
 
         scatter(variables,costs,10,'filled','DisplayName',['Iter: ',num2str(k)])

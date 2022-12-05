@@ -1,4 +1,4 @@
-function [DV,DV_breakdown] = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target,typeofplot)
+function [DV,DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(nlpvar, planets_id, planets, Ra_target, Rp_target,typeofplot)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ r_DSM = zeros(3,N+1);
 v_FB_out = v_dep;
 
 VV_FB = zeros(3,N+1);
-
+T_FB = zeros(1,N);
 % Loop over the arcs
 for i = 1:N+1
     VV_FB(:,i) = v_FB_out;
@@ -197,6 +197,8 @@ for i = 1:N+1
         % Compute the fly-by
         %v_inf_out = perform_FB(v_inf_in,rp_FB(i),beta_FB(i));
         v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl,v_planets(:,i+1));
+        
+        T_FB(i) = time_of_FB(v_inf_in,rp_FB(i),planets_id(i+1),VU,DU);
 
         % Obtain the outcoming infinite velocity which is the input for the
         % next iteration of the loop

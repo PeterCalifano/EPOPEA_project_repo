@@ -229,11 +229,11 @@ lb(end) = 0;
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
     'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
-% [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-%     @(var) land_nonlincon(var, state_i_rot, par, N),options);
-
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-    @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
+    @(var) land_nonlincon(var, state_i_rot, par, N),options);
+
+% [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%     @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
 
 %%
 % Trajectory
@@ -296,6 +296,17 @@ ylabel('$M\ [kg]$')
 m_fin = x_final(end-6)*MM;
 m0_dim = m0*MM;
 m_prop = m0_dim - m_fin;
+
+% Initial thrust for first "manoeuvre"
+init_thrust = 0;
+for i = 1:length(control)
+    if control(i) ~= 0 
+        init_thrust = control(i)*(Tmax*FU) + init_thrust;
+    else
+        break
+    end
+end
+
 
 % DV: Tsiolkowsky
 Is_dim = Isp*TU;

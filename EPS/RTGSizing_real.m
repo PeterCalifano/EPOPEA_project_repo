@@ -41,7 +41,6 @@ P_EoL_thermal_unit = P_BoL_thermal_unit * powerReductionFactor ;
 Number_RTGs = ceil( P_required_EoL / P_EoL_electric_unit ) ;
 P_EoL_electric_total = P_EoL_electric_unit * Number_RTGs ;
 
-
 % Compute total mass of units required
 M_tot_RTGs = Number_RTGs * M_RTG_unit ;
 

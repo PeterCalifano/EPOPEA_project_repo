@@ -22,7 +22,7 @@ m_dry = 746;
 
 % Enceladus par
 Re = 251.1;                                       %[km] mean radius of Enceladus
-mu = (6.67430e-11 *8.6e19 )*10^(-9) ;             % [km^3/s^2] Enceladus gravitational constant
+mu = (6.67430e-11 *1.0802e20 )*10^(-9) ;             % [km^3/s^2] Enceladus gravitational constant
 mass_ratio = 1.90095713928102*1e-7;               % Saturn-Enceladus mass ratio
 we = (1/32.9)*2*pi/3600;                          %[rad/s] enceladus angular rate
 

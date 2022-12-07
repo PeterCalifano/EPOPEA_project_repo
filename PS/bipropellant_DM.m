@@ -196,8 +196,7 @@ m_gas_fu = m_gas_fu * 1.2 ;                                                % [ k
 V_gas_fu_reg = ( m_gas_fu * R * T_tank ) / Pi_gas ;                        % [ m^3 ] - Pressurant volume (coincides with initial pressurant tank volume)
 V_gas_fu_reg = 1.01 * V_gas_fu_reg ;                                       % [ m^3 ] - Margin: bladder 
 
-m_gas_reg = m_gas_ox + m_gas_fu ;                                          % Total pressurant mass and volume
-                                                                           % required for the regulated portion
+m_gas_reg = m_gas_ox + m_gas_fu ;                                          % Total pressurant mass and volume required for the regulated portion
 V_gas_reg = V_gas_ox_reg + V_gas_fu_reg ;
 
 %% BLOWDOWN
@@ -231,7 +230,7 @@ V_gas_blow = V_gas_ox_blow + V_gas_fu_blow ;
 %% UNIFY PRESSURE-REGULATED AND BLOWDOWN
 % The same mass and tank of pressurant and propellant will be used, even if
 % switching from one mode to the other
-m_gas = m_gas_blow + m_gas_reg;
+m_gas = m_gas_blow + m_gas_reg ;
 V_gas = V_gas_blow + V_gas_reg;
 V_gas_ox = V_gas_ox_blow + V_gas_ox_reg;
 V_gas_fu = V_gas_fu_blow + V_gas_fu_reg;

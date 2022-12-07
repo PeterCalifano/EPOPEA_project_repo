@@ -6,7 +6,7 @@
 % Main Engine = ARIANE 400N BI-PROPELLANT APOGEE THRUSTER
 % Smaller Thrusters = ARIANE 10N BI-PROPELLANT THRUSTER
 
-%% SAMPLING ORBITER - SAMPLING LANDER
+%% SAMPLING ORBITER 
 close all, clear all, clc
 
 %%%%%%%%
@@ -115,10 +115,10 @@ thruster.mass_ME = 4.30 ; thruster.number_ME = 2 ;
 thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
-disp('S ORBITER - S LANDER:')
+disp('S ORBITER:')
 [ M_PS_SOSL, sizing_ox_SOSL, sizing_fu_SOSL, sizing_gas_SOSL ] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster ) ;
 
-%% NON SAMPLING ORBITER - SAMPLING LANDER
+%% NON SAMPLING ORBITER
 close all, clear all, clc
 
 %%%%%%%%
@@ -228,6 +228,6 @@ thruster.mass_ME = 4.30 ; thruster.number_ME = 2 ;
 thruster.mass_ST = 0.65 ; thruster.number_ST = 16 ;
 thruster.chamber_pressure_reg = 10.35e5 ; thruster.chamber_pressure_blow = 9e5 ;
 
-disp('NS ORBITER - S LANDER:')
+disp('NS ORBITER:')
 [ M_PS_NSOSL, sizing_ox_NSOSL, sizing_fu_NSOSL, sizing_gas_NSOSL] = bipropellant_DM( oxidizer, fuel, pressurant, tank, thruster ) ;
 

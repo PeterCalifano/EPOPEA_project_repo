@@ -131,7 +131,7 @@ end
 
 % Landing site
 lonlat = [-80; 20];
-%lonlat = [-70; 0];
+% lonlat = [-70; 0];
 % lonlat = [-60; 60];
 lonlat = [-65;20];
 
@@ -337,7 +337,7 @@ m_prop = m0_dim - m_fin;
 % Initial thrust for first "manoeuvre"
 init_thrust = 0;
 for i = 1:length(control)
-    if control(i) ~= 0 
+    if control(i) > 1e-10 
         init_thrust = control(i)*(Tmax*FU) + init_thrust;
     else
         break

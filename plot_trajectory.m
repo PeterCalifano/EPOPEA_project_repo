@@ -67,7 +67,7 @@ VU = DU/TU2;
 Ra_target = 200*R_Saturn;
 Rp_target = 2.55*R_Saturn;
 planets_id = [3,3,3,5,6];
-load('E_EEJ_S_bestvalue1.016.mat','min_pos','min_at_iter','NLPoptset_local');
+load('E_EEJ_S_1.033_FBhigh.mat','min_pos','min_at_iter','NLPoptset_local');
 [~, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 nlpvar = NLPoptset_local(index_pos, :, index_iter);

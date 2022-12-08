@@ -13,7 +13,7 @@ rho_Al5056 = 2640; % [kg/m^3]
 rho_face = rho_Al5056;
 rho_core = 130; % [kg/m^3] equivalent honeycomb density
 
-rho_eq = 1.2*(rho_core*th_core + rho_face*2*th_face)/(th_core + 2*th_face); % 20% margin considered
+rho_eq = (rho_core*th_core + rho_face*2*th_face)/(th_core + 2*th_face); % 20% margin considered
 
 % Define geometry of single honeycomb cell
 theta = pi/6;

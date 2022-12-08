@@ -9,8 +9,9 @@ set(0,'defaultAxesFontSize', 16)
 clearvars; close all; 
 clc 
 
+n_T = 4; % number of thrusters.  try with 3 thrusters
 % step1: vehicle par (TO CHANGE!!!)
-Tmax = 4*125e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
+Tmax = n_T*125e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
 Isp = 228;                      %[s] Specific Impulse
 g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
 % m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
@@ -132,6 +133,7 @@ end
 lonlat = [-80; 20];
 % lonlat = [-70; 0];
 % lonlat = [-60; 60];
+lonlat = [-65;20];
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m

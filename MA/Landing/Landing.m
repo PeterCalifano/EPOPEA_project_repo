@@ -54,6 +54,7 @@ par(5) = Re;
 par(6) = mass_ratio;
 par(7) = we;
 
+
 N = 20;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
@@ -130,10 +131,15 @@ switch initial
 end
 
 % Landing site
-lonlat = [-80; 20];
+% lonlat = [-75; 20]; th_e0 = deg2rad(10);
+lonlat = [-80; 20]; th_e0 = deg2rad(10);
 % lonlat = [-70; 0];
 % lonlat = [-60; 60];
-lonlat = [-65;20];
+% lonlat = [-65;20]; t1 = -0.3; th_e0 = deg2rad(0); --> finisce 23 km
+% lontano
+%lonlat = [-70;270]; th_e0 = deg2rad(260);
+
+par(8) = th_e0;
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m
@@ -224,7 +230,7 @@ for k = 1:N
     lb(step_var*(k-1)+(step_st+1)) = 0;
     ub(step_var*(k-1)+(step_st+1)) = 1;
 end
-lb(end-1) = 0;
+% lb(end-1) = 0; ???
 lb(end) = 0;
 
 %%
@@ -261,7 +267,7 @@ Zrot = r_xz*cos(lon);
 vec_rot = [Xrot; Yrot; Zrot];
 
 % Enceladus rotation
-th_e = we*(tN-t1);
+th_e = we*(tN-t1)+th_e0;
 
 % From rotating enceladus to IAU_Enceladus
 A_rot2IAU = [cos(th_e)    0     sin(th_e)
@@ -286,6 +292,9 @@ plot3(vec_pp(1),vec_pp(2),vec_pp(3),'*')
 xlabel('$x$')
 ylabel('$y$')
 
+% distance from pinpoint
+pos_N = x_final(end-12:end-10);
+dist = pos_N-vec_pp;
 
 % Control law
 figure; hold on; grid on; grid minor

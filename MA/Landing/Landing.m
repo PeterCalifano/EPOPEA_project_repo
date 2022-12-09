@@ -286,10 +286,6 @@ plot3(vec_pp(1),vec_pp(2),vec_pp(3),'*')
 xlabel('$x$')
 ylabel('$y$')
 
-% Time
-start = x_final(end-1)*TU;
-ending = x_final(end)*TU;
-tof = (ending-start)/60;               % min
 
 % Control law
 figure; hold on; grid on; grid minor
@@ -355,7 +351,7 @@ g0_dim = g0*acc;
 dV = Is_dim*g0_dim*log(m0_dim/m_fin);
 
 % Print Results
-fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]\nToF: %f min', Thrust_min, v_fin, m_prop, dV, tof);
+fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, v_fin, m_prop, dV);
 
 
 %%

@@ -42,8 +42,8 @@ load("Batt_data_LiIon_Saft_VES16_singleBatt.mat")
 % Set inputs
 powerRegulationMethod = 'DET';
 Batt_capacityMargin_percent = 0.33; 
-PowerDefect_watt = 18.3;
-PowerDefectDuration_hours = 5690/3600; % [h]
+PowerDefect_watt = 173;
+PowerDefectDuration_hours = 4.3333; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
 
 %% Saft VES16 cells -> Small battery (8s4p)
@@ -53,8 +53,24 @@ load("Batt_data_LiIon_Saft_VES16_small_singleBatt.mat")
 % Set inputs
 powerRegulationMethod = 'DET';
 Batt_capacityMargin_percent = 0.33; 
-PowerDefect_watt = 146.76;
-PowerDefectDuration_hours = 4; % [h]
+PowerDefect_watt = 173;
+PowerDefectDuration_hours = 4.3333; % [h]
+[ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
+
+%% PRIMARY BATTERY DESIGN Li-SOCl battery
+clearvars ; close all ; clc ;
+
+Batt_data.NumberOfBatteries = 1;
+Batt_data.cycles = 1;
+Batt_data.DOD = 1; % 100%
+Batt_data.Em = 480; % Wh/Kg
+Batt_data.Ev = 1024; % Wh/dm^3
+
+% Set inputs
+powerRegulationMethod = 'DET';
+Batt_capacityMargin_percent = 0.25; % for 15 y (time before landing)
+PowerDefect_watt = 124;
+PowerDefectDuration_hours = 1; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod )
 
 %% REFINED ANALYSIS -> EaglePicher cells
@@ -78,4 +94,22 @@ Tot_volume = D_cell^2*pi/4*H_cell*(nSeries*nParallel);
 
 % Compute mass:
 M_cell = 0.155; % mass [kg]
+Tot_mass = M_cell*(nSeries*nParallel);
+
+%% REFINED ANALYSIS -> PRIMARY BATTERY Li-SOCl2, LS 14250 from Saft
+Cell_data.C = 1.2;
+Cell_data.V = 3.6;
+
+V_required = 28; % [V] voltage required to power the system
+C_required = TheoreticalBattCapacity_Wh_withmargin; % [Wh] required capacity, coming from the preliminary analysis
+[nSeries, nParallel, V_real, C_real] = refinedBatterySizing_withRTG(Cell_data, C_required, V_required)
+
+% Compute volume:
+D_cell = 0.01462; % diameter [m]
+H_cell = 0.02513; % height [m]
+
+Tot_volume = D_cell^2*pi/4*H_cell*(nSeries*nParallel);
+
+% Compute mass:
+M_cell = 0.009; % mass [kg]
 Tot_mass = M_cell*(nSeries*nParallel);

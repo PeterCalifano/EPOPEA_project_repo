@@ -34,7 +34,8 @@ tspan = t0:0.1:tf;
 state_str = load('Halo_10days.mat');
 state = cell2mat(struct2cell(state_str))';
 st_pos = state(:,1:3);
-Xpos = reshape(st_pos', [3,1,4423]);
+L = length(st_pos(:,1));
+Xpos = reshape(st_pos', [3,1,L]);
 
 period = 12*3600;
 

@@ -138,7 +138,7 @@ end
 % Landing site
 % lonlat = [-80; 20]; th_e0  =0;
 % lonlat = [-70; 270]; th_e0 =deg2rad(290);
-lonlat = [-70; 270]; th_e0 =deg2rad(260);
+lonlat = [-70; 270]; th_e0 =deg2rad(270);
 % lonlat = [-68;20]; t1 = -0.2; th_e0 =deg2rad(-10); % 
 % lonlat = [-90; 0]; th_e0  =0;
 par(8) = th_e0;
@@ -374,9 +374,27 @@ Enceladus_3D(1, [0 0 0]);
 hold on; grid on; grid minor
 t1 = x_final(end-1);
 tN = x_final(end);
-plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
-[~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
-circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
+%plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
+[time_enc, output_enc] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
+r_enc_plot = zeros(length(time), 3);
+for k = 1:length(time_enc)
+    % From rotating Saturn-Enceladus to IAU_Enceladus
+    state_in = rot2iau_enc(time_enc(k), output_enc(k,:), mass_ratio);
+    r_in = state_in(1:3)*DD/DU;
+    v_in = state_in(4:6)*(DD/TT)/VU;
+    
+    % DCM Matrix: rigid rotation around X
+    A_rotx = [1  0  0
+              0  0  1
+              0 -1  0];
+    r_enc_plot(k,:) = A_rotx*r_in;
+end
+
+
+plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',1.5); % initial orbit
+plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*')
+% [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
+% circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
 % landing_site = Re*exp(1i*circ_admissible);
 % plot(landing_site,'-g','LineWidth',10)
 
@@ -391,14 +409,18 @@ for k = 1:N-1
     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
     u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options, u_plot, par);
+%     x_plot = [x_plot;output(:,1)];
+%     y_plot = [y_plot;output(:,2)];
+%     z_plot = [z_plot;output(:,3)];
+    y_plot = [y_plot;-output(:,3)];
+    z_plot = [z_plot;output(:,2)];
     x_plot = [x_plot;output(:,1)];
-    y_plot = [y_plot;output(:,2)];
-    z_plot = [z_plot;output(:,3)];
 end
 plot3(x_plot,y_plot,z_plot,'b','LineWidth',1.5)
 
 for k = 1:N
-    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+%     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+ plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'om', 'LineWidth', 1.2,'MarkerSize',5);
     axis equal
 end
 
@@ -406,7 +428,8 @@ end
 title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
 xlabel('$x\ [DU]$')
 ylabel('$y\ [DU]$')
-legend('Enceladus','Initial orbit $h = 60\ km$','Admissible landing','Landing trajectory','NLP points')
+zlabel('$z\ [DU]$')
+legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajectory','NLP points')
 
 %%
 % TO DO:

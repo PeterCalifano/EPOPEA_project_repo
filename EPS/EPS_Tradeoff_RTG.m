@@ -44,9 +44,14 @@ RTG_data = RTG_data_nextGenRTG12 ; % This RTG type can be tuned since it is modu
 
 % Power requirements EoL
 P_req_NSOSL_orb = 350 ;
+<<<<<<< Updated upstream
 P_req_NSOSL_lan = 750 ;
 P_req_SOSL_orb = 800 ;
 P_req_SOSL_lan = 750 ;
+=======
+P_req_lan = 350 ;
+P_req_SOSL_orb = 500 ;
+>>>>>>> Stashed changes
 
 % EoL
 t_EoL_years_NSOSL_orb = 20 ;

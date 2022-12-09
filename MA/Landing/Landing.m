@@ -137,10 +137,11 @@ switch initial
 end
 
 % Landing site
-lonlat = [-80; 20]; th_e0  =0;
-% lonlat = [-70; 0];
-% lonlat = [-60; 60];
-% lonlat = [-65;20];
+% lonlat = [-80; 20]; th_e0  =0;
+% lonlat = [-70; 270]; th_e0 =deg2rad(290);
+lonlat = [-70; 270]; th_e0 =deg2rad(260);
+% lonlat = [-68;20]; t1 = -0.2; th_e0 =deg2rad(-10); % 
+% lonlat = [-90; 0]; th_e0  =0;
 par(8) = th_e0;
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
@@ -232,7 +233,7 @@ for k = 1:N
     lb(step_var*(k-1)+(step_st+1)) = 0;
     ub(step_var*(k-1)+(step_st+1)) = 1;
 end
-lb(end-1) = 0;
+% lb(end-1) = 0;
 lb(end) = 0;
 
 %%

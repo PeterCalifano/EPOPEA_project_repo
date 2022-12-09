@@ -119,8 +119,11 @@ for i = 1:2          % NS - S
 end
 
 % Momentum storage
+orb_period = 12*3600;
 
-
+for i = 1:2
+    H(i) = T_GGmax(i)*orb_period/4;
+end
 %% Thrusters
 
 % Sizing for external disturbances

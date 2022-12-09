@@ -33,7 +33,7 @@ switch model
 end
 
 %% Initial conditions
-wb0 = 0.00001*rand(3, 1);
+wb0 = 0.0001*rand(3, 1);
 qrand = rand(4, 1);
 qbn0 = qrand./norm(qrand);
 
@@ -51,7 +51,7 @@ state = cell2mat(struct2cell(state_str))';
 st_pos = state;
 L = length(st_pos);
 
-Xpos = reshape(st_pos', [6, 1, L]);
+Xpos = reshape(st_pos, [6, 1, L]);
 
 StopTime = n_days*24*3600;
 
@@ -74,6 +74,6 @@ StopTime = n_days*24*3600;
 % S = eye(3);
 
 
-out = sim(ModelName, 'Timeout', StopTime);
+% out = sim(ModelName, 'Timeout', StopTime);
 
 

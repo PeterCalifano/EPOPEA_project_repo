@@ -44,9 +44,8 @@ RTG_data = RTG_data_nextGenRTG12 ; % This RTG type can be tuned since it is modu
 
 % Power requirements EoL
 P_req_NSOSL_orb = 350 ;
-P_req_NSOSL_lan = 750 ;
-P_req_SOSL_orb = 800 ;
-P_req_SOSL_lan = 750 ;
+P_req_lan = 350 ;
+P_req_SOSL_orb = 500 ;
 
 % EoL
 t_EoL_years_NSOSL_orb = 20 ;
@@ -104,7 +103,7 @@ P_required_EoL_NSOSL_orb = P_req_NSOSL_orb ;
 %% Compute real RTG sizing for NSOSL (lander) architecture
 % --------------------------------------
 
-P_required_EoL_NSOSL_lan = P_req_NSOSL_lan ;
+P_required_EoL_NSOSL_lan = P_req_lan ;
 
 [ Number_RTGs_NSOSL_lan, M_tot_RTGs_NSOSL_lan, P_dissipatedThermalTotal_NSOSL_lan, NuclearFuelMassTOTAL_NSOSL_lan, P_EoL_electric_total_NSOSL_lan ] = RTGSizing_real( P_required_EoL_NSOSL_lan, t_EoL_years_NSOSL_lan, RTG_data ) ;
 
@@ -115,12 +114,4 @@ P_required_EoL_NSOSL_lan = P_req_NSOSL_lan ;
 P_required_EoL_SOSL_orb = P_req_SOSL_orb ;
 
 [ Number_RTGs_SOSL_orb, M_tot_RTGs_SOSL_orb, P_dissipatedThermalTotal_SOSL_orb, NuclearFuelMassTOTAL_SOSL_orb, P_EoL_electric_total_SOSL_orb ] = RTGSizing_real( P_required_EoL_SOSL_orb, t_EoL_years_SOSL_orb, RTG_data ) ;
-
-
-%% Compute real RTG sizing for SO + SL (lander) architecture
-% ------------------------------------------
-
-P_required_EoL_SOSL_lan = P_req_SOSL_lan ;
-
-[ Number_RTGs_SOSL_lan, M_tot_RTGs_SOSL_lan, P_dissipatedThermalTotal_SOSL_lan, NuclearFuelMassTOTAL_SOSL_lan, P_EoL_electric_total_SOSL_lan ] = RTGSizing_real( P_required_EoL_SOSL_lan, t_EoL_years_SOSL_lan, RTG_data ) ;
 

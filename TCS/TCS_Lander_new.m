@@ -50,6 +50,7 @@ l_str = 0.02;
 % Structure
 epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ????????
 epsilon_ext = 0.62; % aluminized kapton see book
+alpha_ext = 0.44; % aluminized kapton
 epsilon_1 = 1; %%%%??????????? epsilon of internal node
 
 % MLI 
@@ -58,6 +59,9 @@ alpha_MLI = 0.0029;
 
 % Radiators
 eps_rad = 0.7; % changed from 0.8: if louvers open ~0.7
+eps_louv_closed = 0.14;
+alpha_louv_closed = 0.062; 
+alpha_louv_open = 0.269; % (worst case EOL)
 A_rad = 1*0.2;
 n_rad = 2;
 k_rad = 1;
@@ -131,11 +135,16 @@ R.R_10 = A_1 * eps_rad;
 q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
 q_Enc = 1 * sigma_SB *T_Enc^4 *epsilon_Enc;
 
+% angles between the normal to the surface and the incident radiation
+theta_4Enc = 0;
+theta_3Sat = pi/4;
+theta_2Sat = pi/4;
+
 % Overall external heat to each node (dissipation is not included)
-Q_ext = [q_Sat * A_1*eps_rad ; % or q_Sat * A_1*eps_rad*(A_1*epsilon_1*eps_rad)/(A_1*epsilon_1*eps_rad+A_1*eps_rad)
-        q_Enc * A_2*epsilon_ext;
-        q_Sat * A_3*epsilon_ext;
-        q_Sat * A_4*epsilon_ext];
+Q_ext = [q_Sat * A_1*eps_rad*cos(theta_4Enc) ; % or q_Sat * A_1*eps_rad*(A_1*epsilon_1*eps_rad)/(A_1*epsilon_1*eps_rad+A_1*eps_rad)
+        q_Enc * A_2*epsilon_ext*cos(theta_2Sat);
+        q_Sat * A_3*epsilon_ext*cos(theta_3Sat);
+        q_Sat * A_4*epsilon_ext*cos(theta_4Enc)];
 
 %%% Internal dissipation power
 Q_diss =  P_cold_land;

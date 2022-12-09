@@ -50,13 +50,14 @@ l_str = 0.02;
 % Structure
 epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ????????
 epsilon_ext = 0.62; % aluminized kapton see book
+epsilon_1 = 1; %%%%??????????? epsilon of internal node
 
 % MLI 
 epsilon_MLI = 0.03;
 alpha_MLI = 0.0029;
 
 % Radiators
-eps_rad = 0.8;
+eps_rad = 0.7; % changed from 0.8: if louvers open ~0.7
 A_rad = 1*0.2;
 n_rad = 2;
 k_rad = 1;
@@ -94,7 +95,7 @@ F_24 = 4/5; F_34 = 4/5;
 %%% Bottom Surface (2)
 
 R.R_20 = A_2*epsilon_ext; 
-R.R_21 = A_2*epsilon_MLI; 
+R.R_21 = A_2*epsilon_MLI*epsilon_1; 
 
 % C_LB = 4 * k_str*(l_str*L/(L/2) + l_str*L/(L/2));
 % R.R_LB = A_L*F_LB*epsilon_int^2;
@@ -102,7 +103,7 @@ R.R_21 = A_2*epsilon_MLI;
 
 %%% Top Surface (3)
 
-R.R_31 = A_3 * epsilon_MLI;
+R.R_31 = A_3 * epsilon_MLI*epsilon_1;
 R.R_30 = A_3 * epsilon_ext;
 
 % R.R_BT = A_B*F_BT*epsilon_int^2;
@@ -114,7 +115,7 @@ R.R_30 = A_3 * epsilon_ext;
 % R.R_BL = A_B*F_BL*epsilon_int^2 ;
 % R.R_TL = A_T*F_TL*epsilon_int^2 ;
 
-R.R_41 = A_4 * epsilon_MLI;
+R.R_41 = A_4 * epsilon_MLI*epsilon_1;
 R.R_40 = A_4 * epsilon_ext;
 
 %%% Radiator
@@ -122,6 +123,7 @@ R.R_40 = A_4 * epsilon_ext;
 % a direct link between 1 and T0 = 0 K)
 
 R.R_10 = A_1 * eps_rad;
+% R.R_10 = 1/(1/(A_1*eps_rad)+1/(A_1*epsilon_1*eps_rad)); % ???????????
 
 %%% Heat Flows
 
@@ -130,10 +132,10 @@ q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
 q_Enc = 1 * sigma_SB *T_Enc^4 *epsilon_Enc;
 
 % Overall external heat to each node (dissipation is not included)
-Q_ext = [q_Sat * A_1;
-        q_Enc * A_2;
-        q_Sat * A_3;
-        q_Sat * A_4];
+Q_ext = [q_Sat * A_1*eps_rad ; % or q_Sat * A_1*eps_rad*(A_1*epsilon_1*eps_rad)/(A_1*epsilon_1*eps_rad+A_1*eps_rad)
+        q_Enc * A_2*epsilon_ext;
+        q_Sat * A_3*epsilon_ext;
+        q_Sat * A_4*epsilon_ext];
 
 %%% Internal dissipation power
 Q_diss =  P_cold_land;

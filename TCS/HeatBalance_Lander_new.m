@@ -1,4 +1,4 @@
-function [balances] = HeatBalance_Lander2(T, R, Q_ext , Q_diss, sigma)
+function [balances] = HeatBalance_Lander_new(T, R, Q_ext , Q_diss, sigma)
 
 T1 = T(1);
 T2 = T(2);
@@ -23,7 +23,7 @@ balances(2) = Q_20 + Q_21 - Q_ext(2);
 Q_31 = - Q_13;
 Q_30 = R.R_30*sigma*(T3^4 - 0);
 
-balances(3) = Q_30 + Q_31 + Q_ext(3);
+balances(3) = Q_30 + Q_31 - Q_ext(3); 
 
 % Balance 4
 Q_41 = - Q_14;

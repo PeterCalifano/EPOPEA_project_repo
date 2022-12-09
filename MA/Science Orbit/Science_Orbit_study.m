@@ -1,4 +1,5 @@
 %% example of science orbits
+% COMMENTA STO CAZZO DI CODICE PLEASE
 
 set(groot,'defaultAxesTickLabelInterpreter','latex');  
 set(groot,'defaultLegendInterpreter','latex');
@@ -12,9 +13,6 @@ DU=238411468.296/1000; %km
 TU=118760.57/(2*pi); 
 
 R_enc=252.1; %km, Enceladus mean radius
-
-
-
 R_enc=R_enc/DU;
 
 % L1 determination
@@ -28,7 +26,6 @@ U_sym=@(x) 1/2*(x.^2+y.^2) + (1-mu)./r1_sym + mu./r2_sym+1/2*mu*(1-mu);
 %dU/dx of the scalar potential function 
 Ux_sym=diff(U_sym,x);
 
-
 %Function handle recovery
 Ux=matlabFunction(Ux_sym);
 
@@ -40,11 +37,8 @@ format long
 
 U_der_vec_x_fzero=@(x) Ux(x,0,0);
 x00=1.1; %initial guess
-x_L2_fzero=fzero(U_der_vec_x_fzero,x00,options_fzero)
+x_L2_fzero = fzero(U_der_vec_x_fzero,x00,options_fzero);
 x_L2=[x_L2_fzero;0;0];
-
-
-
 
 
 %CRTBP dynamics, function handle
@@ -70,10 +64,9 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=0.5; %days of prapagation
+FlightDays=10; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
-
 
 %propagation - Halo
 [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf],state0_Halo,options_ode);
@@ -84,8 +77,6 @@ state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 %plot
 % Enceladus_3D_Adim(R_enc,[1-mu,0,0])
 % plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'k')
-
-
 
 
 %periodic resonant 3BP orbit N=9 M=35
@@ -104,15 +95,14 @@ tf_P=0.9896641998233017*1e+6/TU; %1 period - actually if you plot it for
 [t_vec_P,state_vec_P]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf_P],state0_P,options_ode);
 state_vec_P=state_vec_P';
 
-
-
+% Plot Halo Orbit
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
 P2=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'k','linewidth',1.25);
 P1=plot3(x_L2(1)*DU,x_L2(2)*DU,x_L2(3)*DU,'ob','markersize',5,'linewidth',1.25);
 grid minor
 legend([P1 P2],'$L_2$','Southern Halo orbit')
 
-
+% Plot Orbit scarabocchio 
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
 P1=plot3(state_vec_P(1,:)*DU,state_vec_P(2,:)*DU,state_vec_P(3,:)*DU,'b','linewidth',1);
 grid minor
@@ -145,9 +135,6 @@ plot3(state_vec_else(1,:),-state_vec_else(2,:),state_vec_else(3,:),'r','linewidt
 plot3(x0_Halo*DU, y0_Halo*DU, z0_Halo*DU, 'o', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'k');
 grid minor
 legend([P1 P2],'Remote sensing arc','Communication and analysis arc')
-
-
-
 
 
 %% Ground Tracks (TBA)

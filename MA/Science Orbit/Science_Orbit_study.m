@@ -64,12 +64,12 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=10; %days of prapagation
+FlightDays=3; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
-
+t_span = t0:1:tf;
 %propagation - Halo
-[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf],state0_Halo,options_ode);
+[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),t_span,state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;

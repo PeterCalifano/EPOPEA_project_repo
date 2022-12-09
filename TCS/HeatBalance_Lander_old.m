@@ -1,4 +1,4 @@
-function [balances] = HeatBalance(T, R, T_E, Q_Sat_T,Q_Sat_L , Q_diss, Q_RTG, sigma,C_LB,C_LT)
+function [balances] = HeatBalance_Lander(T, R, T_E, Q_Sat_T,Q_Sat_L , Q_diss, Q_RTG, sigma,C_LB,C_LT)
 
 T_B = T(1);
 T_L = T(2);

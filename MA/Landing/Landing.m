@@ -3,7 +3,6 @@ set(groot,'defaultAxesTickLabelInterpreter','latex');
 set(groot,'defaultLegendInterpreter','latex');
 set(groot,'defaulttextinterpreter','latex');
 set(0,'defaultAxesFontSize', 16)
-%
 
 %%
 clearvars; close all; 
@@ -16,10 +15,17 @@ Isp = 228;                      %[s] Specific Impulse
 g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
 % m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
 % m_dry = 75.4;
-
-m0 = 105+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
-m_dry = 746;
-
+% OLD:
+% m0 = 105+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
+% m_dry = 746;
+% NEW MASS:
+m_dry_lander = 495.1+20; % [kg] NOTE: 20 kg for ADCS TBC
+m_prop_HA = 80; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
+m_dry = m_dry_lander + m_prop_HA; % NOTE: improper use of name "dry mass": 
+% it is the lower bound for the mass of the lander. 
+% We cannot use the propellant dedicated to hazard avoidance maneouvre to land
+m_prop = 252; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
+m0 = m_dry_lander+ m_prop; % [kg] WET MASS: initial mass of landing trajectory
 
 % Enceladus par
 Re = 251.1;                                       %[km] mean radius of Enceladus
@@ -130,10 +136,12 @@ switch initial
 end
 
 % Landing site
-lonlat = [-80; 20];
-% lonlat = [-70; 0];
-% lonlat = [-60; 60];
-lonlat = [-65;20];
+% lonlat = [-80; 20]; th_e0  =0;
+% lonlat = [-70; 270]; th_e0 =deg2rad(290);
+lonlat = [-70; 270]; th_e0 =deg2rad(260);
+% lonlat = [-68;20]; t1 = -0.2; th_e0 =deg2rad(-10); % 
+% lonlat = [-90; 0]; th_e0  =0;
+par(8) = th_e0;
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)
 step_st = length(state_i);            % 7: rr,vv,m
@@ -224,7 +232,7 @@ for k = 1:N
     lb(step_var*(k-1)+(step_st+1)) = 0;
     ub(step_var*(k-1)+(step_st+1)) = 1;
 end
-lb(end-1) = 0;
+% lb(end-1) = 0;
 lb(end) = 0;
 
 %%
@@ -261,7 +269,7 @@ Zrot = r_xz*cos(lon);
 vec_rot = [Xrot; Yrot; Zrot];
 
 % Enceladus rotation
-th_e = we*(tN-t1);
+th_e = we*(tN-t1) + th_e0;
 
 % From rotating enceladus to IAU_Enceladus
 A_rot2IAU = [cos(th_e)    0     sin(th_e)
@@ -270,6 +278,9 @@ A_rot2IAU = [cos(th_e)    0     sin(th_e)
 % desired final state
 vec_pp = A_rot2IAU*vec_rot;
 
+% final distance wrt desired landing site
+rr_fin = x_final(end-12:end-10);
+dist = norm(vec_pp-rr_fin);
 
 %%
 % Trajectory

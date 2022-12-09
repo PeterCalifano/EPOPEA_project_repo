@@ -67,7 +67,7 @@ t0=0;
 FlightDays=3; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
-t_span = t0:1:tf;
+t_span = t0:(1/TU):tf;
 %propagation - Halo
 [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),t_span,state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';

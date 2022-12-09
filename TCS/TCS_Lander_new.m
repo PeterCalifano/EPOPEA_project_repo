@@ -143,7 +143,7 @@ T_guess = 273*ones(4,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 
 % Cold case
-T_land_cold = fsolve(@(T) HeatBalance_Lander2(T, R, Q_ext , Q_diss, sigma_SB),T_guess, options);
+T_land_cold = fsolve(@(T) HeatBalance_Lander_new(T, R, Q_ext , Q_diss, sigma_SB),T_guess, options);
 
 fprintf(['\nExternal Bottom: ',num2str(T_land_cold(2)-273),' Celsius'])
 fprintf(['\nExternal Top: ',num2str(T_land_cold(3)-273),' Celsius'])

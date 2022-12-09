@@ -21,7 +21,7 @@ R_orbit_sat = 238000;
 
 % Structure properties (Al-5056-O)
 k_str = 117;
-l_str = 0.02; % TBC
+l_str = 0.02;
 
 %%% View Factors 
 F_earth = (R_earth/R_orbit_earth)^2;
@@ -125,7 +125,7 @@ Q_diss =  P_cold_land_diss + n_RHU*P_RHU;
 Q_RTG = P_RTG_land*epsilon_MLI;
 Q_RTG = 0;
 
-%%%%%%%%%%%%%%%%%%%%%% SOLVE THE SYSTEM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% SOLVE THE SYSTEM 
 
 T_guess = 273*ones(3,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
@@ -133,3 +133,87 @@ options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,
 T_nodes = fsolve(@(T) HeatBalance_Lander(T, R, T_Enc, Q_Sat_T,Q_Sat_L , Q_diss, Q_RTG, sigma_SB,C_LB,C_LT),T_guess, options);
 
 T_nodes-273
+
+
+
+
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% 2. SO COLD CASE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 7 - Antenna
+% 1 - Bottom Inside
+% 2 - Top Inside
+% 3 - 2 Lateral with RTGs Inside
+% 4 - Lateral Antenna Inside
+% 5 - Lateral Instruments Inside
+% 6 - Lateral Instruments Outside
+
+clear R
+
+L_1 = 2;
+L_2 = 4;
+L_3 = 4;
+L = [L_1,L_2,L_3];
+
+A_v = [L_2*L_1,L_1*L_2,L_3*L_2 + L_3*L_1,L_3*L_2,L_3*L_1];
+A_tot = sum(A_v);
+
+F_v = zeros(5,5);
+
+for i = 1:5
+    for j = 1:5
+    
+        F_v(i,j) = A_v(i)/(A_tot - A_v(j));
+
+    end
+end
+
+%%% External resistences
+for i = 1:5
+    R_ia = A_v(i)*epsilon_ext; 
+    R_ib = A_v(i)*epsilon_MLI; 
+    R(i).ext = (1/R_1a + 1/R_1b)^(-1);
+end
+
+%%% Conductive Couplings
+C = zeros(5,5);
+
+for i = 1:5
+    for j = 1:5
+        if j ~= i
+            C(i,j) = k_str*(l_str*L/(L2/2)+ l_str*L1/(L3/2)) ;
+        end
+    end
+end
+
+%%% Radiative Couplings inside
+R_coup = zeros(5,5);
+for i = 1:5
+    for j = 1:5
+        if i ~= j 
+            R_coup(i,j) = A_v(i) * F_v(i,j) * epsilon_int^2;
+        end
+    end
+end
+
+
+
+%%% Heat Flows
+Q_Sat_T = sin(pi/4)*A_T*F_sat*sigma_SB*T_Sat^4*epsilon_sat*epsilon_MLI;
+Q_Sat_L = cos(pi/4)*0.5*((A_L-A_rad)*epsilon_MLI + A_rad * eps_rad)*F_sat*sigma_SB*T_Sat^4*epsilon_sat;
+
+%%% Select powers to consider
+Q_diss =  P_cold_land_diss + n_RHU*P_RHU;
+Q_RTG = P_RTG_land*epsilon_MLI;
+Q_RTG = 0;
+
+
+
+
+
+
+
+
+
+
+

@@ -7,8 +7,8 @@ rng shuffle
 J_NSO = diag([13760.61, 15399.52, 15621.60]); % [kg m^2]
 J_SO = diag([16903.03, 17415.25, 24963.03]); % [kg m^2]
 
-model = 1;
 % Map: 1) NSO, 2) SO, 3) SL
+model = 1;
 
 switch model
     case 1

@@ -14,6 +14,7 @@ lat = deg2rad(latlon(1));
 lon = deg2rad(latlon(2));
 we = par(7);
 Re = par(5);
+th_e0 = par(8); 
 
 % From latitudinal to cartesian
 r_xz = Re*cos(lat);
@@ -23,7 +24,7 @@ Zrot = r_xz*cos(lon);
 vec_rot = [Xrot; Yrot; Zrot];
 
 % Enceladus rotation
-th_e = we*(tN-t1);
+th_e = we*(tN-t1)+th_e0;
 
 % From rotating enceladus to IAU_Enceladus
 A_rot2IAU = [cos(th_e)    0     sin(th_e)

@@ -60,6 +60,8 @@ alpha_MLI = 0.0029;
 % Radiators
 eps_rad = 0.7; % changed from 0.8: if louvers open ~0.7
 eps_louv_closed = 0.14;
+% eps_rad = eps_louv_closed; % if closed louvers
+% eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad = 1*0.2;

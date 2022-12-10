@@ -109,83 +109,77 @@ R_inclination =[1 0 0;
    0 cos(i) -sin(i);
    0 sin(i) cos(i)];
 
-visibility_Sun = ones(size(tt));
-perc_nonvisiblity_Sun = zeros(size(tt));
+check_Sun = ones(size(tt));
+%perc_nonvisiblity_Sun = zeros(size(tt));
 
-for i = 2:length(tt)
-    time_1 = tt(i-1);
-    time_2 = tt(i);    
-    time_vec = time_1 + t_vec_Halo;
+for j = 2:length(tt)
+%     time_1 = tt(i-1);
+%     time_2 = tt(i);    
+%     time_vec = time_1 + t_vec_Halo;
+% 
+%     if tt(end) ~= time_2
+% 
+%         tt(end) = time_2;
+% 
+%     end
 
-    if tt(end) ~= time_2
+    % Save the time
+    time_j = tt(j);
 
-        tt(end) = time_2;
+    % Compute all the relative positions between bodies
+    Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'IAU_SATURN', 'NONE', '699');
+    Enc2Sat = cspice_spkpos('699', time_j*TU, 'IAU_SATURN', 'NONE', '602');
+    Enc2Sun = Enc2Sat + Sat2Sun;
+    Sc2Enc = - R_inclination * x_inEnc(:,j); % state_vec_Halo(1:3,j);
+    Sc2Sun  = Sc2Enc + Enc2Sun;
+    Sc2Sat  = Sc2Enc + Enc2Sat;
+    
+    %%% Check on Sun %%%
 
+    % Check if Saturn is in the way
+    max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
+    if max_ang_Sat > pi/4 || max_ang_Sat < 0 
+       error('Error on maximum angle of Saturn')
+    end
+    ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
+
+    if ang_Sat < max_ang_Sat
+        check_Sun(j) = check_Sun(j) + 1;
     end
 
-    
-    check_Sun = zeros(size(tt));
+    % Check if Enceladus is in the way
+    max_ang_Enc = atan(R_Enc/norm(Sc2Enc));
 
-    for j = 1:length(tt)
+    if max_ang_Enc > pi/4 || max_ang_Enc < 0 
+        error('Error on maximum angle of Enceladus')
+    end
 
-        % Save the time
-        time_j = tt(j);
+    ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
 
-        % Compute all the relative positions between bodies
-        Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'IAU_SATURN', 'NONE', '699');
-        Enc2Sat = cspice_spkpos('699', time_j*TU, 'IAU_SATURN', 'NONE', '602');
-        Enc2Sun = Enc2Sat + Sat2Sun;
-        Sc2Enc = - R_inclination * x_inEnc(:,j); % state_vec_Halo(1:3,j);
-        Sc2Sun  = Sc2Enc + Enc2Sun;
-        Sc2Sat  = Sc2Enc + Enc2Sat;
-        
-        %%% Check on Sun %%%
-
-        % Check if Saturn is in the way
-        max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
-        if max_ang_Sat > pi/4 || max_ang_Sat < 0 
-           error('Error on maximum angle of Saturn')
-        end
-        ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
-
-        if ang_Sat < max_ang_Sat
-            check_Sun(j) = check_Sun(j) + 1;
-        end
-
-        % Check if Enceladus is in the way
-        max_ang_Enc = atan(R_Enc/norm(Sc2Enc));
-
-        if max_ang_Enc > pi/4 || max_ang_Enc < 0 
-            error('Error on maximum angle of Enceladus')
-        end
-
-        ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
-
-        if ang_Enc < max_ang_Enc
-            check_Sun(j) = check_Sun(j) + 2;
-        end
+    if ang_Enc < max_ang_Enc
+        check_Sun(j) = check_Sun(j) + 2;
     end
 
     % Control if the vector of check_Sun is only made of zeros
 
-    if check_Sun == zeros(size(tt))
-
-        % In this case the sun is always visible in the i-th orbit of 
-        % the s/c, so nothing is changed since the vector visibility_Sun 
-        % was already initialized with only ones
-
-    else
-        
-        % The Sun is not visible
-        visibility_Sun(i) = 0;
-        
-        % Save only the instants in which the Sun is not visible
-        check_Sun_2 = check_Sun(check_Sun > 0);
-        
-        % Compute the percentage of non-visibility
-        perc_nonvisiblity_Sun = length(check_Sun_2)/length(check_Sun);
-
-    end
+%     if check_Sun == zeros(size(tt))
+% 
+%         % In this case the sun is always visible in the i-th orbit of 
+%         % the s/c, so nothing is changed since the vector visibility_Sun 
+%         % was already initialized with only ones
+% 
+%     else
+%         
+%         % The Sun is not visible
+%         visibility_Sun(i) = 0;
+%         
+%         % Save only the instants in which the Sun is not visible
+%         check_Sun_2 = check_Sun(check_Sun > 0);
+%         
+%         % Compute the percentage of non-visibility
+%         perc_nonvisiblity_Sun = length(check_Sun_2)/length(check_Sun);
+% 
+%     end
 
 
 end

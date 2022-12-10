@@ -37,9 +37,15 @@ R_Sat = mean(cspice_bodvrd('699','RADII',3));
 
 % Define initial time, final time, and grid of analysis:
 rot = 0.5*24*3600/TU;
+% t0 = cspice_str2et('Jan 01 00:00:00 UTC 2051')/TU;
+% tf = cspice_str2et('Jan 01 00:00:00 UTC 2055')/TU;
+% tt = t0:rot:tf;
+
 t0 = cspice_str2et('Jan 01 00:00:00 UTC 2051')/TU;
-tf = cspice_str2et('Jan 01 00:00:00 UTC 2055')/TU;
-tt = t0:rot:tf;
+tf = t0+rot;
+tt = linspace(t0,tf,1000);
+
+
 
 
 %sample initial state for a resonant northern L2 orbit N=4, M=11
@@ -52,16 +58,40 @@ vz0_Halo=0;
 
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
-t0=0;
-FlightDays=0.5; %days of prapagation
-tf=FlightDays*24*3600/TU; %final time of propagation
- 
+% t0=0;
+% FlightDays=0.5; %days of prapagation
+% tf=FlightDays*24*3600/TU; %final time of propagation
+%  
+
 %propagation - Halo
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
-[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0,tf],state0_Halo,options_ode);
+% [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0,tf],state0_Halo,options_ode);
+
+[t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),tt,state0_Halo,options_ode);
+
 state_vec_Halo=state_vec_Halo';
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
+
+% Rotation to Saturn IAU
+
+%rotation to inertial frame on the orbital plane of enceladus
+x_CR3BP=state_vec_Halo(1:3,:);
+x_inEnc=zeros(3,length(tt));
+for k=1:length(tt)
+    x_inEnc(1,k)=(x_CR3BP(1,k)+mu)*cos(tt(k))-x_CR3BP(2,k)*sin(tt(k));
+    x_inEnc(2,k)=(x_CR3BP(1,k)+mu)*sin(tt(k))+x_CR3BP(2,k)*cos(tt(k));
+    x_inEnc(3,k)=x_CR3BP(3,k);
+end
+
+%Rotation to saturn IAU
+i_Enc=0.009*pi/180; %(Enceladus inclination to be added)
+R=[1 0 0;
+   0 cos(i) -sin(i);
+   0 sin(i) cos(i)];
+
+
+
 
 visibility_Sun = ones(size(tt));
 perc_nonvisiblity_Sun = zeros(size(tt));
@@ -83,8 +113,8 @@ for i = 2:length(tt)
         time_j = time_vec(j);
 
         % Compute all the relative positions between bodies
-        Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
-        Enc2Sat = cspice_spkpos('699', time_j*TU, 'ECLIPJ2000', 'NONE', '602');
+        Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'IAU_SATURN', 'NONE', '699');
+        Enc2Sat = cspice_spkpos('699', time_j*TU, 'IAU_SATURN', 'NONE', '602');
         Enc2Sun = Enc2Sat + Sat2Sun;
         Sc2Enc = - state_vec_Halo(1:3,j);
         Sc2Sun  = Sc2Enc + Enc2Sun;
@@ -95,7 +125,7 @@ for i = 2:length(tt)
         % Check if Saturn is in the way
         max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
         if max_ang_Sat > pi/4 || max_ang_Sat < 0 
-            error('Error on maximum angle of Saturn')
+           error('Error on maximum angle of Saturn')
         end
         ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
 

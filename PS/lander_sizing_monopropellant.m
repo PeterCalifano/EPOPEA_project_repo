@@ -25,10 +25,10 @@ tank.sigma = 950e6 ;
 %%%%%%%%
 
 % Mass sizing
-dV_land = 245.5 * MAR_050;                                                     % Additional MAR-DV-020
+dV_land = 244.6 * MAR_050;                                                     % Additional MAR-DV-020
 Isp_land = 228; 
 Tmax = 125 ;
-m_dry_land = 452.16;                                                            % Sampling lander
+m_dry_land = 495.3+20;                                                            % Sampling lander
 mdot_land = 0.03925;                                                            % [kg/s]
 m_prop_land = preliminary_prop_mass(dV_land,m_dry_land,Isp_land) + MAR_hazard;
 m_prop_land = m_prop_land + MAR_hazard ; % From MA 

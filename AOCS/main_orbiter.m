@@ -53,7 +53,7 @@ Xpos = reshape(st_pos, [6, 1, L]);
 
 StopTime = n_days*24*3600;
 
-% period = 12*3600;
+period = 12*3600;
 
 % % Gyros model parameters
 % % Random Noise Generation - Gyros
@@ -76,14 +76,42 @@ out = sim(ModelName, 'Timeout', StopTime);
 
 
 %% Post-processing
-figure; hold on; grid on; grid out
-plot(out.tout, out.T_GG_Enc)
+set(groot,'defaultAxesTickLabelInterpreter','latex');  
+set(groot,'defaultLegendInterpreter','latex');
+set(groot,'defaulttextinterpreter','latex');
+set(0,'defaultAxesFontSize', 16)
+
+close all
+% Reshape
+% T_GG_Enc = zeros(length(out.tout), 3);
+% T_GG_Sat = zeros(length(out.tout), 3);
+% T_GG = zeros(length(out.tout), 3);
+% for i = 1:length(out.tout)
+%     T_GG_Enc(i,:) = out.T_GG_Enc(:,:,i);
+%     T_GG_Sat(i,:) = out.T_GG_Sat(:,:,i);
+%     T_GG(i,:) = out.T_GG(:,:,i);
+% end
+T_GG = reshape(out.T_GG, [3, length(out.tout)])';
+T_GG_Enc = reshape(out.T_GG_Enc, [3, length(out.tout)])';
+T_GG_Sat = reshape(out.T_GG_Sat, [3, length(out.tout)])';
+
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Enc, 'LineWidth', 1.2)
 title('Gravity Gradient - Enceladus')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
 
-figure; hold on; grid on; grid out
-plot(out.tout, out.T_GG_Sat)
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Sat, 'LineWidth', 1.2)
 title('Gravity Gradient - Saturn')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
 
-figure; hold on; grid on; grid out
-plot(out.tout, out.T_GG_Enc)
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Enc, 'LineWidth', 1.2)
 title('Total Gravity Gradient torque')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');

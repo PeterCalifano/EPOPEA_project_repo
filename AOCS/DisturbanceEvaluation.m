@@ -6,12 +6,12 @@ clc;
 Mass_arch = [3891; 5072];
 V_estimated = 0.04*Mass_arch;
 
-J_NSO = diag([6023.8, 11143.29, 12758.46]); % [kg m^2]
-J_SO = diag([8748.36, 17399.17, 21759.28]); % [kg m^2]
+J_NSO = diag([6597.09, 10138.44, 13254.21]); % [kg m^2]
+J_SO = diag([6846.3, 15903.78, 18425.41]); % [kg m^2]
 J = {J_NSO; J_SO};
 
-cm_NSO = [-0.2; 1.58; 0.01]; %[m]
-cm_SO = [0.05; 1.74; 0.17]; %[m]
+cm_NSO = [-0.05; 1.51; -0.29]; %[m]
+cm_SO = [-0.55; 1.75; 0.42]; %[m]
 cm = [cm_NSO; cm_SO];
 
 %% SRP
@@ -22,7 +22,7 @@ A_S = [22.9, 21.875, 18];
 A = [A_NS; A_S];
 
 % Pressure center
-disp_pc_cm = 3.7567;                    % [m]
+disp_pc_cm = [3885.11, 4611.78]*1e-3;       % [m] NSO-SO
 
 % Solar Radiation Pressure
 AU = [9.6 1];                         % Saturn and Earth
@@ -36,7 +36,7 @@ for j = 1:2               % rows location: Saturn - Earth
         Area = max(A(id,:));
         SolarP = 1361*(1/AU(j)^2)/c;               % Pressure
         Fsrp = SolarP*Area*(1+ref)*cos(I);
-        T_SRPmax(j,id) = Fsrp*disp_pc_cm;
+        T_SRPmax(j,id) = Fsrp*disp_pc_cm(id);
     end
 end
 

@@ -11,8 +11,8 @@ set(0, 'defaultAxesFontSize', DefaultFontSize)
 rng shuffle
 
 %% Model parameters
-J_NSO = diag([6277.21, 10241.83, 12845.78]); % [kg m^2]
-J_SO = diag([6961.96, 16022.69, 18620.98]); % [kg m^2]
+J_NSO = diag([6597.09, 10138.44, 13254.21]); % [kg m^2]
+J_SO = diag([6846.3, 15903.78, 18425.41]); % [kg m^2]
 
 muS = 3.7931187*1e16;            %[m^3/s^2]
 muE = (6.6743e-11)*(1.0802e20);  %[m^3/s^2]
@@ -40,8 +40,6 @@ qbn0 = qrand./norm(qrand);
 t0 = 0;
 tf = 1000;
 tspan = t0:0.1:tf;
-
-
 
 % Science Orbit
 n_days = 3;
@@ -74,6 +72,18 @@ StopTime = n_days*24*3600;
 % S = eye(3);
 
 
-% out = sim(ModelName, 'Timeout', StopTime);
+out = sim(ModelName, 'Timeout', StopTime);
 
 
+%% Post-processing
+figure; hold on; grid on; grid out
+plot(out.tout, out.T_GG_Enc)
+title('Gravity Gradient - Enceladus')
+
+figure; hold on; grid on; grid out
+plot(out.tout, out.T_GG_Sat)
+title('Gravity Gradient - Saturn')
+
+figure; hold on; grid on; grid out
+plot(out.tout, out.T_GG_Enc)
+title('Total Gravity Gradient torque')

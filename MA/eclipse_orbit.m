@@ -1,11 +1,7 @@
 %% Illumination Conditions
-clear
-clc
-close all
+
 
 cspice_kclear();
-
-% CHANGE WITH YOUR SCRIPT DIR: IT MUST CONTAIN ALSO THE KERNEL FOLDER
 
 % kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
 % cspice_furnsh(kernelpool);
@@ -23,7 +19,9 @@ cspice_furnsh('spice_kernels/plu058.bsp')
 cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
 %% Propagate science orbit
+clear
 clc
+close all
 mu=1.90095713928102*1e-7;
 DU=238411468.296/1000; %km
 TU=118760.57/(2*pi); 
@@ -47,6 +45,16 @@ tt_try = linspace(t0_try,tf_try,500000);
 
 % Find the time for which Encaldus is on the x axis of Saturn Inertial
 min_y = 1e10;
+
+i_ax_Sat=(-26.73)*pi/180; 
+
+%
+i_EncSat=deg2rad(-0.009);
+R_i_EncSat=[1 0 0;
+        0 cos(i_EncSat) sin(i_EncSat);
+        0 -sin(i_EncSat) cos(i_EncSat)];
+
+    
 for i = 1:length(tt_try)
     Sat2Enc = cspice_spkpos('602', tt_try(i)*TU, 'ECLIPJ2000', 'NONE', '699');
 
@@ -54,38 +62,47 @@ for i = 1:length(tt_try)
     Sun2Sat_state=cspice_spkezr('SATURN', tt_try(i)*TU, 'ECLIPJ2000', 'NONE', 'SUN');
     r_Sat=Sun2Sat_state(1:3);
     v_Sat=Sun2Sat_state(4:6);
+    
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     %state rotation   
     %z-Rotation, om+theta
     R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0;
         -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0;
-        0 0 1]';
+        0 0 1];
+    
     %x-Rotation, i
     R_i_Sat=[1 0 0;
         0 cos(i_Sat) sin(i_Sat);
-        0 -sin(i_Sat) cos(i_Sat)]';
+        0 -sin(i_Sat) cos(i_Sat)];
     %z-Rotation OM
     R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0;
         -sin(OM_Sat) cos(OM_Sat) 0;
-        0 0 1]';
-    Sat2Enc=R_OM_Sat*R_i_Sat*R_an_Sat*Sat2Enc;
+        0 0 1];
+    % equator rotation
+    R_eq_Sat=[1 0 0;
+       0 cos(i_ax_Sat) sin(i_ax_Sat);        
+       0 -sin(i_ax_Sat) cos(i_ax_Sat)];
     
+    Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
+    %Sat2Enc=R_an_Sat*R_i_Sat*R_OM_Sat*Sat2Enc;
     
-    if abs(Sat2Enc(2)) < min_y && Sat2Enc(1)>0
+    if norm(Sat2Enc(2)) < min_y && Sat2Enc(1)>0
         t_start = tt_try(i);
         min_y = abs(Sat2Enc(2));
+        Sat2Enc0=Sat2Enc;
     end
 
 end
 
+%% Eclipse computation (cit)
 % Create the new time grid 
 t0 = t_start;
-
 % n_years = 3;
 % n_orbits = n_years * 365 * 2; % 3 years * 365 days/year * 2 orbits/day
-rot = 24*3600/TU;
-tf = t0 + rot;
-tt = linspace(t0,tf,6000);
+rot = 10000*24*3600/TU;
+%tf = t0 + rot;
+tf=t0+(6.034339056509405e+02*3600*24)/TU;
+tt = [linspace(t0,tf-200/TU,100),linspace(tf-199/TU,tf+2*3600/TU,20000)];
 
 %sample initial state for a resonant northern L2 orbit N=4, M=11
 x0_Halo=1.000062853735440;
@@ -120,11 +137,11 @@ x_CR3BP=state_vec_Halo(1:3,:);
 x_inEnc=zeros(3,length(tt));
 x_EclipSC=zeros(3,length(tt));
 
-i_ax_Sat=(-26.73)*pi/180; 
+Sat2Enc_Fake=zeros(3,length(tt));
 
 
 check_Sun = zeros(size(tt));
-Sat2Enc_array=zeros(3,length(tt));
+%Sat2Enc_array=zeros(3,length(tt));
 %perc_nonvisiblity_Sun = zeros(size(tt));
 
 for j = 1:length(tt)
@@ -149,8 +166,8 @@ for j = 1:length(tt)
     v_Sat=Sun2Sat_state(4:6);
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     
-    Sat2Enc = cspice_spkpos('602', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
-    Sat2Enc_array(:,j)=Sat2Enc;
+%     Sat2Enc = cspice_spkpos('602', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
+%     Sat2Enc_array(:,j)=Sat2Enc;
     
     %state rotation   
     %z-Rotation, om+theta
@@ -168,20 +185,30 @@ for j = 1:length(tt)
     % x equator - Rotation 
     R_eq_Sat=[1 0 0;
        0 cos(i_ax_Sat) sin(i_ax_Sat);        
-       0 -sin(i_ax_Sat) cos(i_ax_Sat)];
+       0 -sin(i_ax_Sat) cos(i_ax_Sat)]';
     
-    x_inEnc(1,j)=(x_CR3BP(1,j)+mu)*cos(tt(j)) - x_CR3BP(2,j)*sin(tt(j));
-    x_inEnc(2,j)=(x_CR3BP(1,j)+mu)*sin(tt(j)) + x_CR3BP(2,j)*cos(tt(j));
+   % rotation to Saturn's orbital parameters 
+    x_inEnc(1,j)=(x_CR3BP(1,j)+mu)*cos(tt(j)-t0) - x_CR3BP(2,j)*sin(tt(j)-t0);
+    x_inEnc(2,j)=(x_CR3BP(1,j)+mu)*sin(tt(j)-t0) + x_CR3BP(2,j)*cos(tt(j)-t0);
     x_inEnc(3,j)=x_CR3BP(3,j);
+    
+    Sat2Enc_Fake(1,j)=1*cos(tt(j)-t0);
+    Sat2Enc_Fake(2,j)=1*sin(tt(j)-t0);
+    Sat2Enc_Fake(3,j)=0;
+    
+    Sat2Enc_Fake(:,j)=Sat2Enc_Fake(:,j)*DU;
+    
     x_inEnc(:,j)=x_inEnc(:,j)*DU;
     
-    x_EclipSC(:,j)=R_OM_Sat*R_i_Sat*R_an_Sat*R_eq_Sat*x_inEnc(:,j);
+    x_EclipSC(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
+    Sat2Enc_Fake(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake(:,j);
+    
     
     Sc2Sat = -x_EclipSC(:,j);
     
-    Enc2Sun = -Sat2Enc + Sat2Sun;
+    Enc2Sun = -Sat2Enc_Fake(:,j) + Sat2Sun;
     Sc2Sun  = Sc2Sat + Sat2Sun;
-    Sc2Enc  = Sc2Sat + Sat2Enc;
+    Sc2Enc  = Sc2Sat + Sat2Enc_Fake(:,j);
     
     %%% Check on Sun %%
     
@@ -233,6 +260,22 @@ for j = 1:length(tt)
 
 end
 
+%% Post processing
+
+check_Sun(check_Sun>0);
+tt_eclipse=zeros(1,length(check_Sun(check_Sun>0)));
+tt_eclipse_str=[];
+k=0;
+index=zeros(1,length(check_Sun(check_Sun>0)));
+for j=1:length(tt)
+    if check_Sun(j)>0
+        k=k+1;
+        tt_eclipse(k)=(tt(j)-tt(1))*TU/(3600*24);
+       index(k)=j;
+    end
+end
+
+
 figure
 plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:));
 grid on
@@ -246,8 +289,8 @@ figure
 scatter3(0,0,0,50);
 %Enceladus
 hold on
-plot3(Sat2Enc_array(1,:),Sat2Enc_array(2,:),Sat2Enc_array(3,:))
-plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:))
+plot3(Sat2Enc_Fake(1,:),Sat2Enc_Fake(2,:),Sat2Enc_Fake(3,:),'r')
+plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:),'-k')
 axis equal
 legend('Saturn','Enceladus','S/C')
 xlabel('X')

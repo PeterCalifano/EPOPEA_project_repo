@@ -36,7 +36,8 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
-m_dry_int = 1120.14 + 452.16 ;                          % Orbiter + lander
+m_dry_int = 1468.5 + 495.3 ;                          % Orbiter + lander
+% m_dry_int = 533 + 746 ; % Dry mass from regression
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 
 % Compute maneuvering time
@@ -76,14 +77,16 @@ alpha_EOI_SOSL = rad2deg( alpha_EOI_SOSL ) ;
 dV_blow = 185*MAR_020;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 Tmax = 12.5 ;
-m_dry_sk_orb_lan = 1120.14 + 452.16 ;                    % Sampling orbiter
+m_dry_sk_orb_lan = 1468.5+495.3 ;                    % Sampling orbiter
+% m_dry_sk_orb_lan = 533 + 746 ; % Dry mass from regression
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
 
 % Only orbiter
 dV_blow = 185*MAR_020;                             % Additional MAR-DV-020
 Isp_blow = 292; 
-m_dry_sk_orb = 1120.14;                          % Sampling orbiter
+m_dry_sk_orb = 1468.5;                          % Sampling orbiter
+% m_dry_sk_orb = 533 ; % Dry mass from regression
 m_prop_sk_orb = preliminary_prop_mass(dV_blow,m_dry_sk_orb,Isp_blow);
 m_sk_orb = m_prop_sk_orb + m_dry_sk_orb ;
 
@@ -261,7 +264,8 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
-m_dry_int = 1031.9 + 452.16 ;                          % Orbiter + lander
+m_dry_int = 1273+495.3 ;                          % Orbiter + lander
+% m_dry_int = 182 + 746 ; % Dry mass from regression
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 
 % Compute maneuvering time
@@ -301,14 +305,16 @@ alpha_EOI_SOSL = rad2deg( alpha_EOI_SOSL ) ;
 dV_blow = 275*MAR_020;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 Tmax = 12.5 ;
-m_dry_sk_orb_lan = 1031.9 + 452.16 ;                    % Sampling orbiter
+m_dry_sk_orb_lan = 1273+495.3 ;                    % Sampling orbiter
+% m_dry_sk_orb_lan = 182 + 746 ; % Dry mass from regression
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
 
 % Only orbiter
 dV_blow = 275*MAR_020;                             % Additional MAR-DV-020
 Isp_blow = 292; 
-m_dry_sk_orb = 1031.9;                          % Sampling orbiter
+m_dry_sk_orb = 1273;                          % Sampling orbiter
+m_dry_sk_orb = 182 ;
 m_prop_sk_orb = preliminary_prop_mass(dV_blow,m_dry_sk_orb,Isp_blow);
 m_sk_orb = m_prop_sk_orb + m_dry_sk_orb ;
 

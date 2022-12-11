@@ -56,6 +56,7 @@ for t = 1:length(T)
     L = A - theta_g(t*T(end)/length(T));
     
     lon = [lon rad2deg(wrapToPi(L))];
+    %lon = [lon rad2deg(wrapTo2Pi(L))];
 end
 
 lat = delta;

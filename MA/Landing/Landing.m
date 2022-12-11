@@ -391,8 +391,8 @@ for k = 1:length(time_enc)
 end
 
 
-plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',1.5); % initial orbit
-plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*')
+plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',2); % initial orbit
+plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
 % [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
 % circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
 % landing_site = Re*exp(1i*circ_admissible);
@@ -416,14 +416,14 @@ for k = 1:N-1
     z_plot = [z_plot;output(:,2)];
     x_plot = [x_plot;output(:,1)];
 end
-plot3(x_plot,y_plot,z_plot,'b','LineWidth',1.5)
+plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 
 for k = 1:N
 %     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
- plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+ plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
     axis equal
 end
-
+plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
 
 title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
 xlabel('$x\ [DU]$')

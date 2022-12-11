@@ -37,15 +37,15 @@ catch
 end
 
 % Real RTG data - Used to select which type of RTG to consider
-RTG_data = RTG_data_nextGenRTG12 ; % This RTG type can be tuned since it is modular, do this once power is known.
+RTG_data = RTG_data_nextGenRTG16 ; % This RTG type can be tuned since it is modular, do this once power is known.
 %RTG_data = RTG_data_GPHSRTG ; 
 %RTG_data = RTG_data_MMRTG ; 
 %RTG_data = RTG_data_ASRG ; 
 
 % Power requirements EoL
 P_req_NSOSL_orb = 350 ;
-P_req_lan = 350 ;
-P_req_SOSL_orb = 500 ;
+P_req_lan = 320 ;
+P_req_SOSL_orb = 518 ;
 
 % EoL
 t_EoL_years_NSOSL_orb = 20 ;
@@ -53,56 +53,56 @@ t_EoL_years_NSOSL_lan = 20 ;
 t_EoL_years_SOSL_orb = 20 ;
 t_EoL_years_SOSL_lan = 20 ;
 
-%% Compute theoretical RTG sizing for NSOSL (orbiter) architecture
-% --------------------------------------
-
-P_electric_required_watt_NSOSL_orb = P_req_NSOSL_orb ;
-conversion_efficiency = 0.07 ;
-
-[ M_isotope_NSOSL_orb_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_orb, t_EoL_years_NSOSL_orb, conversion_efficiency, fuel_data_Pu ) ;
-[ M_isotope_NSOSL_orb_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_orb, t_EoL_years_NSOSL_orb, conversion_efficiency, fuel_data_Am ) ;
-
-
-%% Compute theoretical RTG sizing for NSOSL (lander) architecture
-% --------------------------------------
-
-P_electric_required_watt_NSOSL_lan = P_req_lan ;
-conversion_efficiency = 0.07 ;
-
-[ M_isotope_NSOSL_lan_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_lan, t_EoL_years_NSOSL_lan, conversion_efficiency, fuel_data_Pu ) ;
-[ M_isotope_NSOSL_lan_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_lan, t_EoL_years_NSOSL_lan, conversion_efficiency, fuel_data_Am ) ;
-
-
-%% Compute theoretical RTG sizing for SO + SL (orbiter) architecture 
-% ------------------------------------------
-
-P_electric_required_watt_SOSL_orb = P_req_SOSL_orb ;
-conversion_efficiency = 0.07 ;
-
-[ M_isotope_SOSL_orb_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_SOSL_orb, t_EoL_years_SOSL_orb, conversion_efficiency, fuel_data_Pu ) ;
-[ M_isotope_SOSL_orb_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_SOSL_orb, t_EoL_years_SOSL_orb, conversion_efficiency, fuel_data_Am ) ;
+% %% Compute theoretical RTG sizing for NSOSL (orbiter) architecture
+% % --------------------------------------
+% 
+% P_electric_required_watt_NSOSL_orb = P_req_NSOSL_orb ;
+% conversion_efficiency = 0.07 ;
+% 
+% [ M_isotope_NSOSL_orb_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_orb, t_EoL_years_NSOSL_orb, conversion_efficiency, fuel_data_Pu ) ;
+% [ M_isotope_NSOSL_orb_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_orb, t_EoL_years_NSOSL_orb, conversion_efficiency, fuel_data_Am ) ;
+% 
+% 
+% %% Compute theoretical RTG sizing for NSOSL (lander) architecture
+% % --------------------------------------
+% 
+% P_electric_required_watt_NSOSL_lan = P_req_lan ;
+% conversion_efficiency = 0.07 ;
+% 
+% [ M_isotope_NSOSL_lan_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_lan, t_EoL_years_NSOSL_lan, conversion_efficiency, fuel_data_Pu ) ;
+% [ M_isotope_NSOSL_lan_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_NSOSL_lan, t_EoL_years_NSOSL_lan, conversion_efficiency, fuel_data_Am ) ;
+% 
+% 
+% %% Compute theoretical RTG sizing for SO + SL (orbiter) architecture 
+% % ------------------------------------------
+% 
+% P_electric_required_watt_SOSL_orb = P_req_SOSL_orb ;
+% conversion_efficiency = 0.07 ;
+% 
+% [ M_isotope_SOSL_orb_Pu, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_SOSL_orb, t_EoL_years_SOSL_orb, conversion_efficiency, fuel_data_Pu ) ;
+% [ M_isotope_SOSL_orb_Am, ~, ~ ] = RTGSizing_theoretical( P_electric_required_watt_SOSL_orb, t_EoL_years_SOSL_orb, conversion_efficiency, fuel_data_Am ) ;
 
 
 %% Compute real RTG sizing for NSOSL (orbiter) architecture
+%--------------------------------------
+
+P_required_EoL_NSOSL_orb = P_req_NSOSL_orb ;
+
+[ Number_RTGs_NSOSL_orb, M_tot_RTGs_NSOSL_orb, P_dissipatedThermalTotal_NSOSL_orb, NuclearFuelMassTOTAL_NSOSL_orb, P_EoL_electric_total_NSOSL_orb ] = RTGSizing_real( P_required_EoL_NSOSL_orb, t_EoL_years_NSOSL_orb, RTG_data ) ;
+
+
+%% Compute real RTG sizing for NSOSL (lander) architecture
 % --------------------------------------
-% 
-% P_required_EoL_NSOSL_orb = P_req_NSOSL_orb ;
-% 
-% [ Number_RTGs_NSOSL_orb, M_tot_RTGs_NSOSL_orb, P_dissipatedThermalTotal_NSOSL_orb, NuclearFuelMassTOTAL_NSOSL_orb, P_EoL_electric_total_NSOSL_orb ] = RTGSizing_real( P_required_EoL_NSOSL_orb, t_EoL_years_NSOSL_orb, RTG_data ) ;
-% 
-% 
-% %% Compute real RTG sizing for NSOSL (lander) architecture
-% % --------------------------------------
-% 
-% P_required_EoL_NSOSL_lan = P_req_lan ;
-% 
-% [ Number_RTGs_NSOSL_lan, M_tot_RTGs_NSOSL_lan, P_dissipatedThermalTotal_NSOSL_lan, NuclearFuelMassTOTAL_NSOSL_lan, P_EoL_electric_total_NSOSL_lan ] = RTGSizing_real( P_required_EoL_NSOSL_lan, t_EoL_years_NSOSL_lan, RTG_data ) ;
-% 
-% 
-% %% Compute real RTG sizing for SO + SL (orbiter) architecture 
-% % ------------------------------------------
-% 
-% P_required_EoL_SOSL_orb = P_req_SOSL_orb ;
-% 
-% [ Number_RTGs_SOSL_orb, M_tot_RTGs_SOSL_orb, P_dissipatedThermalTotal_SOSL_orb, NuclearFuelMassTOTAL_SOSL_orb, P_EoL_electric_total_SOSL_orb ] = RTGSizing_real( P_required_EoL_SOSL_orb, t_EoL_years_SOSL_orb, RTG_data ) ;
+
+P_required_EoL_NSOSL_lan = P_req_lan ;
+
+[ Number_RTGs_NSOSL_lan, M_tot_RTGs_NSOSL_lan, P_dissipatedThermalTotal_NSOSL_lan, NuclearFuelMassTOTAL_NSOSL_lan, P_EoL_electric_total_NSOSL_lan ] = RTGSizing_real( P_required_EoL_NSOSL_lan, t_EoL_years_NSOSL_lan, RTG_data ) ;
+
+
+%% Compute real RTG sizing for SO + SL (orbiter) architecture 
+% ------------------------------------------
+
+P_required_EoL_SOSL_orb = P_req_SOSL_orb ;
+
+[ Number_RTGs_SOSL_orb, M_tot_RTGs_SOSL_orb, P_dissipatedThermalTotal_SOSL_orb, NuclearFuelMassTOTAL_SOSL_orb, P_EoL_electric_total_SOSL_orb ] = RTGSizing_real( P_required_EoL_SOSL_orb, t_EoL_years_SOSL_orb, RTG_data ) ;
 

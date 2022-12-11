@@ -416,11 +416,11 @@ for k = 1:N-1
     z_plot = [z_plot;output(:,2)];
     x_plot = [x_plot;output(:,1)];
 end
-plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color',[0.47,0.67,0.19])
+plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 
 for k = 1:N
 %     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
- plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1,'MarkerSize',3);
+ plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
     axis equal
 end
 plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)

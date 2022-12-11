@@ -11,15 +11,15 @@ set(0, 'defaultAxesFontSize', DefaultFontSize)
 rng shuffle
 
 %% Model parameters
-J_NSO = diag([6277.21, 10241.83, 12845.78]); % [kg m^2]
-J_SO = diag([6961.96, 16022.69, 18620.98]); % [kg m^2]
+J_NSO = diag([6597.09, 10138.44, 13254.21]); % [kg m^2]
+J_SO = diag([6846.3, 15903.78, 18425.41]); % [kg m^2]
 
 muS = 3.7931187*1e16;            %[m^3/s^2]
 muE = (6.6743e-11)*(1.0802e20);  %[m^3/s^2]
 
 
-% Map: 1) NSO, 2) SO, 3) SL
-model = 1;
+% Map: 1) NSO, 2) SO
+model = 2;
 
 switch model
     case 1
@@ -33,15 +33,13 @@ switch model
 end
 
 %% Initial conditions
-wb0 = 0.0001*rand(3, 1);
+wb0 = 0.001*rand(3, 1);
 qrand = rand(4, 1);
 qbn0 = qrand./norm(qrand);
 
 t0 = 0;
 tf = 1000;
 tspan = t0:0.1:tf;
-
-
 
 % Science Orbit
 n_days = 3;
@@ -55,7 +53,7 @@ Xpos = reshape(st_pos, [6, 1, L]);
 
 StopTime = n_days*24*3600;
 
-% period = 12*3600;
+period = 12*3600;
 
 % % Gyros model parameters
 % % Random Noise Generation - Gyros
@@ -74,6 +72,48 @@ StopTime = n_days*24*3600;
 % S = eye(3);
 
 
-% out = sim(ModelName, 'Timeout', StopTime);
+%  out = sim(ModelName, 'Timeout', StopTime);
+
+%% Velocity check
 
 
+%% Post-processing
+set(groot,'defaultAxesTickLabelInterpreter','latex');  
+set(groot,'defaultLegendInterpreter','latex');
+set(groot,'defaulttextinterpreter','latex');
+set(0,'defaultAxesFontSize', 16)
+
+close all
+% Reshape
+% T_GG_Enc = zeros(length(out.tout), 3);
+% T_GG_Sat = zeros(length(out.tout), 3);
+% T_GG = zeros(length(out.tout), 3);
+% for i = 1:length(out.tout)
+%     T_GG_Enc(i,:) = out.T_GG_Enc(:,:,i);
+%     T_GG_Sat(i,:) = out.T_GG_Sat(:,:,i);
+%     T_GG(i,:) = out.T_GG(:,:,i);
+% end
+T_GG = reshape(out.T_GG, [3, length(out.tout)])';
+T_GG_Enc = reshape(out.T_GG_Enc, [3, length(out.tout)])';
+T_GG_Sat = reshape(out.T_GG_Sat, [3, length(out.tout)])';
+
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Enc, 'LineWidth', 1.2)
+title('Gravity Gradient - Enceladus')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
+
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Sat, 'LineWidth', 1.2)
+title('Gravity Gradient - Saturn')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
+
+figure; hold on; grid on; grid minor
+plot(out.tout/period, T_GG_Enc, 'LineWidth', 1.2)
+title('Total Gravity Gradient torque')
+xlabel('Orbits')
+ylabel('Torque [Nm]')
+legend('$T_{x}$', '$T_{y}$', '$T_{z}$');

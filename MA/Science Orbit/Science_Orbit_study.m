@@ -1,10 +1,10 @@
 %% example of science orbits
-% COMMENTA STO CAZZO DI CODICE PLEASE
+% COMMENTA STO CAZZO DI CODICE PLEASE - NO
 
 set(groot,'defaultAxesTickLabelInterpreter','latex');  
 set(groot,'defaultLegendInterpreter','latex');
 set(groot,'defaulttextinterpreter','latex');
-set(0,'defaultAxesFontSize', 15)
+set(0,'defaultAxesFontSize', 13)
 clear;clc;close all
 
 %units
@@ -37,6 +37,7 @@ format long
 
 U_der_vec_x_fzero=@(x) Ux(x,0,0);
 x00=1.1; %initial guess
+%L2 coordinates
 x_L2_fzero = fzero(U_der_vec_x_fzero,x00,options_fzero);
 x_L2=[x_L2_fzero;0;0];
 
@@ -64,20 +65,33 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=3; %days of prapagation
+FlightDays=10; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
+
 t_span = t0:(1/TU):tf;
 %propagation - Halo
 [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),t_span,state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';
+
+%Position wrt Enceladus
+pos_Halo_Enc=state_vec_Halo(1:3,:);
+pos_Halo_Enc(1,:)=pos_Halo_Enc(1,:)+mu-1;
+
+%in the inertial frame
+%conversion of the trajectory to the inertial Enceladus Centred frame
+r_vec_Halo_in=zeros(3,length(t_vec_Halo));
+for k=1:length(t_vec_Halo)
+    r_vec_Halo_in(1,k)=(state_vec_Halo(1,k)+mu-1)*cos(t_vec_Halo(k))-state_vec_Halo(2,k)*sin(t_vec_Halo(k));
+    r_vec_Halo_in(2,k)=(state_vec_Halo(1,k)+mu-1)*sin(t_vec_Halo(k))+state_vec_Halo(2,k)*cos(t_vec_Halo(k));
+    r_vec_Halo_in(3,k)=state_vec_Halo(3,k);
+end
+
+%dimension recovery
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
-
-%plot
-% Enceladus_3D_Adim(R_enc,[1-mu,0,0])
-% plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'k')
-
+r_vec_Halo_in=r_vec_Halo_in*DU;
+pos_Halo_Enc=pos_Halo_Enc*DU;
 
 %periodic resonant 3BP orbit N=9 M=35
 %initial conditions
@@ -102,78 +116,94 @@ P1=plot3(x_L2(1)*DU,x_L2(2)*DU,x_L2(3)*DU,'ob','markersize',5,'linewidth',1.25);
 grid minor
 legend([P1 P2],'$L_2$','Southern Halo orbit')
 
+Enceladus_3D(R_enc*DU,[0,0,0])
+plot3(r_vec_Halo_in(1,:),r_vec_Halo_in(2,:),r_vec_Halo_in(3,:))
+grid minor 
+
+
 % Plot Orbit scarabocchio 
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
 P1=plot3(state_vec_P(1,:)*DU,state_vec_P(2,:)*DU,state_vec_P(3,:)*DU,'b','linewidth',1);
 grid minor
 legend(P1,'Periodic orbit')
 
-%% Science orbit subdivision
-% propagation - half remote sensing arc
-tf_RS=0.75*3600/TU;
+%% Science orbit subdivision - 
+
+
+
+
+%% Science orbit subdivision - proposal
+% propagation - half remote sensing arc (for the 3 modes)
+h_RS=1; %[h] - duration of the remote sensing arc (1 of the 3 modes)
+tf_RS=h_RS/2*3600/TU; 
 [t_vec_RS,state_vec_RS]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 tf_RS],state0_Halo,options_ode);
 state_vec_RS=state_vec_RS';
 state_vec_RS(1:3,:)=state_vec_RS(1:3,:)*DU;
 state_vec_RS(4:6,:)=state_vec_RS(4:6,:)*DU/TU;
 
-%propagation - everything else/2
-state0_else=[state_vec_RS(1:3,end)/DU;state_vec_RS(4:6,end)*TU/DU];
+h_CI=2; %[h] - duration of the coarse imaging arc
+tf_CI=tf_RS+h_CI/2*3600/TU; 
+state0_CI=[state_vec_RS(1:3,end)/DU;state_vec_RS(4:6,end)*TU/DU];
+[t_vec_CI,state_vec_CI]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_RS tf_CI],state0_CI,options_ode);
+state_vec_CI=state_vec_CI';
+state_vec_CI(1:3,:)=state_vec_CI(1:3,:)*DU;
+state_vec_CI(4:6,:)=state_vec_CI(4:6,:)*DU/TU;
+
+
+
+%propagation - AOCS+sk arc/2
+h_SK=2; %Number of hours dedicated to SK
+tf_SK=tf_CI+h_SK/2*3600/TU; 
+state0_SK=[state_vec_CI(1:3,end)/DU;state_vec_CI(4:6,end)*TU/DU];
+[t_vec_SK,state_vec_SK]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_CI tf_SK],state0_SK,options_ode);
+state_vec_SK=state_vec_SK';
+state_vec_SK(1:3,:)=state_vec_SK(1:3,:)*DU;
+state_vec_SK(4:6,:)=state_vec_SK(4:6,:)*DU/TU;
+
+%propagation - communication arc
+state0_else=[state_vec_SK(1:3,end)/DU;state_vec_SK(4:6,end)*TU/DU];
 
 options_ode_event = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13,'Events',@(t,x) FirstZeroCrossing(t,x));
 
-[t_vec_else,state_vec_else,t_e,state_e,i_e]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_RS tf],state0_else,options_ode_event);
+[t_vec_else,state_vec_else,t_e,state_e,i_e]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_SK tf],state0_else,options_ode_event);
 state_vec_else=state_vec_else';
 state_vec_else(1:3,:)=state_vec_else(1:3,:)*DU;
 state_vec_else(4:6,:)=state_vec_else(4:6,:)*DU/TU;
 
 
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
-P1=plot3(state_vec_RS(1,:),state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',1.25);
-P2=plot3(state_vec_else(1,:),state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',1.25);
-plot3(state_vec_RS(1,:),-state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',1.25);
-plot3(state_vec_else(1,:),-state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',1.25);
-plot3(x0_Halo*DU, y0_Halo*DU, z0_Halo*DU, 'o', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'k');
+P1=plot3(state_vec_RS(1,:),state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',2);
+P2=plot3(state_vec_CI(1,:),state_vec_CI(2,:),state_vec_CI(3,:),'m','linewidth',2);
+P3=plot3(state_vec_SK(1,:),state_vec_SK(2,:),state_vec_SK(3,:),'g','linewidth',2);
+P4=plot3(state_vec_else(1,:),state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',2);
+plot3(state_vec_RS(1,:),-state_vec_RS(2,:),state_vec_RS(3,:),'b','linewidth',2);
+plot3(state_vec_CI(1,:),-state_vec_CI(2,:),state_vec_CI(3,:),'m','linewidth',2);
+plot3(state_vec_SK(1,:),-state_vec_SK(2,:),state_vec_SK(3,:),'g','linewidth',2);
+plot3(state_vec_else(1,:),-state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',2);
+%plot3(x0_Halo*DU, y0_Halo*DU, z0_Halo*DU, 'o', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'k');
 grid minor
-legend([P1 P2],'Remote sensing arc','Communication and analysis arc')
+legend([P1 P2 P3 P4],'One of (1),(2),(3): 1h ','(1):2h, 1h per arc','SK/ADCS: 2h, 1h per arc','TMTC: 7h')
 
 
-%% Ground Tracks (TBA)
-% w_Enc=1/TU;
-% 
-% 
-% %conversion of the trajectory to the inertial Enceladus Centred frame
-% for k=1:length(t_vec_guess)
-%     x_Halo_GT(k)=((1,k)+mu)*cos(t_vec_guess(k))-xx(2,k)*sin(t_vec_guess(k));
-%     y_Halo_GT(k)=(xx(1,k)+mu)*sin(t_vec_guess(k))+xx(2,k)*cos(t_vec_guess(k));
-% end
-% om_em=2.66186135e-6; %E-M angular velocity
-% figure
-% plot(X1,Y1,'r','linewidth',1.5);
-% hold on
-% plot(0,0,'xb','Markersize',4,'linewidth',3)
-% t_plot=t_vec_guess*TU*24*3600;
-% plot(cos(om_em*t_plot),sin(om_em*t_plot),'--k','linewidth',1.5);
-% grid on
-% grid minor
-% axis equal
-% xlabel('x')
-% ylabel('y')
-% legend('Guess trajectory','Earth','Motion of the Moon','location','Northwest')
-% title('Guess trajectory, non dimensional inertial frame')
-% 
-% 
-% 
-% 
-% 
-% [alpha, delta, lat_Halo, lon_Halo] = groundTrack(t_vec_Halo*TU, state_vec_Halo_GT,90, w_Enc);
-% 
-% figure
-% plot(lon_Halo,lat_Halo,'k')
-% xlabel('Longitude');
-% ylabel('Latitude');
-% hold on
-% grid on
-% grid minor
+%% Ground Tracks WIP
+%Ground tracks taking the state in the rotating frame
+%w_Enc=0; %rad/s, in the CRTBP rotating frame
+%[alpha, delta, lat_Halo, lon_Halo] = groundTrack(t_vec_Halo*TU, pos_Halo_Enc',90, w_Enc);
+
+% %Ground tracks taking the state in the inertial frame
+w_Enc=1/TU; %rad/s, Enceladus centred inertial frame
+[alpha, delta, lat_Halo, lon_Halo] = groundTrack(t_vec_Halo*TU, r_vec_Halo_in',90, w_Enc);
+
+%plot
+figure
+scatter(lon_Halo,lat_Halo)
+xlabel('Longitude');
+ylabel('Latitude');
+axis equal
+axis([-180 180 -90 90])
+hold on
+grid on
+grid minor
 
 
 %% event function

@@ -18,8 +18,8 @@ muS = 3.7931187*1e16;            %[m^3/s^2]
 muE = (6.6743e-11)*(1.0802e20);  %[m^3/s^2]
 
 
-% Map: 1) NSO, 2) SO, 3) SL
-model = 1;
+% Map: 1) NSO, 2) SO
+model = 2;
 
 switch model
     case 1
@@ -33,7 +33,7 @@ switch model
 end
 
 %% Initial conditions
-wb0 = 0.0001*rand(3, 1);
+wb0 = 0.001*rand(3, 1);
 qrand = rand(4, 1);
 qbn0 = qrand./norm(qrand);
 
@@ -72,7 +72,9 @@ period = 12*3600;
 % S = eye(3);
 
 
-out = sim(ModelName, 'Timeout', StopTime);
+%  out = sim(ModelName, 'Timeout', StopTime);
+
+%% Velocity check
 
 
 %% Post-processing

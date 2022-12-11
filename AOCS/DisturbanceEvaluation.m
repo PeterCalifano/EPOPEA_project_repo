@@ -108,11 +108,11 @@ disp(total);
 
 %% Reaction Wheel
 
-% Disturbance Rejection
+% Slew
+% RATE: 0.1 dps
 rotation = deg2rad(30);            %[rad]
 time = 600;                        %[s]
 
-% Slew
 for i = 1:2          % NS - S
     Ji = max(diag(J{i,:}));
     T_RW_slw(i) = 4*rotation*Ji/time^2;
@@ -126,4 +126,23 @@ for i = 1:2
 end
 %% Thrusters
 
-% Sizing for external disturbances
+% Slew
+rot = deg2rad(30);                 %[rad]
+time = 60;                         %[s]
+rate = rot/time;                   %[rad/s]
+time_acc = 0.05*time;              %[s] 
+acc = rate/time_acc;
+
+b = [3500 2960          %NSO
+     3600 2500].*1e-3;        %SO
+for i = 1:2
+    Ji = max(diag(J{i,:}));
+    T = Ji*acc;
+
+    % Two thrusters with highest momentum arm
+    F_2T(i) = T/b(i,1);
+
+    % Four thrusters with F1 = 0.75 F2 (L1 > L2)
+    F_2(i) = T/(b(i,2)+0.75*b(i,1));
+    F_1(i) = 0.75*F_2(i);
+end

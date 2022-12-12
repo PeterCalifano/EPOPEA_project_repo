@@ -444,7 +444,25 @@ legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajec
 %% Try pinpoint landing as a hard constraint with different initial guess
 t1 = eps;
 tN = t1+eps;
-lonlat = [-70; 20];
+lonlat = [-70; 270];
+lat = deg2rad(lonlat(1));
+lon = deg2rad(lonlat(2));
+% From latitudinal to cartesian
+r_xz = Re*cos(lat);
+Xrot = r_xz*sin(lon);
+Yrot = Re*sin(lat);
+Zrot = r_xz*cos(lon);
+vec_rot = [Xrot; Yrot; Zrot];
+
+% Enceladus rotation
+th_e = we*(tN-t1);
+
+% From rotating enceladus to IAU_Enceladus
+A_rot2IAU = [cos(th_e)    0     sin(th_e)
+                 0        1         0
+            -sin(th_e)    0     cos(th_e)];
+% desired final state
+vec_pp = A_rot2IAU*vec_rot;
 % Time grid and initial guess fill
 h = (tN-t1)/(N-1);
 s0 = state_i;

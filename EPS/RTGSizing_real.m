@@ -1,4 +1,4 @@
-function [ Number_RTGs, M_tot_RTGs, P_EoLdissipatedThermalTotal, NuclearFuelMassTOTAL, P_EoL_electric_total ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
+function [ Number_RTGs, M_tot_RTGs, P_BoLdissipatedThermalTotal, NuclearFuelMassTOTAL, P_EoL_electric_total ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 %% PROTOTYPE
 % [ Number_RTGs, M_tot_RTGs, P_dissipatedThermalTotal, NuclearFuelMassTOTAL ] = RTGSizing_real( P_required_EoL, t_EoL_years, RTG_data )
 % -------------------------------------------------------------------------------------------------------------

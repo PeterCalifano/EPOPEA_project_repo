@@ -23,10 +23,10 @@ SaturnMeanDistance_km = 9.6 * ASMADconstants('AU') ; % [km]
 powerRegulationMethod = 'DET' ;
 
 % Power requirements
-P_req_NSOSL_orb = 400 ;
-P_req_NSOSL_lan = 750 ;
-P_req_SOSL_orb = 850 ;
-P_req_SOSL_lan = 750 ;
+P_req_NSOSL_orb = 373 ;
+P_req_NSOSL_lan = 350 ;
+P_req_SOSL_orb = 518 ;
+P_req_SOSL_lan = 350 ;
 
 % EoL
 lifetime_years_NSOSL_orb = 20 ; % EoL conditions

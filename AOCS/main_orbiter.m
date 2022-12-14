@@ -18,8 +18,8 @@ muS = 3.7931187*1e16;            %[m^3/s^2]
 muE = (6.6743e-11)*(1.0802e20);  %[m^3/s^2]
 
 
-% Map: 1) NSO, 2) SO
-model = 2;
+% Map: 1) NSO+SL, 2) SO+SL
+model = 1;
 
 switch model
     case 1
@@ -27,9 +27,7 @@ switch model
         ModelName = 'ADCS_orbiter';
     case 2
         J = J_SO;
-        ModelName = 'ADCS_orbiter';
-    case 3
-       
+        ModelName = 'ADCS_orbiter';  
 end
 
 %% Initial conditions
@@ -37,9 +35,9 @@ wb0 = 0.001*rand(3, 1);
 qrand = rand(4, 1);
 qbn0 = qrand./norm(qrand);
 
-t0 = 0;
-tf = 1000;
-tspan = t0:0.1:tf;
+% t0 = 0;
+% tf = 1000;
+% tspan = t0:0.1:tf;
 
 % Science Orbit
 n_days = 3;
@@ -72,10 +70,7 @@ period = 12*3600;
 % S = eye(3);
 
 
-%  out = sim(ModelName, 'Timeout', StopTime);
-
-%% Velocity check
-
+ out = sim(ModelName, 'Timeout', StopTime);
 
 %% Post-processing
 set(groot,'defaultAxesTickLabelInterpreter','latex');  
@@ -85,14 +80,6 @@ set(0,'defaultAxesFontSize', 16)
 
 close all
 % Reshape
-% T_GG_Enc = zeros(length(out.tout), 3);
-% T_GG_Sat = zeros(length(out.tout), 3);
-% T_GG = zeros(length(out.tout), 3);
-% for i = 1:length(out.tout)
-%     T_GG_Enc(i,:) = out.T_GG_Enc(:,:,i);
-%     T_GG_Sat(i,:) = out.T_GG_Sat(:,:,i);
-%     T_GG(i,:) = out.T_GG(:,:,i);
-% end
 T_GG = reshape(out.T_GG, [3, length(out.tout)])';
 T_GG_Enc = reshape(out.T_GG_Enc, [3, length(out.tout)])';
 T_GG_Sat = reshape(out.T_GG_Sat, [3, length(out.tout)])';
@@ -117,3 +104,13 @@ title('Total Gravity Gradient torque')
 xlabel('Orbits')
 ylabel('Torque [Nm]')
 legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
+
+%% Momentum Storage
+
+tin = out.tout(1);
+tf = out.tout(end);
+dt = (tf-tin)/length(out.tout);
+H = 0;
+for i=1:length(T_GG)/4
+    H = H + norm(T_GG(i,:))*dt;
+end

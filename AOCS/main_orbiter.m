@@ -70,7 +70,7 @@ period = 12*3600;
 % S = eye(3);
 
 
- out = sim(ModelName, 'Timeout', StopTime);
+%  out = sim(ModelName, 'Timeout', StopTime);
 
 %% Post-processing
 set(groot,'defaultAxesTickLabelInterpreter','latex');  
@@ -111,6 +111,6 @@ tin = out.tout(1);
 tf = out.tout(end);
 dt = (tf-tin)/length(out.tout);
 H = 0;
-for i=1:length(T_GG)/4
+for i=1:length(T_GG)/2
     H = H + norm(T_GG(i,:))*dt;
 end

@@ -10,7 +10,7 @@ DU = 251.1;              %[km]
 Re = par(5);
 mass_ratio = par(6);
 we = par(7);
-theta_0 = par(8);
+th_e0 = par(8);
 
 %Initial REFERENCE state on Halo orbit
 r_i = state_i_rot(1:3)';
@@ -35,7 +35,7 @@ vec_rot = [Xrot; Yrot; Zrot];
 
 % Enceladus rotation
 % th_e = we*(tN-t1)+theta_0;
-th_e = we*(tN-t1);
+th_e = we*(tN-t1)+th_e0;
 % From rotating enceladus to IAU_Enceladus
 A_rot2IAU = [cos(th_e)    0     sin(th_e)
                  0        1         0

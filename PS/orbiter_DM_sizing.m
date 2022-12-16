@@ -33,7 +33,7 @@ MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----- PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER -----
-dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 + 30 * MAR_030 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
 m_dry_int = 1468.5 + 495.3 ;                          % Orbiter + lander
@@ -148,7 +148,7 @@ MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----- PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER -----
-dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 + 30 * MAR_030 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
 m_dry_int = 1273+495.3 ;                          % Orbiter + lander

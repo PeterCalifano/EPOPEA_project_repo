@@ -102,8 +102,8 @@ t0 = t_start;
 rot = 10000*24*3600/TU;
 %tf = t0 + rot;
 tf=t0+(6.034339056509405e+02*3600*24)/TU;
-tt = [linspace(t0,tf-200/TU,100),linspace(tf-199/TU,tf+2*3600/TU,20000)];
-
+%tt = [linspace(t0,tf-200/TU,100),linspace(tf-199/TU,tf+2*3600/TU,20000)];
+tt=linspace(tf-199/TU,tf+2*3600/TU,20000);
 %sample initial state for a resonant northern L2 orbit N=4, M=11
 x0_Halo=1.000062853735440;
 y0_Halo=0;
@@ -297,5 +297,7 @@ xlabel('X')
 ylabel('Y')
 zlabel('Z')
 
-
-
+figure
+plot(tt,check_Sun)
+xlabel('t')
+ylabel('Eclipse (boolean)')

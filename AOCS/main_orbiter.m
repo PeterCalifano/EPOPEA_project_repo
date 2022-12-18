@@ -1,6 +1,6 @@
 close all
 clear
-clc
+
 
 DefaultFontSize = 16;
 set(groot, 'defaultAxesTickLabelInterpreter', 'latex');
@@ -19,7 +19,7 @@ muE = (6.6743e-11)*(1.0802e20);  %[m^3/s^2]
 
 
 % Map: 1) NSO+SL, 2) SO+SL
-model = 1;
+model = 2;
 
 switch model
     case 1
@@ -70,7 +70,7 @@ period = 12*3600;
 % S = eye(3);
 
 
-%  out = sim(ModelName, 'Timeout', StopTime);
+out = sim(ModelName, 'Timeout', StopTime);
 
 %% Post-processing
 set(groot,'defaultAxesTickLabelInterpreter','latex');  
@@ -105,6 +105,9 @@ xlabel('Orbits')
 ylabel('Torque [Nm]')
 legend('$T_{x}$', '$T_{y}$', '$T_{z}$');
 
+% Maximum torque of GG from simulation
+max_gg = max(out.T_GG_norm);
+fprintf('\nPeak Gravity Gradient Torque along 6 orbits:\n\t-%f', max_gg);
 %% Momentum Storage
 
 tin = out.tout(1);

@@ -33,7 +33,7 @@ MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----- PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER -----
-dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 + 30 * MAR_030 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
 m_dry_int = 1468.5 + 495.3 ;                          % Orbiter + lander
@@ -74,7 +74,7 @@ alpha_EOI_SOSL = rad2deg( alpha_EOI_SOSL ) ;
 % clamped, while the other half is used only by the orbiter.
 
 % Orbiter + lander
-dV_blow = 185*MAR_020;                             % Additional MAR-DV-020
+dV_blow = 185*MAR_020 + 15 * MAR_030;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 Tmax = 12.5 ;
 m_dry_sk_orb_lan = 1468.5+495.3 ;                    % Sampling orbiter
@@ -83,7 +83,7 @@ m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
 
 % Only orbiter
-dV_blow = 185*MAR_020;                             % Additional MAR-DV-020
+dV_blow = 185*MAR_020 + 15 * MAR_030;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 m_dry_sk_orb = 1468.5;                          % Sampling orbiter
 % m_dry_sk_orb = 533 ; % Dry mass from regression
@@ -148,7 +148,7 @@ MAR_100 = 10;            % [m/s] For Moon approach navigation maneuvre
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 
 % ----- PRESSURE REGULATED: ARIANE 400N BI-PROPELLANT APOGEE THRUSTER -----
-dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 + 30 * MAR_030 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
+dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
 m_dry_int = 1273+495.3 ;                          % Orbiter + lander
@@ -189,7 +189,7 @@ alpha_EOI_SOSL = rad2deg( alpha_EOI_SOSL ) ;
 % clamped, while the other half is used only by the orbiter.
 
 % Orbiter + lander
-dV_blow = 275*MAR_020;                             % Additional MAR-DV-020
+dV_blow = 275*MAR_020 + 15 * MAR_030;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 Tmax = 12.5 ;
 m_dry_sk_orb_lan = 1273+495.3 ;                    % Sampling orbiter
@@ -198,7 +198,7 @@ m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
 
 % Only orbiter
-dV_blow = 275*MAR_020;                             % Additional MAR-DV-020
+dV_blow = 275*MAR_020 + 15 * MAR_030;                             % Additional MAR-DV-020
 Isp_blow = 292; 
 m_dry_sk_orb = 1273;                          % Sampling orbiter
 m_dry_sk_orb = 182 ;

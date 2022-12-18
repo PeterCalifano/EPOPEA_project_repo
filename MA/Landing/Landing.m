@@ -443,8 +443,9 @@ legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajec
 
 %% Try pinpoint landing as a hard constraint with different initial guess
 t1 = eps;
-tN = t1+eps;
-lonlat = [-70; 270];
+tN = t1+0.7;
+lonlat = [-70; 270]; th_e0 = deg2rad(270);
+par(8) = th_e0 ;
 lat = deg2rad(lonlat(1));
 lon = deg2rad(lonlat(2));
 % From latitudinal to cartesian
@@ -541,8 +542,7 @@ Zrot = r_xz*cos(lon);
 vec_rot = [Xrot; Yrot; Zrot];
 
 % Enceladus rotation
-% th_e = we*(tN-t1) + th_e0;
-th_e = we*(tN-t1);
+th_e = we*(tN-t1) + th_e0;
 % From rotating enceladus to IAU_Enceladus
 A_rot2IAU = [cos(th_e)    0     sin(th_e)
                  0        1         0
@@ -688,7 +688,7 @@ for k = 1:N-1
     z_plot = [z_plot;output(:,2)];
     x_plot = [x_plot;output(:,1)];
 end
-% plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
+plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 
 for k = 1:N
 %     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
@@ -701,5 +701,5 @@ title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
 xlabel('$x\ [DU]$')
 ylabel('$y\ [DU]$')
 zlabel('$z\ [DU]$')
-legend('Enceladus','Initial science orbit','Target Landing Site','NLP points')
+legend('Enceladus','Initial science orbit','Target Landing Site','Trajectory','NLP points')
  

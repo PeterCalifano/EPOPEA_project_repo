@@ -5,6 +5,7 @@ TT = 118760.57/(2*pi);   %[s]
 TU = 3600;               %[s]
 DD=238411468.296/1000;   %[km]
 DU = 251.1;              %[km]
+VU = DU/TU;              %[km/s]
 
 % Retrieve par
 Re = par(5);
@@ -41,6 +42,9 @@ A_rot2IAU = [cos(th_e)    0     sin(th_e)
                  0        1         0
             -sin(th_e)    0     cos(th_e)];
 vec_pp = A_rot2IAU*vec_rot;
+
+% final desired velocity
+vf_des = (1e-2)*10^(-3)/VU; % 1 cm/s adimensionalized
 
 % Orbit Propagator
 options = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
@@ -118,7 +122,7 @@ var_N = var(end-12:end-2);
 r_N = var_N(1:3);
 v_N = var_N(4:6);
 psi_i = var(1:step_st) - [r1; v1; m1]; 
-psi_f = [norm(r_N); norm(v_N); vec_pp] - [Re; 0; r_N];  %check column vecs
+psi_f = [norm(r_N); norm(v_N); vec_pp] - [Re; vf_des; r_N];  %check column vecs
 
 %fill Ceq
 Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs

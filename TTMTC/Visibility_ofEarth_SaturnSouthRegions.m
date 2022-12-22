@@ -19,13 +19,13 @@ cspice_furnsh('..\spice_kernels\naif0012.tls');
 cspice_furnsh ('..\spice_kernels\de440s.bsp');
 cspice_furnsh ('..\spice_kernels\sat441.bsp');
 cspice_furnsh ('..\spice_kernels\pck00010_mod.tpc');
-cspice_furnsh ('..\spice_kernels\LATs.bsp');
-cspice_furnsh ('..\spice_kernels\LATs.tf');
+cspice_furnsh ('spice_kernels\LATs.bsp');
+cspice_furnsh ('spice_kernels\LATs.tf');
 
 
 
 
-% Define initial time, final time, and grid of analysis:
+%% Define initial time, final time, and grid of analysis:
 rot = 24*3600;
 et0_obs = cspice_str2et('Jan 01 00:00:00 UTC 2030');
 etf_obs = cspice_str2et('Jan 01 00:00:00 UTC 2060');

@@ -4,21 +4,21 @@ clc;
 
 % Load SPICE
 cspice_kclear();
-cspice_furnsh('..\..\spice_kernels/pck00010.tpc')
-cspice_furnsh('..\..\spice_kernels/naif0012.tls')
-cspice_furnsh('..\..\spice_kernels/gm_de431.tpc')
-cspice_furnsh('..\..\spice_kernels/de440s.bsp')
+cspice_furnsh('spice_kernels/pck00010.tpc')
+cspice_furnsh('spice_kernels/naif0012.tls')
+cspice_furnsh('spice_kernels/gm_de431.tpc')
+cspice_furnsh('spice_kernels/de440s.bsp')
 
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 10; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 30; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 4; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
 stoptime = 2*60; % Stop time for ga solver
-maxtime =  1*3600; % Max allowable execution time
+maxtime =  9*3600; % Max allowable execution time
 
 rng shuffle
 
@@ -200,27 +200,34 @@ case 3 % E-VEVE-S
 
         fb_sequence = [3, 3, 5];
 
-        LBt_launchdate = 12338;%cspice_str2et('2030-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = 12344;%cspice_str2et('2046-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2033-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
-        LBvinfdep = 5.7; % [km/s]
-        UBvinfdep = 5.9; % [km/s]
+        LBvinfdep = 3; % [km/s]
+        UBvinfdep = sqrt(20); % [km/s]
 
-        LBu = 0.93;
-        UBu = 0.945;
-        LBv = 0.27;
-        UBv = 0.323;
+        LBu = 0;
+        UBu = 1;
+        LBv = 0;
+        UBv = 1;
 
-        LBtof = [729, 685, 950, 2500];
-        UBtof = [732, 695, 975, 2700];
+        LBtof = [600, 600, 800, 2300];
+        UBtof = [800, 800, 1100, 3000];
 
-        LBeta = [0.35, 0.55, 0.39, 0.49985];
-        UBeta = [0.41, 0.562, 0.4, 0.49995];
+        LBeta = [0.2, 0.2,0.2, 0.2];
+        UBeta = [0.8, 0.8, 0.8, 0.8];
 
-        LBRp_seq = [1.8, 1.1, 30];
-        UBRp_seq = [2.05, 1.2, 32];
-        LBbeta = [-1.25, -1.3, -1.92];
-        UBbeta = [-1, -1.1, -1.82];
+%         LBRp_seq = [1.8, 1.1, 30];
+%         UBRp_seq = [2.05, 1.2, 32];
+%         LBbeta = [-1.25, -1.3, -1.92];
+%         UBbeta = [-1, -1.1, -1.82];
+        LBRp_seq = [1.1, 1.1, 15];
+        UBRp_seq = [9, 9, 50];
+%         LBbeta = [-1.25, -1.3, -1.92];
+%         UBbeta = [-1, -1.1, -1.82];
+
+        LBbeta = [-pi, -pi,-pi];
+        UBbeta = [pi,  pi, pi];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';

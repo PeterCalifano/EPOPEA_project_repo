@@ -53,6 +53,7 @@ Rp_target = 2.55*R_Saturn;
 %% Analyze solution
 %load('E_EEJ_S_bestvalue1.016.mat');
 load('E_EEJ_S_1.033_FBhigh.mat');
+%load(['E_EEJ_S_bestvalue2.5194_C3_20.mat']);
 
 [m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
@@ -93,7 +94,7 @@ ind_rp = (2*N + 7):(2*N+7 +N-1);
 
 
 %%%%%% SELECT THE VARIABLES TO BE PLOTTED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ind_v = [1:2];
+ind_v = [ind_rp];
 
 
 ind_names_all = {'Departure Date','v inf','u','v','tof 1','tof 2','tof 3','tof 4',...

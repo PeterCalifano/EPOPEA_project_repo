@@ -20,6 +20,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 pressurant.R = 2077.3 ;
 pressurant.gamma = 1.667 ;
 
+% Titanium tanks
 tank.rho = 2780 ;
 tank.sigma = 950e6 ;
 %%%%%%%%
@@ -28,7 +29,7 @@ tank.sigma = 950e6 ;
 dV_land = 244.6 * MAR_050 ;                                                     % Additional MAR-DV-020
 Isp_land = 228; 
 Tmax = 125 ;
-m_dry_land = 495.3+20;                                                            % Sampling lander
+m_dry_land = 495.3+20;                                                          % Sampling lander
 % m_dry_land = 746 ; % Dry mass from regression
 
 mdot_land = 0.03925;                                                            % [kg/s]

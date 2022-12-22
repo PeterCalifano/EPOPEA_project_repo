@@ -18,7 +18,7 @@ m_lan = 788.92 ; % [kg] - Mass at separation
 v_lan_f = 13e-2 ; % [12 cm/s] - Relative velocity of lander with respect to frame initially fixed with clamped configuration
 
 % Mean acceleration at release
-ReleaseTime = 0.25 ; % [seconds]
+ReleaseTime = 1 ; % [seconds]
 a = v_lan_f / ReleaseTime ;
 fprintf(['Acceleration a = ', num2str(a), ' m/s^2\n']  ) ;
 
@@ -33,7 +33,10 @@ k_singleSpring = Spring_number * keq ; % The springs are in parallel
 fprintf(['Stiffness of single spring k = ', num2str(k_singleSpring*1e-3), ' N/mm\n']  ) ;
 
 
+%% From website
 
+% Compute preload of each spring
+F0 = k_singleSpring * DX ;
 
 
 

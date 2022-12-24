@@ -126,13 +126,13 @@ disp(total);
 Ttot_int = T_SRPmax(1,:) + T_Mmax(1,:);
 
 % At Enceladus: GG + M +SRP
-Ttot_Enc = T_SRPmax(2,:) + T_GGmax + T_Mmax(2,:);
+Ttot_Enc = T_SRPmax(2,:) + T_GGmax + T_Mmax(2,:) + T_plume;
 
 fprintf('\nTOTAL TORQUE\n')
 total = array2table([Ttot_int; Ttot_Enc],'VariableNames',{'NSO+SL','SO+SL'},'RowName',{'Interplanetary', '@ Enceladus'});
 disp(total);
 
-%% Acturator Sizing
+%% Actuator Sizing
 
 %% Reaction Wheel
 

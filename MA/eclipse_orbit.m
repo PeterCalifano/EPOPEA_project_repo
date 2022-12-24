@@ -7,6 +7,7 @@ cspice_kclear();
 % cspice_furnsh(kernelpool);
 
 % Define Kernel
+cd('..')
 cspice_furnsh('spice_kernels/naif0012.tls')
 cspice_furnsh('spice_kernels/de440s.bsp')
 cspice_furnsh('spice_kernels/sat441.bsp')
@@ -18,6 +19,7 @@ cspice_furnsh('spice_kernels/pck00010.tpc')
 cspice_furnsh('spice_kernels/plu058.bsp')
 cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
+cd('MA')
 %% Propagate science orbit
 clear
 clc
@@ -172,20 +174,20 @@ for j = 1:length(tt)
     %state rotation   
     %z-Rotation, om+theta
     R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0;
-        -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0;
-        0 0 1]';
+             -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0;
+              0 0 1]';
     %x-Rotation, i
     R_i_Sat=[1 0 0;
-        0 cos(i_Sat) sin(i_Sat);
-        0 -sin(i_Sat) cos(i_Sat)]';
+             0 cos(i_Sat) sin(i_Sat);
+             0 -sin(i_Sat) cos(i_Sat)]';
     %z-Rotation OM
     R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0;
-        -sin(OM_Sat) cos(OM_Sat) 0;
-        0 0 1]';
+             -sin(OM_Sat) cos(OM_Sat) 0;
+              0 0 1]';
     % x equator - Rotation 
     R_eq_Sat=[1 0 0;
-       0 cos(i_ax_Sat) sin(i_ax_Sat);        
-       0 -sin(i_ax_Sat) cos(i_ax_Sat)]';
+              0 cos(i_ax_Sat) sin(i_ax_Sat);        
+              0 -sin(i_ax_Sat) cos(i_ax_Sat)]';
     
    % rotation to Saturn's orbital parameters 
     x_inEnc(1,j)=(x_CR3BP(1,j)+mu)*cos(tt(j)-t0) - x_CR3BP(2,j)*sin(tt(j)-t0);
@@ -202,15 +204,14 @@ for j = 1:length(tt)
     
     x_EclipSC(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
     Sat2Enc_Fake(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake(:,j);
-    
-    
+  
     Sc2Sat = -x_EclipSC(:,j);
     
     Enc2Sun = -Sat2Enc_Fake(:,j) + Sat2Sun;
     Sc2Sun  = Sc2Sat + Sat2Sun;
     Sc2Enc  = Sc2Sat + Sat2Enc_Fake(:,j);
     
-    %%% Check on Sun %%
+    %%% Check on Sun %%%
     
     % Check if Saturn is in the way
     max_ang_Sat = atan(R_Sat/norm(Sc2Sat));

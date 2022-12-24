@@ -104,7 +104,7 @@ end
 t0 = t_start;
 
 % DEFINE the n of hours to propagate
-n_hours = 10000
+n_hours = 10
 
 % DEFINE the number of points
 n_points = 2000

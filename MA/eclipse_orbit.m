@@ -107,10 +107,10 @@ t0 = t_start;
 n_hours = 10000
 
 % DEFINE the number of points
-n_points = 20000
+n_points = 2000
 
 % Time Grid
-tf = t0 + n_hours * 24*3600/TU;
+tf = t0 + n_hours*3600/TU;
 tt=linspace(t0,tf,n_points);
 
 % Initial state for the Halo orbit

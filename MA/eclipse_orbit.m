@@ -35,7 +35,7 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 % that instant and simplify the rotations between reference frames.
 
 % Select the initial time to look for the instant of intersection
-t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU
+t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
 tf_try = t0_try + 2 * 24 * 3600 / TU; % Final time is set 2 days later
 tt_try = linspace(t0_try,tf_try,500000);
 
@@ -43,7 +43,7 @@ tt_try = linspace(t0_try,tf_try,500000);
 min_y = 1e10;
 
 % Equatorial rotation
-i_ax_Sat=(-26.73)*pi/180; 
+i_ax_Sat=(26.73)*pi/180; 
 
 % Inclination Enceladus
 i_EncSat=deg2rad(-0.009);
@@ -84,7 +84,9 @@ for i = 1:length(tt_try)
               0  cos(i_ax_Sat) sin(i_ax_Sat)        
               0 -sin(i_ax_Sat) cos(i_ax_Sat)];
     
-    Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
+    % Enceladus vector in enceladus inertial frame
+%     Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
+    Sat2Enc=R_i_EncSat*R_an_Sat*R_eq_Sat*R_i_Sat*R_OM_Sat*Sat2Enc;   
     
     % Save when Enceladus is on the orbital plane of Saturn (positive x)
     if norm(Sat2Enc(2)) < min_y && Sat2Enc(1)>0
@@ -102,12 +104,13 @@ end
 % This is the start time that was found in the previous section. It will be
 % in the 48 hours next to t0_try, so keep it in mind.
 t0 = t_start;
+fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 
 % DEFINE the n of hours to propagate
-n_hours = 10000
+n_hours = 10*33;
 
 % DEFINE the number of points
-n_points = 2000
+n_points = 2000;
 
 % Time Grid
 tf = t0 + n_hours*3600/TU;
@@ -156,20 +159,20 @@ for j = 1:length(tt)
     
     %state rotation   
     %z-Rotation, om+theta
-    R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0;
-             -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0;
-              0 0 1]';
+    R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0
+             -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0
+              0                     0                     1]';
     %x-Rotation, i
-    R_i_Sat=[1 0 0;
-             0 cos(i_Sat) sin(i_Sat);
+    R_i_Sat=[1 0 0
+             0 cos(i_Sat) sin(i_Sat)
              0 -sin(i_Sat) cos(i_Sat)]';
     %z-Rotation OM
-    R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0;
-             -sin(OM_Sat) cos(OM_Sat) 0;
+    R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0
+             -sin(OM_Sat) cos(OM_Sat) 0
               0 0 1]';
     % x equator - Rotation 
-    R_eq_Sat=[1 0 0;
-              0 cos(i_ax_Sat) sin(i_ax_Sat);        
+    R_eq_Sat=[1 0 0
+              0 cos(i_ax_Sat) sin(i_ax_Sat)       
               0 -sin(i_ax_Sat) cos(i_ax_Sat)]';
     
    % rotation to Saturn's orbital parameters 
@@ -186,9 +189,9 @@ for j = 1:length(tt)
     Sat2Enc_Fake(:,j)=Sat2Enc_Fake(:,j)*DU;
     
     % Rotate both the Halo and the "fake" Enceladus
-    x_EclipSC(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
-    Sat2Enc_Fake(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake(:,j);
-    
+    x_EclipSC(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
+    Sat2Enc_Fake(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake(:,j);
+     
     % Compute remaining relative positions
     Sc2Sat = -x_EclipSC(:,j);
     Enc2Sun = -Sat2Enc_Fake(:,j) + Sat2Sun;
@@ -251,7 +254,11 @@ xlabel('X')
 ylabel('Y')
 zlabel('Z')
 
-
+figure;
+plot(tt,check_Sun)
+xlabel('t')
+title('Eclipse')
+grid on; grid minor
 
 
 % figure
@@ -272,8 +279,4 @@ zlabel('Z')
 % xlabel('X')
 % ylabel('Y')
 % zlabel('Z')
-% 
-% figure
-% plot(tt,check_Sun)
-% xlabel('t')
-% ylabel('Eclipse (boolean)')
+

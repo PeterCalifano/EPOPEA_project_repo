@@ -4,21 +4,24 @@ clc;
 
 % Load SPICE
 cspice_kclear();
-cspice_furnsh('spice_kernels/pck00010.tpc')
-cspice_furnsh('spice_kernels/naif0012.tls')
-cspice_furnsh('spice_kernels/gm_de431.tpc')
-cspice_furnsh('spice_kernels/de440s.bsp')
-
+try
+    cspice_furnsh('spice_kernels/pck00010.tpc')
+    cspice_furnsh('spice_kernels/naif0012.tls')
+    cspice_furnsh('spice_kernels/gm_de431.tpc')
+    cspice_furnsh('spice_kernels/de440s.bsp')
+catch
+    cspice_furnsh('C:\Users\pietr\OneDrive - Politecnico di Milano\PoliMi - LM\Space Engineering - Master\CODE FILES\SGN\default_metakernel.tm');
+end
 
 %% Problem initialization
 % Define algorithm parameters
-N1 = 30; % n° Global optimization runs per iter (how many tentative solution are found by ga)
+N1 = 50; % n° Global optimization runs per iter (how many tentative solution are found by ga)
 iter = 1; 
 maxiter = 4; % Number of maximum allowed iteration of while loop
 perc = [70*ones(1, floor(maxiter/2)), 90*ones(1, ceil(maxiter/2))]; % Percentile of objective function for LB, UB update
 cost_thr = 0.8; % DV cost in km/s ?
-stoptime = 2*60; % Stop time for ga solver
-maxtime =  9*3600; % Max allowable execution time
+stoptime = 3*60; % Stop time for ga solver
+maxtime = 10*3600; % Max allowable execution time
 
 rng shuffle
 
@@ -29,7 +32,7 @@ Sequence_selector = 6;
 heursolver_selector = 0;
 
 fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepTolerance', 1e-12, 'Display', 'iter',...
-    'MaxFunctionEvaluations', 1e5, 'MaxIterations', 500);
+    'MaxFunctionEvaluations', 1e5, 'MaxIterations', 350);
 
 % GA options
 % opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
@@ -38,8 +41,8 @@ fminconopts_hyb = optimoptions('fmincon', 'FunctionTolerance', 1e-14, 'StepToler
 %     'HybridFcn', {@fmincon, fminconopts_hyb});
 
 opts_ga = optimoptions('ga', 'FunctionTolerance', 1e-20, 'MaxTime', stoptime,...
-    'UseParallel', true, 'PopulationSize', 300, 'Display', 'iter', 'MaxGenerations', 1e3,...
-    'CrossoverFraction', 0.65, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime);
+    'UseParallel', true, 'PopulationSize', 500, 'Display', 'iter', 'MaxGenerations', 1e3,...
+    'CrossoverFraction', 0.7, 'MaxStallGenerations', 3, 'MaxStallTime', 0.5*stoptime);
 
 % Fminunc options
 opts_fmincon = optimoptions('fmincon', 'Display', 'iter', 'FunctionTolerance', 1e-14,...
@@ -200,21 +203,21 @@ case 3 % E-VEVE-S
 
         fb_sequence = [3, 3, 5];
 
-        LBt_launchdate = cspice_str2et('2033-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2043-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
-        LBvinfdep = 3; % [km/s]
-        UBvinfdep = sqrt(20); % [km/s]
+        LBvinfdep = 4.5; % [km/s]
+        UBvinfdep = sqrt(36); % [km/s]
 
         LBu = 0;
-        UBu = 1;
+        UBu = 0.6;
         LBv = 0;
         UBv = 1;
 
         LBtof = [600, 600, 800, 2300];
         UBtof = [800, 800, 1100, 3000];
 
-        LBeta = [0.2, 0.2,0.2, 0.2];
+        LBeta = [0.2, 0.2, 0.2, 0.2];
         UBeta = [0.8, 0.8, 0.8, 0.8];
 
 %         LBRp_seq = [1.8, 1.1, 30];
@@ -228,6 +231,42 @@ case 3 % E-VEVE-S
 
         LBbeta = [-pi, -pi,-pi];
         UBbeta = [pi,  pi, pi];
+
+        N_fb = length(fb_sequence);
+        NLPvars = ones(4*N_fb + 6, 1)';
+
+    case 7 % E-EJ-S
+
+        fb_sequence = [3, 5];
+
+        LBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2043-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+
+        LBvinfdep = 4.5; % [km/s]
+        UBvinfdep = sqrt(40); % [km/s]
+
+        LBu = 0;
+        UBu = 0.5;
+        LBv = 0;
+        UBv = 1;
+
+        LBtof = [100, 700, 1000];
+        UBtof = [500, 1400, 3000];
+
+        LBeta = [0.1, 0.1, 0.1];
+        UBeta = [0.9, 0.9, 0.9];
+
+        %         LBRp_seq = [1.8, 1.1, 30];
+        %         UBRp_seq = [2.05, 1.2, 32];
+        %         LBbeta = [-1.25, -1.3, -1.92];
+        %         UBbeta = [-1, -1.1, -1.82];
+        LBRp_seq = [1.1, 10];
+        UBRp_seq = [9,  70];
+        %         LBbeta = [-1.25, -1.3, -1.92];
+        %         UBbeta = [-1, -1.1, -1.82];
+
+        LBbeta = [-pi, -pi];
+        UBbeta = [pi, pi];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';
@@ -256,7 +295,6 @@ exitflag_local = zeros(N1, 1, maxiter);
 
 
 % Assign INITIAL [LB, UB] for all decision variable
-% Hardcoding: From cycle 21/11/2022 with 2.53 km/s minimum
 
 LB(1, :) = [LBt_launchdate, LBvinfdep, LBu, LBv, LBtof, LBeta, LBRp_seq, LBbeta];
 UB(1, :) = [UBt_launchdate, UBvinfdep, UBu, UBv, UBtof, UBeta, UBRp_seq, UBbeta];
@@ -441,7 +479,7 @@ while converge_flag ~= 1
     end
 
 
-    %%
+   
     % Check if allowed maxiter reached
     elapsedtime = toc(time_limit);
 

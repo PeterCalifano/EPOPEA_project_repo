@@ -107,7 +107,7 @@ t0 = t_start;
 fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 
 % DEFINE the n of hours to propagate
-n_hours = 10*33;
+n_hours = 10;
 
 % DEFINE the number of points
 n_points = 2000;
@@ -138,6 +138,7 @@ x_CR3BP=state_vec_Halo(1:3,:);
 x_inEnc=zeros(3,length(tt));
 x_EclipSC=zeros(3,length(tt));
 Sat2Enc_Fake=zeros(3,length(tt));
+Sat2Enc_real=zeros(3,length(tt));
 check_Sun = zeros(size(tt));
 Sc2Sun_v = zeros(3,length(tt));
 
@@ -145,6 +146,11 @@ for j = 1:length(tt)
     
     % Save the time
     time_j = tt(j);
+    %real enceladus ephemerides
+    Sat2Enc_real(:,j) = cspice_spkpos('602', tt(j)*TU, 'ECLIPJ2000', 'NONE', '699');
+
+    
+    
     % Compute all the relative positions between bodies
     Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
     
@@ -244,12 +250,15 @@ end
 figure
 %Saturn
 scatter3(0,0,0,50);
-%Enceladus
 hold on
+%Analytic ephemerides
 plot3(Sat2Enc_Fake(1,:),Sat2Enc_Fake(2,:),Sat2Enc_Fake(3,:),'r')
+%S/C
 plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:),'-k')
+%SPICE ephemerides
+plot3(Sat2Enc_real(1,:),Sat2Enc_real(2,:),Sat2Enc_real(3,:),'g--')
 axis equal
-legend('Saturn','Enceladus','S/C')
+legend('Saturn','Enceladus','S/C','Enceladus SPICE')
 xlabel('X')
 ylabel('Y')
 zlabel('Z')

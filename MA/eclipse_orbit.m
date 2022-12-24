@@ -7,6 +7,7 @@ cspice_kclear();
 % cspice_furnsh(kernelpool);
 
 % Define Kernel
+cd('..')
 cspice_furnsh('spice_kernels/naif0012.tls')
 cspice_furnsh('spice_kernels/de440s.bsp')
 cspice_furnsh('spice_kernels/sat441.bsp')
@@ -18,6 +19,7 @@ cspice_furnsh('spice_kernels/pck00010.tpc')
 cspice_furnsh('spice_kernels/plu058.bsp')
 cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
+cd('MA')
 %% Propagate science orbit
 clear
 clc

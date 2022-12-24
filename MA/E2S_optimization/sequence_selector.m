@@ -29,6 +29,10 @@ switch marker
         planets = {'Earth','Earth','Earth','Jupiter','Saturn'};
         planets_id = [3,3,3,5,6];
         N = length(planets_id) - 2;
+    case 8 % E-EJ-S
+    planets = {'Earth','Earth','Jupiter','Saturn'};
+    planets_id = [3,3,5,6];
+    N = length(planets_id) - 2;
 end
 
 end

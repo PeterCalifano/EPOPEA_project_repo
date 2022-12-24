@@ -83,7 +83,6 @@ for i = 1:length(tt_try)
               0 -sin(i_ax_Sat) cos(i_ax_Sat)];
     
     Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
-    %Sat2Enc=R_an_Sat*R_i_Sat*R_OM_Sat*Sat2Enc;
     
     if norm(Sat2Enc(2)) < min_y && Sat2Enc(1)>0
         t_start = tt_try(i);
@@ -275,7 +274,6 @@ plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:));
 grid on
 grid minor
 axis equal
-
 
 
 figure

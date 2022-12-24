@@ -1,7 +1,5 @@
-%% Illumination Conditions
-
-
-cspice_kclear();
+%% ECLIPSE
+clearvars; clc; close all; cspice_kclear();
 
 % kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
 % cspice_furnsh(kernelpool);
@@ -20,10 +18,9 @@ cspice_furnsh('spice_kernels/plu058.bsp')
 cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
 cd('MA')
+
 %% Propagate science orbit
-clear
-clc
-close all
+
 mu=1.90095713928102*1e-7;
 DU=238411468.296/1000; %km
 TU=118760.57/(2*pi); 
@@ -53,8 +50,8 @@ i_ax_Sat=(-26.73)*pi/180;
 %
 i_EncSat=deg2rad(-0.009);
 R_i_EncSat=[1 0 0;
-        0 cos(i_EncSat) sin(i_EncSat);
-        0 -sin(i_EncSat) cos(i_EncSat)];
+            0 cos(i_EncSat) sin(i_EncSat);
+            0 -sin(i_EncSat) cos(i_EncSat)];
 
     
 for i = 1:length(tt_try)
@@ -68,22 +65,22 @@ for i = 1:length(tt_try)
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     %state rotation   
     %z-Rotation, om+theta
-    R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0;
-        -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0;
-        0 0 1];
+    R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0
+             -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0
+              0                     0                     1];
     
     %x-Rotation, i
-    R_i_Sat=[1 0 0;
-        0 cos(i_Sat) sin(i_Sat);
-        0 -sin(i_Sat) cos(i_Sat)];
+    R_i_Sat=[1  0          0
+             0  cos(i_Sat) sin(i_Sat)
+             0 -sin(i_Sat) cos(i_Sat)];
     %z-Rotation OM
-    R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0;
-        -sin(OM_Sat) cos(OM_Sat) 0;
-        0 0 1];
+    R_OM_Sat=[cos(OM_Sat) sin(OM_Sat) 0
+             -sin(OM_Sat) cos(OM_Sat) 0
+              0           0           1];
     % equator rotation
-    R_eq_Sat=[1 0 0;
-       0 cos(i_ax_Sat) sin(i_ax_Sat);        
-       0 -sin(i_ax_Sat) cos(i_ax_Sat)];
+    R_eq_Sat=[1  0             0;
+              0  cos(i_ax_Sat) sin(i_ax_Sat)        
+              0 -sin(i_ax_Sat) cos(i_ax_Sat)];
     
     Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
     %Sat2Enc=R_an_Sat*R_i_Sat*R_OM_Sat*Sat2Enc;
@@ -124,7 +121,6 @@ state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 %propagation - Halo
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 % [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0,tf],state0_Halo,options_ode);
-
 [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),tt,state0_Halo,options_ode);
 
 state_vec_Halo=state_vec_Halo';
@@ -132,15 +128,12 @@ figure
 plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:));
 axis equal
 
-
-
 %initialization
 x_CR3BP=state_vec_Halo(1:3,:);
 x_inEnc=zeros(3,length(tt));
 x_EclipSC=zeros(3,length(tt));
 
 Sat2Enc_Fake=zeros(3,length(tt));
-
 
 check_Sun = zeros(size(tt));
 %Sat2Enc_array=zeros(3,length(tt));

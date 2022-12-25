@@ -203,29 +203,29 @@ case 3 % E-VEVE-S
 
         fb_sequence = [3, 3, 5];
 
-        LBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
-        UBt_launchdate = cspice_str2et('2043-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        LBt_launchdate = cspice_str2et('2037-01-01 00:00:00.000 UTC')./(3600*24); % [days]
+        UBt_launchdate = cspice_str2et('2044-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
-        LBvinfdep = 4.5; % [km/s]
-        UBvinfdep = sqrt(36); % [km/s]
+        LBvinfdep = 5.5; % [km/s]
+        UBvinfdep = 7.5; % [km/s]
 
         LBu = 0;
         UBu = 0.6;
         LBv = 0;
         UBv = 1;
 
-        LBtof = [600, 600, 800, 2300];
-        UBtof = [800, 800, 1100, 3000];
+        LBtof = [100, 300, 600, 1000];
+        UBtof = [500, 800, 1500, 3000];
 
-        LBeta = [0.2, 0.2, 0.2, 0.2];
-        UBeta = [0.8, 0.8, 0.8, 0.8];
+        LBeta = [0.05, 0.05, 0.05, 0.05];
+        UBeta = [0.8, 0.8, 0.9, 0.9];
 
 %         LBRp_seq = [1.8, 1.1, 30];
 %         UBRp_seq = [2.05, 1.2, 32];
 %         LBbeta = [-1.25, -1.3, -1.92];
 %         UBbeta = [-1, -1.1, -1.82];
         LBRp_seq = [1.1, 1.1, 15];
-        UBRp_seq = [9, 9, 50];
+        UBRp_seq = [9, 9, 70];
 %         LBbeta = [-1.25, -1.3, -1.92];
 %         UBbeta = [-1, -1.1, -1.82];
 
@@ -235,38 +235,38 @@ case 3 % E-VEVE-S
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';
 
-    case 7 % E-EJ-S
+    case 7 % E-EEEJ-S
 
-        fb_sequence = [3, 5];
+        fb_sequence = [3, 3, 3, 5];
 
         LBt_launchdate = cspice_str2et('2035-01-01 00:00:00.000 UTC')./(3600*24); % [days]
         UBt_launchdate = cspice_str2et('2043-01-01 00:00:00.000 UTC')./(3600*24); % [days]
 
-        LBvinfdep = 4.5; % [km/s]
-        UBvinfdep = sqrt(40); % [km/s]
+        LBvinfdep = 5.5; % [km/s]
+        UBvinfdep = 7.2; % [km/s]
 
         LBu = 0;
         UBu = 0.5;
         LBv = 0;
         UBv = 1;
 
-        LBtof = [100, 700, 1000];
-        UBtof = [500, 1400, 3000];
+        LBtof = [100, 100, 100, 300, 1000];
+        UBtof = [500, 500, 600, 1300, 3000];
 
-        LBeta = [0.1, 0.1, 0.1];
-        UBeta = [0.9, 0.9, 0.9];
+        LBeta = [0.05, 0.05, 0.05, 0.05];
+        UBeta = [0.9, 0.9, 0.9, 0.9];
 
         %         LBRp_seq = [1.8, 1.1, 30];
         %         UBRp_seq = [2.05, 1.2, 32];
         %         LBbeta = [-1.25, -1.3, -1.92];
         %         UBbeta = [-1, -1.1, -1.82];
-        LBRp_seq = [1.1, 10];
-        UBRp_seq = [9,  70];
+        LBRp_seq = [1.1, 1.1, 1.1, 10];
+        UBRp_seq = [10, 10, 10,  70];
         %         LBbeta = [-1.25, -1.3, -1.92];
         %         UBbeta = [-1, -1.1, -1.82];
 
-        LBbeta = [-pi, -pi];
-        UBbeta = [pi, pi];
+        LBbeta = [-pi, -pi, -pi, -pi];
+        UBbeta = [pi, pi, pi, pi];
 
         N_fb = length(fb_sequence);
         NLPvars = ones(4*N_fb + 6, 1)';

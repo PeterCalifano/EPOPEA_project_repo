@@ -1,5 +1,5 @@
 %% ECLIPSE
-clearvars; clc; close all; cspice_kclear();
+clearvars; clc; cspice_kclear();
 
 % kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
 % cspice_furnsh(kernelpool);
@@ -35,7 +35,8 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 % that instant and simplify the rotations between reference frames.
 
 % Select the initial time to look for the instant of intersection
-t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
+% t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
+t0_try = cspice_str2et('2022 DEC 25 12:00:00.00')/TU;
 tf_try = t0_try + 2 * 24 * 3600 / TU; % Final time is set 2 days later
 tt_try = linspace(t0_try,tf_try,500000);
 
@@ -43,7 +44,9 @@ tt_try = linspace(t0_try,tf_try,500000);
 min_y = 1e10;
 
 % Equatorial rotation
-i_ax_Sat=(26.73)*pi/180; 
+i_ax_Sat=(-26.73)*pi/180; 
+% i_ax_Sat=(0)*pi/180;
+
 
 % Inclination Enceladus
 i_EncSat=deg2rad(-0.009);
@@ -85,9 +88,9 @@ for i = 1:length(tt_try)
               0 -sin(i_ax_Sat) cos(i_ax_Sat)];
     
     % Enceladus vector in enceladus inertial frame
-%     Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc;
-    Sat2Enc=R_i_EncSat*R_an_Sat*R_eq_Sat*R_i_Sat*R_OM_Sat*Sat2Enc;   
-    
+%     Sat2Enc=R_i_EncSat*R_an_Sat*R_eq_Sat*R_i_Sat*R_OM_Sat*Sat2Enc; 
+    Sat2Enc=R_i_EncSat*R_an_Sat*R_i_Sat*R_OM_Sat*R_eq_Sat*Sat2Enc; 
+
     % Save when Enceladus is on the orbital plane of Saturn (positive x)
     if norm(Sat2Enc(2)) < min_y && Sat2Enc(1)>0
         t_start = tt_try(i);
@@ -107,7 +110,7 @@ t0 = t_start;
 fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 
 % DEFINE the n of hours to propagate
-n_hours = 10;
+n_hours = 33;
 
 % DEFINE the number of points
 n_points = 2000;
@@ -129,9 +132,9 @@ state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 [t_vec_Halo,state_vec_Halo]=ode113(@(t,x) CR3BP_dyn(t,x,mu),tt,state0_Halo,options_ode);
 state_vec_Halo=state_vec_Halo';
-figure
-plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:));
-axis equal
+% figure
+% plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:));
+% axis equal; grid on; grid minor
 
 % Initialize storage variables
 x_CR3BP=state_vec_Halo(1:3,:);
@@ -141,33 +144,34 @@ Sat2Enc_Fake=zeros(3,length(tt));
 Sat2Enc_real=zeros(3,length(tt));
 check_Sun = zeros(size(tt));
 Sc2Sun_v = zeros(3,length(tt));
+Sun_dir = zeros(3,length(tt));
 
 for j = 1:length(tt)
     
     % Save the time
     time_j = tt(j);
+
     %real enceladus ephemerides
     Sat2Enc_real(:,j) = cspice_spkpos('602', tt(j)*TU, 'ECLIPJ2000', 'NONE', '699');
 
-    
-    
     % Compute all the relative positions between bodies
-    Sat2Sun = cspice_spkpos('Sun', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
-    
+    Sat2Sun(:,j) = cspice_spkpos('SUN', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
+    Sun_dir(:,j) = Sat2Sun(:,j)/norm(Sat2Sun(:,j));
+
     %saturn orbital parameters recovery
     Sun2Sat_state=cspice_spkezr('SATURN', time_j*TU, 'ECLIPJ2000', 'NONE', 'SUN');
     r_Sat=Sun2Sat_state(1:3);
     v_Sat=Sun2Sat_state(4:6);
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     
-%     Sat2Enc = cspice_spkpos('602', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
-%     Sat2Enc_array(:,j)=Sat2Enc;
-    
+
+
     %state rotation   
     %z-Rotation, om+theta
     R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0
              -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0
               0                     0                     1]';
+    
     %x-Rotation, i
     R_i_Sat=[1 0 0
              0 cos(i_Sat) sin(i_Sat)
@@ -189,19 +193,21 @@ for j = 1:length(tt)
     x_inEnc(:,j)=x_inEnc(:,j)*DU;
 
     % Do the same with Enceladus orbit to have a coherent reference 
-    Sat2Enc_Fake(1,j)=1*cos(tt(j)-t0);
-    Sat2Enc_Fake(2,j)=1*sin(tt(j)-t0);
-    Sat2Enc_Fake(3,j)=0;
-    Sat2Enc_Fake(:,j)=Sat2Enc_Fake(:,j)*DU;
+    Sat2Enc_Fake1(1,j)=1*cos(tt(j)-t0);
+    Sat2Enc_Fake1(2,j)=1*sin(tt(j)-t0);
+    Sat2Enc_Fake1(3,j)=0;
+    Sat2Enc_Fake1(:,j)=Sat2Enc_Fake1(:,j)*DU;
     
     % Rotate both the Halo and the "fake" Enceladus
-    x_EclipSC(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
-    Sat2Enc_Fake(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake(:,j);
-     
+%     x_EclipSC(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
+%     Sat2Enc_Fake(:,j)=R_OM_Sat*R_i_Sat*R_eq_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake1(:,j);
+    x_EclipSC(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*x_inEnc(:,j);
+    Sat2Enc_Fake(:,j)=R_eq_Sat*R_OM_Sat*R_i_Sat*R_an_Sat*R_i_EncSat'*Sat2Enc_Fake1(:,j);
+       
     % Compute remaining relative positions
     Sc2Sat = -x_EclipSC(:,j);
-    Enc2Sun = -Sat2Enc_Fake(:,j) + Sat2Sun;
-    Sc2Sun  = Sc2Sat + Sat2Sun;
+    Enc2Sun = -Sat2Enc_Fake(:,j) + Sat2Sun(:,j);
+    Sc2Sun  = Sc2Sat + Sat2Sun(:,j);
     Sc2Enc  = Sc2Sat + Sat2Enc_Fake(:,j);
     
     %%% Check on Sun %%%
@@ -243,31 +249,50 @@ for j=1:length(tt)
 end
 
 %%% FOR ELENA: the relative position is saved into Sc2Sun_v which is the
-%%%     relative position from SC to Sun in ECLIPJ2000. At the moment the
-%%%     propagation is set from circa 1 Jan 2051 to 
+%%%     relative position from SC to Sun in ECLIPJ2000.
 
-
+%%
 figure
 %Saturn
 scatter3(0,0,0,50);
 hold on
 %Analytic ephemerides
-plot3(Sat2Enc_Fake(1,:),Sat2Enc_Fake(2,:),Sat2Enc_Fake(3,:),'r')
-%S/C
-plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:),'-k')
-%SPICE ephemerides
-plot3(Sat2Enc_real(1,:),Sat2Enc_real(2,:),Sat2Enc_real(3,:),'g--')
+plot3(Sat2Enc_Fake(1,:),Sat2Enc_Fake(2,:),Sat2Enc_Fake(3,:),'r') %S/C
+plot3(Sat2Enc_real(1,:),Sat2Enc_real(2,:),Sat2Enc_real(3,:),'g--') %SPICE ephemerides
+plot3(x_EclipSC(1,:),x_EclipSC(2,:),x_EclipSC(3,:),'-k') 
+quiver3(zeros(1,length(tt)),zeros(1,length(tt)),zeros(1,length(tt)), ...
+    1e5*Sun_dir(1,:), 1e5*Sun_dir(2,:), 1e5*Sun_dir(3,:))
 axis equal
-legend('Saturn','Enceladus','S/C','Enceladus SPICE')
+title(sprintf(cspice_et2utc(t_start*TU, 'C', 0)))
+subtitle('Ecliptic')
+legend('Saturn','Enceladus','Enceladus SPICE','S/C')
 xlabel('X')
 ylabel('Y')
 zlabel('Z')
 
+
+%%%%%%CHECK%%%%%%%
 figure;
-plot(tt,check_Sun)
-xlabel('t')
-title('Eclipse')
-grid on; grid minor
+plot3(x_inEnc(1,:),x_inEnc(2,:),x_inEnc(3,:), 'r', 'LineWidth', 1.2)
+hold on
+plot3(Sat2Enc_Fake1(1,:),Sat2Enc_Fake1(2,:),Sat2Enc_Fake1(3,:), 'b', 'LineWidth', 1.2)
+grid on
+title('CHECK_1')
+view(3)
+
+figure;
+plot3(Sat2Sun(1,:), Sat2Sun(2,:), Sat2Sun(3,:), 'y', 'LineWidth', 1.5)
+hold on
+plot3(0,0,0, 'o', 'MarkerSize', 10)
+grid on; grid minor; axis equal
+title('CHECK_2')
+%%%%%%CHECK%%%%%%%
+
+% figure;
+% plot(tt,check_Sun)
+% xlabel('t')
+% title('Eclipse')
+% grid on; grid minor
 
 
 % figure

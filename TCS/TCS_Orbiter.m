@@ -46,13 +46,13 @@ L2 = 4;
 L3 = 2;
 A1 = L1*L2;
 A6 = A1;
-A2 = L1*L3;
-A4 = A2;
+A2_tot = L1*L3;
+A4 = A2_tot;
 A3 = L2*L3;
 A5 = A3;
 D_ant = 3.2; % diameter of antenna ??
 A_ant = pi*(D_ant/2)^2; 
-
+A1_ext = A1-A_ant; % external area of surface 1 not covered by the antenna
 %%% Structure properties (Al-5056-O)
 k_str = 117;
 l_str = 0.02;
@@ -77,12 +77,14 @@ L_TS = 120e-3; %?????
 % changed from 0.8: if louvers open ~0.7
 eps_louv_closed = 0.14;
 eps_louv_open = 0.7;
-eps_rad = eps_louv_closed; % if closed louvers
+eps_rad = eps_louv_open; % if open louvers
 % eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
-A_rad = 1 * 0.2;
+A_rad_one = 1 * 0.2; % area one radiator
 n_rad = 5; %% to change
+A_rad_tot = A_rad_one*n_rad;% total area of radiators
+A2 = A2_tot-A_rad_tot; % area on surface 2 not covered by radiators
 k_rad = 1;
 
 % RHU or heaters
@@ -100,26 +102,41 @@ Q_hot = P_budget_hot-P_input_TMTC_h+P_diss_TMTC_h;
 
 % view factor
 % Surface 1
-F12 = VF_PerpRec(L3,L2,L1);
-F21 = VF_PerpRec(L2,L3,L1);
+F12_tot = VF_PerpRec(L3,L2,L1);
+F12 = F12_tot*A2/A2_tot;
+F21 = F12*A1/A2;
+F1rad = F12_tot*A_rad_tot/A2_tot;
+Frad1 = F1rad*A1/A_rad_tot; 
 F13 = VF_PerpRec(L3,L1,L3);
 F31 = F13*A1/A3;
-F14 = F12;
-F41 = F21;
+F14 = VF_PerpRec(L3,L2,L1);;
+F41 = VF_PerpRec(L2,L3,L1);
 F15 = F13;
 F51 = F31;
 F16 = VF_ParallelEqualRec(L3,L1,L2);
 F61 = F16;
 
-% Surface 2
-F23 = VF_PerpRec(L2,L3,L1);
+% Surface 2 and radiator
+F23_tot = VF_PerpRec(L2,L3,L1);
+F23 = F23_tot*A2/A2_tot;
 F32 = F23*A2/A3;
-F24 = VF_ParallelEqualRec(L2,L1,L3);
-F42 = F24;
-F25 = F23;
-F52 =F32;
-F26 = VF_PerpRec(L2,L3,L1);
-F62 = F26*A2/A6;
+Frad3 = F23_tot*A_rad_tot/A2_tot;
+F3rad = Frad3*A_rad_tot/A3;
+F24_tot = VF_ParallelEqualRec(L2,L1,L3);
+F24 = F24_tot*A2/A2_tot;
+F42 = F24*A2/A3;
+Frad4 = F24_tot*A_rad_tot/A2_tot;
+F4rad = Frad4*A_rad_tot/A3;
+F25_tot = VF_PerpRec(L2,L3,L1);
+F25 = F25_tot*A2/A2_tot;
+F52 = F25*A2/A3;
+Frad5 = F25_tot*A_rad_tot/A2_tot;
+F5rad = Frad5*A_rad_tot/A3;
+F26_tot = VF_PerpRec(L2,L3,L1);
+F26 = F26_tot*A2/A2_tot;
+F62 = F26*A2/A3;
+Frad6 = F26_tot*A_rad_tot/A2_tot;
+F6rad = Frad6*A_rad_tot/A3;
 
 % Surface 3
 F34 = F32;
@@ -139,6 +156,67 @@ F64 = F14;
 F56 = F36; 
 F65 = F63;
 
+% radiative coupling
+R.R_12 = sigma_SB*A1 * epsilon_int^2*F12;
+R.R_1rad = sigma_SB*A1 * epsilon_int^2*F1rad;
+R.R_13 = sigma_SB*A1 * epsilon_int^2*F13;
+R.R_14 = sigma_SB*A1 * epsilon_int^2*F14;
+R.R_15 = sigma_SB*A1 * epsilon_int^2*F15;
+R.R_16 = sigma_SB*A1 * epsilon_int^2*F16;
+R.R_23 = sigma_SB*A2 * epsilon_int^2*F23;
+R.R_24 = sigma_SB*A2 * epsilon_int^2*F24;
+R.R_25 = sigma_SB*A2 * epsilon_int^2*F25;
+R.R_26 = sigma_SB*A2 * epsilon_int^2*F26;
+R.R_rad3 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad3; %??
+R.R_rad4 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad4; %??
+R.R_rad5 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad5; %??
+R.R_rad6 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad6; %??
+R.R_34 = sigma_SB*A3 * epsilon_int^2*F34;
+R.R_35 = sigma_SB*A3 * epsilon_int^2*F35;
+R.R_36 = sigma_SB*A3 * epsilon_int^2*F36;
+R.R_45 = sigma_SB*A4 * epsilon_int^2*F45;
+R.R_46 = sigma_SB*A4 * epsilon_int^2*F46;
+R.R_56 = sigma_SB*A5 * epsilon_int^2*F56;
+
+R.R_1ant = sigma_SB*A1 * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
+
+R.R_10 = sigma_SB*A1_ext * epsilon_MLI;
+R.R_20 = sigma_SB*A2 * epsilon_MLI;
+R.R_30 = sigma_SB*A3 * epsilon_MLI;
+R.R_40 = sigma_SB*A4 * epsilon_MLI;
+R.R_50 = sigma_SB*A5 * epsilon_MLI;
+R.R_60 = sigma_SB*A6 * epsilon_MLI;
+R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+
+% External fluxes 
+q_Sun = q_sun_earth;
+q_alb = q_Sun*F_earth*a_earth;
+q_Earth = F_earth*sigma_SB*T_earth^4*epsilon_Earth;
+
+% Angles with external fluxes
+theta_5Sun = 15 * pi/180;
+theta_6Sun = 75 * pi/180;
+
+
+Q_ext_hot3 = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
+Q_ext_hot5 = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
+Q_ext_hot6 = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
+
+% Initial condition
+T0 = 293;
+
+% add mass and specific heat for transient
+
 % Conduction between surfaces
+% To do:
+% 1) add conduction 
+%      - between surfaces
+%      - to radiators
+% 2) change internal power
+% 3) surface in contact with lander?
+% 4) Add internal nodes
+% sensitivity analysis, check properties
+% T of RTG
 
 

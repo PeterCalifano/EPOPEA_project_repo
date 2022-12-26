@@ -1,72 +1,125 @@
-function [ m_prop_prim, m_prop_sec, m_prop_lan ] = propellant_mass( Isp_prim, dV_prim, dV_disp, Isp_sec, dV_sec_c, dV_sec_orb, m_dry_orb, Isp_lan, Isp_att, dV_lan, dV_att_lan, m_dry_lan, m_hazard )
+function [ m_prop_orb, m_prop_lan, m_prop_main, m_prop_sk, m_prop_att, m_prop_main_lan, m_prop_att_lan ] = propellant_mass( orbiter, lander )
 
 % INPUTS
+% orbiter  -  structure:        
+        % dV_disp            [m/s] - Delta v for disposal of the orbiter 
+        % dV_sk_o            [m/s] - Delta v for sk when only orbiter
+        % dV_att_o           [m/s] - Delta v for attitude maneuvers when only orbiter
+        % dV_sk_cl           [m/s] - Delta v for sk when clamped configuration
+        % dV_att_cl          [m/s] - Delta v for attitude maneuvers when clamped configuration
+        % dV_EOI             [m/s] - Delta v for moon tour and orbit insertion
+        % dV_cap             [m/s] - Delta v for capture at Saturn
+        % dV_int             [m/s] - Delta v for interplanetary leg
+        % Isp_main           [s]   - Specific impulse of primary engines
+        % Isp_sk             [s]   - Specific impulse of sk
+        % Isp_att            [s]   - Specific impulse of attitude thrusters 
+        % dry                [kg]  - Dry mass
+        % hazard             [kg]  - Propellant mass needed for hazard maneuvers (HAZARD MARGIN)
 
-% Isp_prim           [s]   - Specific impulse of primary engines (ORBITER)
-% dV_prim            [m/s] - Delta v for primary maneuvers (ORBITER)
-% dV_disp            [m/s] - Delta v for disposal (ORBITER)
-% Isp_sec            [s]   - Specific impulse of secondary engines (ORBITER)
-% dV_sec_c           [m/s] - Delta v for secondary maneuvers when clamped configuration is considered (ORBITER)
-% dV_sec_orb         [m/s] - Delta v for secondary maneuvers when only orbiter is considere (ORBITER)
-% m_dry_orb          [kg]  - ORBITER dry mass
-% Isp_lan            [s]   - Specific impulse of primary engines (LANDER)
-% Isp_att            [s]   - Specific impulse of attitude thrusters (LANDER)
-% dV_lan             [m/s] - Delta v for landing (LANDER)
-% dV_att             [m/s] - Delta v for attitude maneuvers (LANDER)
-% m_dry_lan          [kg]  - LANDER dry mass
-% m_prop_lan         [kg]  - LANDER propellant mass neede in case of harazd maneuver (MAR_hazard)
+% lander  -  structure:
+        % dV_des             [m/s] - Delta v for descending phase 
+        % dV_att             [m/s] - Delta v for attitude maneuvers
+        % Isp_main           [s]   - Specific impulse of primary engines (LANDER)
+        % Isp_att            [s]   - Specific impulse of attitude thrusters (LANDER)
+        % dry                [kg]  - Dry mass
+        % hazard             [kg]  - Propellant mass needed for hazard maneuvers (HAZARD MARGIN)
 
-% OUTPUTS - masses already include 20% MARGIN
+% OUTPUTS - masses already include 2.5% MARGIN
 
-% m_prop_prim        [kg]  - Propellant mass required for primary maneuvers
-% m_prop_sec         [kg]  - Propellant mass required for secondary maneuvers
+% m_prop_orb         [kg]  - Propellant mass required by orbiter
 % m_prop_lan         [kg]  - Propellant mass required by lander - already includes HAZARD MARGIN
+
 % -----
+
+%% Recover data from structures
+dV_lan = lander.dV_des ;
+dV_att_lan = lander.dV_att ;
+Isp_lan = lander.Isp_main ;
+Isp_att_lan = lander.Isp_att ;
+
+dV_disp = orbiter.dV_disp ;
+dV_sk_orb = orbiter.dV_sk_o ;
+dV_att_orb = orbiter.dV_att_o ;
+
+dV_sk_cl = orbiter.dV_sk_cl ;
+dV_att_cl = orbiter.dV_att_cl ;
+dV_EOI = orbiter.dV_EOI ;
+dV_cap = orbiter.dV_cap ;
+dV_int = orbiter.dV_int ;
+Isp_main_orb = orbiter.Isp_main ;
+Isp_sk_orb = orbiter.Isp_sk ;
+Isp_att_orb = orbiter.Isp_att ;
+
+m_dry_orb = orbiter.dry ;
+m_dry_lan = lander.dry ;
+m_hazard = lander.hazard ;
 
 g0 = 9.81 ; % [m/s] - gravitational acceleration
 
-%% LANDER PROPELLANT MASS
+%% LANDER
+
+% Descending
 mf = m_dry_lan + m_hazard ;
-mi = mf * exp( dV_lan / ( Isp_lan * g0 ) ) ;
-m_prop_des = mi - mf ; % [kg] - propellant mass needed for lander descent
+m_prop_des = mf * ( exp( dV_lan / ( Isp_lan * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for lander descent
 
+% Attitude
 mf = m_dry_lan + m_hazard ;
-mi = mf * exp( dV_att_lan / ( Isp_att * g0 ) ) ;
-m_prop_att =  mi - mf ; % [kg] - propellant mass needed for attitude maneuvers during landing
+m_prop_att_lan = mf * ( exp( dV_att_lan / ( Isp_att_lan * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for attitude maneuvers during landing
 
-m_prop_lan = m_prop_att + m_prop_des + m_hazard ;
+m_prop_lan = m_prop_att_lan + m_prop_des + m_hazard ; % [kg] Total propellant mass on lander
 
-%% ORBITER PROPELLANT MASS
+%% ORBITER 
 
-% Disposal - only orbiter
+% Disposal 
 mf = m_dry_orb ;
-mi = mf * exp( dV_disp / ( Isp_prim * g0 ) ) ;
-m_prop_disp = mi - mf ; % [kg] - propellant mass needed for SK when only orbiter is considered
+m_prop_disp = mf * ( exp( dV_disp / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for disposal of the orbiter
 
-% SK - only orbiter
-mf = m_dry_orb + m_prop_disp ;
-mi = mf * exp( dV_sec_orb / ( Isp_sec * g0 ) ) ;
-m_prop_sec_orb = mi - mf ; % [kg] - propellant mass needed for SK when only orbiter is considered
+% SK and Attitude 
+A = [ 1, ( 1 - exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) ); ( 1 - exp( dV_att_orb / ( Isp_att_orb * g0 ) ) ), 1 ] ; 
+B = ( m_dry_orb + m_prop_disp ) * [ ( exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) - 1 );...
+                                    ( exp( dV_att_orb / ( Isp_att_orb * g0 ) ) - 1 ) ] ;
+m_prop_temp = A\B ;
+m_prop_sk_orb = m_prop_temp( 1 ) ; % [kg] - propellant mass needed for sk of orbiter
+m_prop_att_orb = m_prop_temp( 2 ) ; % [kg] - propellant mass needed for attitude control of orbiter
 
-% SK - clamped configuration
-mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_sec_orb + m_prop_disp ;
-mi = mf * exp( dV_sec_c / ( Isp_sec * g0 ) ) ;
-m_prop_sec_c = mi - mf ; % [kg] - propellant mass needed for SK when only orbiter is considered
+%% CLAMPED (ORBITER + LANDER)
 
+% SK and Attitude 
+A =  [ 1, ( 1 - exp( dV_sk_cl / ( Isp_sk_orb * g0 ) ) ); ( 1 - exp( dV_att_cl / ( Isp_att_orb * g0 ) ) ), 1 ] ;
+B = ( m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att_orb + m_prop_sk_orb ) * [ ( exp( dV_sk_cl / ( Isp_sk_orb * g0 ) ) - 1 );...
+                                                                                              ( exp( dV_att_cl / ( Isp_att_orb * g0 ) ) - 1 ) ] ;
+m_prop_temp = A\B ;
+m_prop_sk_cl = m_prop_temp( 1 ) ; % [kg] - propellant mass needed for sk of clamped configuration
+m_prop_att_cl = m_prop_temp( 2 ) ; % [kg] - propellant mass needed for attitude control of clamped configuration
 
-m_prop_sec = m_prop_sec_c + m_prop_sec_c ; % [kg] - propellant mass needed for secondary maneuvers
+m_prop_att = m_prop_att_orb + m_prop_att_cl ; % [kg] - total propellant mass needed for attitude control
+m_prop_sk = m_prop_sk_orb + m_prop_sk_cl ; % [kg] - total propellant mass needed for sk
 
-% Interplanetary transfer - clamped configuration
-mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_sec + m_prop_disp ;
-mi = mf * exp( dV_prim / ( Isp_prim * g0 ) ) ;
-m_prop_int = mi - mf ; % [kg] - propellant mass needed for primary maneuvers
+% Moon tour and enceladus orbit insertion
+mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk ;
+m_prop_EOI = mf * ( exp( dV_EOI / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for moon tour and enceladus orbit insertion
 
-m_prop_prim = m_prop_int + m_prop_disp ;
+% Capture at Saturn
+mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI ;
+m_prop_cap = mf * ( exp( dV_cap / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for capture at Saturn
+ 
+% Interplanetary leg
+mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap ;
+m_prop_int = mf * ( exp( dV_int / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for interplanetary transfer
+ 
+m_prop_main = m_prop_int + m_prop_cap + m_prop_EOI + m_prop_disp ;
 
-% INCLUDE MARGINS:
-m_prop_prim = m_prop_prim * 1.2 ;
-m_prop_sec = m_prop_sec * 1.2 ;
-m_prop_lan = m_prop_lan * 1.2 ;
+m_prop_orb = m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_int ; % [kg] - total propellant mass needed on the orbiter
+
+%% INCLUDE MARGINS:
+m_prop_orb = m_prop_orb * 1.025 ;
+m_prop_lan = m_prop_lan * 1.025 ;
+
+m_prop_main = m_prop_main * 1.025 ;
+m_prop_sk = m_prop_sk * 1.025 ;
+m_prop_att = m_prop_att * 1.025 ;
+m_prop_main_lan = (m_prop_des + m_hazard ) * 1.025 ;
+m_prop_att_lan = m_prop_att_lan * 1.025 ;
 
 end
 

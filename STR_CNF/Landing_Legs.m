@@ -14,8 +14,8 @@ Ks=3; %multiplicative factor for the weight force, to account for impact and mar
 
 
 %computation of the limit Pcr 
-MaxF=M*g_Enc*Ks/n; %maximum force acting on a leg
-Pcr=1.5*MaxF; %Margined pcr of the single leg
+MaxF=M*g_Enc*Ks/n; %[N] maximum force acting on a leg
+Pcr=2*MaxF; %[N] Margined Pcr of the single leg
 
 %Sizing
 %chosen parameters
@@ -26,7 +26,7 @@ th=2e-3; %[m] thickness of the leg
 re=@(R) R+th/2;
 ri=@(R) R-th/2;
 
-I=@(R) pi*(re(R)^4-ri(R)^4)/4;
+I=@(R) pi*(re(R)^4-ri(R)^4)/4; %inertia moment
 
 %Critical load equation, pinned pinned case
 F_zero=@(R) Pcr-pi^2/L^2*E*I(R);

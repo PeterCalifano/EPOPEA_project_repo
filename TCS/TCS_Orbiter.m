@@ -21,7 +21,7 @@ R_earth = 6371;
 R_orbit_earth = 670 + R_earth;
 R_enc = 252.1;
 R_orbit_enc_min = 20 + R_enc;
-R_orbit_enc_max = 20 + R_enc;
+R_orbit_enc_max = 60 + R_enc;
 R_sat = 58232;
 R_orbit_sat = 238000;
 F_earth = (R_earth/R_orbit_earth)^2;
@@ -63,8 +63,8 @@ epsilon_1 = 0.9; %%%%??????????? epsilon of internal node
 
 % MLI 
 epsilon_MLI = 0.03;
-alpha_MLI = 0.14; % max. typ = 0.12 
-% alpha_MLI = 0.1;
+% alpha_MLI = 0.14; % max. typ = 0.12 
+alpha_MLI = 0.1;
 % Antenna painted white
 epsilon_ant = 0.90;
 alpha_ant = 0.18; % do sensitivity analysis
@@ -78,12 +78,12 @@ L_TS = 120e-3; %?????
 eps_louv_closed = 0.14;
 eps_louv_open = 0.7;
 eps_rad = eps_louv_open; % if open louvers
-eps_rad = eps_louv_open;
+
 % eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 30; %% to change
+n_rad = 15; %% to change
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 A2 = A2_tot-A_rad_tot+eps; % area on surface 2 not covered by radiators
 k_rad = 1;
@@ -110,7 +110,7 @@ F1rad = F12_tot*A_rad_tot/A2_tot;
 Frad1 = F1rad*A1/A_rad_tot; 
 F13 = VF_PerpRec(L3,L1,L3);
 F31 = F13*A1/A3;
-F14 = VF_PerpRec(L3,L2,L1);;
+F14 = VF_PerpRec(L3,L2,L1);
 F41 = VF_PerpRec(L2,L3,L1);
 F15 = F13;
 F51 = F31;
@@ -213,7 +213,7 @@ C.C_36 = C.C_13;
 C.C_45 = C.C_34;
 C.C_46 = C.C_14;
 C.C_56 = C.C_13;
-C.C_2rad = k_str*(l_str*L3/(L1/2));
+C.C_2rad = k_str*(l_str*L3/(L1/2))+100;
 % to tune:
 C.C_1rad = 10;
 C.C_3rad = 10;
@@ -235,7 +235,7 @@ Q_ext_hot3 = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
 Q_ext_hot5 = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
 Q_ext_hot6 = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
 
-Q_ext_hot = [0;0;Q_ext_hot3;0;Q_ext_hot5;Q_ext_hot6; 0; 0];
+Q_ext_hot = [0;0;Q_ext_hot3;0;Q_ext_hot5;Q_ext_hot6; 0; 0;0;0];
 
 % Initial condition
 T0 = 293;
@@ -259,6 +259,92 @@ fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
 fprintf(['ant ',num2str(T_orb_hot(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
 % add mass and specific heat for transient
+
+
+%% Cold case
+% Power
+P_budget_cold = 325;
+P_input_TMTC_cold = 0;
+P_diss_TMTC_cold = 0;
+% add batteries ...
+We = 577;
+Wt = 3850;
+Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
+
+Q_diss_cold = We;
+
+% close louvers and compute again thermal couplings
+eps_rad = eps_louv_closed;
+% radiative coupling
+R.R_12 = sigma_SB*A1 * epsilon_int^2*F12;
+R.R_1rad = sigma_SB*A1 * epsilon_int^2*F1rad;
+R.R_13 = sigma_SB*A1 * epsilon_int^2*F13;
+R.R_14 = sigma_SB*A1 * epsilon_int^2*F14;
+R.R_15 = sigma_SB*A1 * epsilon_int^2*F15;
+R.R_16 = sigma_SB*A1 * epsilon_int^2*F16;
+R.R_23 = sigma_SB*A2 * epsilon_int^2*F23;
+R.R_24 = sigma_SB*A2 * epsilon_int^2*F24;
+R.R_25 = sigma_SB*A2 * epsilon_int^2*F25;
+R.R_26 = sigma_SB*A2 * epsilon_int^2*F26;
+R.R_rad3 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad3; %??
+R.R_rad4 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad4; %??
+R.R_rad5 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad5; %??
+R.R_rad6 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad6; %??
+R.R_34 = sigma_SB*A3 * epsilon_int^2*F34;
+R.R_35 = sigma_SB*A3 * epsilon_int^2*F35;
+R.R_36 = sigma_SB*A3 * epsilon_int^2*F36;
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+
+R.R_45 = sigma_SB*A4 * epsilon_int^2*F45;
+R.R_46 = sigma_SB*A4 * epsilon_int^2*F46;
+R.R_56 = sigma_SB*A5 * epsilon_int^2*F56;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
+
+R.R_1ant = sigma_SB*A1_ext * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
+C.C_1ant = k_str*l_str/(A1-A1_ext);
+% C.C_1ant = 0;
+R.R_10 = sigma_SB*A1_ext * epsilon_MLI;
+R.R_20 = sigma_SB*A2 * epsilon_MLI;
+R.R_30 = sigma_SB*A3 * epsilon_MLI;
+R.R_40 = sigma_SB*A4 * epsilon_MLI;
+R.R_50 = sigma_SB*A5 * epsilon_MLI;
+R.R_60 = sigma_SB*A6 * epsilon_MLI;
+R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+
+% External fluxes
+% IR Heat fluxes for Saturn and Enceladus
+q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
+q_Enc = F_enc_min * sigma_SB *T_Enc^4 *epsilon_Enc;
+
+% HYP: nadir pointing
+% face 3 with cameras points Enceladus and receive IR from Enceladus
+% Saturn ? HYP: face 4 (CHANGE!)
+P_added_RHU = 125;
+P_added_3ext = 90;
+theta_3Enc = 0;
+theta_4Sat = 0; % CHANGE!
+Q_ext_cold = [P_added_RHU;
+              0;
+        q_Enc * A3*epsilon_MLI*cos(theta_3Enc);
+        q_Sat * A4*epsilon_MLI*cos(theta_4Sat);
+       zeros(5,1);
+       P_added_3ext];
+
+%%% SOLVE THE SYSTEM 
+T_guess = 273*ones(10,1);
+options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+T_orb_cold = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, sigma_SB), T_guess, options);
+
+fprintf(['1 ',num2str(T_orb_cold(1)-273),' Celsius\n'])
+fprintf(['2 ',num2str(T_orb_cold(2)-273),' Celsius\n'])
+fprintf(['3 ',num2str(T_orb_cold(3)-273),' Celsius\n'])
+fprintf(['4 ',num2str(T_orb_cold(4)-273),' Celsius\n'])
+fprintf(['5 ',num2str(T_orb_cold(5)-273),' Celsius\n'])
+fprintf(['6 ',num2str(T_orb_cold(6)-273),' Celsius\n'])
+fprintf(['ant ',num2str(T_orb_cold(7)-273),' Celsius\n'])
+fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
+fprintf(['3 ext ',num2str(T_orb_cold(10)-273),' Celsius\n'])
 
 % Conduction between surfaces
 % To do:

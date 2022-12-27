@@ -67,8 +67,8 @@ Q_3int3ext = R.R_3int3ext*(T3^4 - T3_ext^4);
 balances(3) =  Q_31 + Q_32 + Q_34  + Q_35  + Q_36 +...
      + Q_3ant+ Q_3int3ext + Q_3rad;
 
-balances(10) = + Q_3ext0 - Q_3int3ext - Q_ext(3);
-
+balances(10) = + Q_3ext0 - Q_3int3ext - Q_ext(3)  - Q_ext(10);
+ 
 % Balance 4
 Q_41 = - Q_14;
 Q_42 = - Q_24;
@@ -107,7 +107,7 @@ Q_5ext0 = R.R_50*(T5_ext^4 - 0);
 balances(5) =   Q_51 + Q_52 + Q_53  + Q_54  + Q_56 +...
      + Q_5ant+  + Q_5rad + Q_5int5ext;
 Q_5ext5int = - Q_5int5ext;
-balances(9) = Q_5ext0 + Q_5ext5int - Q_ext(5);
+balances(9) = Q_5ext0 + Q_5ext5int - Q_ext(5)- Q_ext(9);
 
 % Balance 6 
 Q_61 = - Q_16;

@@ -78,7 +78,7 @@ L_TS = 120e-3; %?????
 eps_louv_closed = 0.14;
 eps_louv_open = 0.7;
 eps_rad = eps_louv_open; % if open louvers
-eps_rad = eps_louv_closed;
+eps_rad = eps_louv_open;
 % eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
@@ -207,9 +207,30 @@ Q_ext_hot3 = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
 Q_ext_hot5 = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
 Q_ext_hot6 = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
 
+Q_ext_hot = [0;0;Q_ext_hot3;0;Q_ext_hot5;Q_ext_hot6; 0; 0];
+
 % Initial condition
 T0 = 293;
 
+
+% solve
+%%% Internal dissipation power
+Q_diss_hot =  Q_hot;
+
+%%% SOLVE THE SYSTEM 
+T_guess = 273*ones(8,1);
+options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+C = 0;
+T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, sigma_SB), T_guess, options);
+
+fprintf(['1 ',num2str(T_orb_hot(1)-273),' Celsius\n'])
+fprintf(['2 ',num2str(T_orb_hot(2)-273),' Celsius\n'])
+fprintf(['3 ',num2str(T_orb_hot(3)-273),' Celsius\n'])
+fprintf(['4 ',num2str(T_orb_hot(4)-273),' Celsius\n'])
+fprintf(['5 ',num2str(T_orb_hot(5)-273),' Celsius\n'])
+fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
+fprintf(['ant',num2str(T_orb_hot(7)-273),' Celsius\n'])
+fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
 % add mass and specific heat for transient
 
 % Conduction between surfaces

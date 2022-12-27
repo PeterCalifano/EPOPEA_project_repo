@@ -4,6 +4,9 @@ clear,clc;close all
 %DATA
 g_Enc=0.113; %[m/s^2] Enceladus gravitational acceleration
 
+g_Earth=9.81; %[m/s] earth acceleration
+
+
 M=462.4; %[kg] - lander mass
 E= 71*10^9; %[Pa] - Young Modulus of the chosen material (Al5056)
 rho=2640; %[kg/m^3] - Density of the material
@@ -14,13 +17,16 @@ Ks=3; %multiplicative factor for the weight force, to account for impact and mar
 
 
 %computation of the limit Pcr 
-MaxF=M*g_Enc*Ks/n; %[N] maximum force acting on a leg
-Pcr=2*MaxF; %[N] Margined Pcr of the single leg
+NG=3; %number of G's at impact
+MaxF=M*g_Enc*Ks/n; %[N] maximum force acting on a leg, nominal operations
+MaxlandF=M*NG*g_Earth/n; %[N] maximum impact force on a leg
+
+Pcr=2*max(MaxF,MaxlandF); %[N] Margined Pcr of the single leg
 
 %Sizing
 %chosen parameters
 L=1; %[m] length of the legs
-th=2e-3; %[m] thickness of the leg
+th=5e-3; %[m] thickness of the leg
 
 %solving for R, mean radius of the leg circular section
 re=@(R) R+th/2;

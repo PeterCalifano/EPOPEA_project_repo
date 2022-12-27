@@ -61,13 +61,14 @@ Q_35 = R.R_25*(T3^4 - T5^4) + C.C_35*(T3 - T5);
 Q_36 = R.R_26*(T3^4 - T6^4) + C.C_36*(T3 - T6);
 Q_3ant = 0;
 Q_3rad = R.R_rad3*(T3^4 - Trad^4) + C.C_3rad*(T3 - Trad); 
+Q_3extrad = C.C_3extrad*(T3_ext - Trad); 
 Q_3ext0 = R.R_30*(T3_ext^4 - 0);
 Q_3int3ext = R.R_3int3ext*(T3^4 - T3_ext^4);
 
 balances(3) =  Q_31 + Q_32 + Q_34  + Q_35  + Q_36 +...
      + Q_3ant+ Q_3int3ext + Q_3rad;
 
-balances(10) = + Q_3ext0 - Q_3int3ext - Q_ext(3)  - Q_ext(10);
+balances(10) = Q_3extrad + Q_3ext0 - Q_3int3ext - Q_ext(3)  - Q_ext(10);
  
 % Balance 4
 Q_41 = - Q_14;

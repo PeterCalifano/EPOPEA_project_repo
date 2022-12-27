@@ -220,6 +220,7 @@ C.C_3rad = 10;
 C.C_4rad = 10;
 C.C_5rad = 10;
 C.C_6rad = 10;
+C.C_3extrad = 10;
 
 % External fluxes 
 q_Sun = q_sun_earth;
@@ -230,13 +231,23 @@ q_Earth = F_earth*sigma_SB*T_earth^4*epsilon_Earth;
 theta_5Sun = 15 * pi/180;
 theta_6Sun = 75 * pi/180;
 
+Q_ext_hot = zeros(10,1);
+% HOT CASE 1 : cameras towards Earth, face 5 sees the Sun
+% HOT CASE 2: cameras towards Earth, antenna towards Sun
+hot_case = 1;
 
-Q_ext_hot3 = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
-Q_ext_hot5 = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
-Q_ext_hot6 = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
-
-Q_ext_hot = [0;0;Q_ext_hot3;0;Q_ext_hot5;Q_ext_hot6; 0; 0;0;0];
-
+if hot_case ==1
+Q_ext_hot(3) = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
+Q_ext_hot(5) = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
+Q_ext_hot(6) = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
+else if hot_case ==2
+        theta_antSun = 0;
+        Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_antSun);
+        Q_ext_hot(1) = q_Sun * A1_ext * alpha_MLI* cos(theta_antSun);
+        Q_ext_hot(3) = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
+      
+    end
+end
 % Initial condition
 T0 = 293;
 
@@ -258,6 +269,7 @@ fprintf(['5 ',num2str(T_orb_hot(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
 fprintf(['ant ',num2str(T_orb_hot(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
+fprintf(['3 ext ',num2str(T_orb_hot(10)-273),' Celsius\n'])
 % add mass and specific heat for transient
 
 
@@ -311,7 +323,7 @@ R.R_50 = sigma_SB*A5 * epsilon_MLI;
 R.R_60 = sigma_SB*A6 * epsilon_MLI;
 R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-
+C.C_3extrad = 0;
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
 q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;

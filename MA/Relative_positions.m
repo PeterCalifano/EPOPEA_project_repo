@@ -6,8 +6,8 @@ set(0,'defaultAxesFontSize', 16)
 
 clearvars; clc; close all; cspice_kclear();
 
-% kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
-% cspice_furnsh(kernelpool);
+%kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
+%cspice_furnsh(kernelpool);
 
 % Define Kernel
 cd('..')

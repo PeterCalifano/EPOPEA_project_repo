@@ -64,7 +64,7 @@ epsilon_1 = 0.9; %%%%??????????? epsilon of internal node
 % MLI 
 epsilon_MLI = 0.03;
 alpha_MLI = 0.14; % max. typ = 0.12 
-
+% alpha_MLI = 0.1;
 % Antenna painted white
 epsilon_ant = 0.90;
 alpha_ant = 0.18; % do sensitivity analysis
@@ -83,9 +83,9 @@ eps_rad = eps_louv_open;
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 5; %% to change
+n_rad = 30; %% to change
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
-A2 = A2_tot-A_rad_tot; % area on surface 2 not covered by radiators
+A2 = A2_tot-A_rad_tot+eps; % area on surface 2 not covered by radiators
 k_rad = 1;
 
 % RHU or heaters
@@ -178,12 +178,16 @@ R.R_rad6 = sigma_SB*A_rad_tot * epsilon_int*eps_louv_open*Frad6; %??
 R.R_34 = sigma_SB*A3 * epsilon_int^2*F34;
 R.R_35 = sigma_SB*A3 * epsilon_int^2*F35;
 R.R_36 = sigma_SB*A3 * epsilon_int^2*F36;
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+
 R.R_45 = sigma_SB*A4 * epsilon_int^2*F45;
 R.R_46 = sigma_SB*A4 * epsilon_int^2*F46;
 R.R_56 = sigma_SB*A5 * epsilon_int^2*F56;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
 
-R.R_1ant = sigma_SB*A1 * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
-
+R.R_1ant = sigma_SB*A1_ext * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
+C.C_1ant = k_str*l_str/(A1-A1_ext);
+% C.C_1ant = 0;
 R.R_10 = sigma_SB*A1_ext * epsilon_MLI;
 R.R_20 = sigma_SB*A2 * epsilon_MLI;
 R.R_30 = sigma_SB*A3 * epsilon_MLI;
@@ -192,6 +196,30 @@ R.R_50 = sigma_SB*A5 * epsilon_MLI;
 R.R_60 = sigma_SB*A6 * epsilon_MLI;
 R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+
+% Conductive Coupling
+C.C_12 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
+C.C_13 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
+C.C_14 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
+C.C_15 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
+C.C_16 = 0;
+C.C_23 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
+C.C_25 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
+C.C_24 = 0;
+C.C_26 = C.C_12;
+C.C_34 = C.C_23;
+C.C_35 = 0;
+C.C_36 = C.C_13;
+C.C_45 = C.C_34;
+C.C_46 = C.C_14;
+C.C_56 = C.C_13;
+C.C_2rad = k_str*(l_str*L3/(L1/2));
+% to tune:
+C.C_1rad = 10;
+C.C_3rad = 10;
+C.C_4rad = 10;
+C.C_5rad = 10;
+C.C_6rad = 10;
 
 % External fluxes 
 q_Sun = q_sun_earth;
@@ -218,9 +246,8 @@ T0 = 293;
 Q_diss_hot =  Q_hot;
 
 %%% SOLVE THE SYSTEM 
-T_guess = 273*ones(8,1);
+T_guess = 273*ones(10,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-C = 0;
 T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, sigma_SB), T_guess, options);
 
 fprintf(['1 ',num2str(T_orb_hot(1)-273),' Celsius\n'])
@@ -229,7 +256,7 @@ fprintf(['3 ',num2str(T_orb_hot(3)-273),' Celsius\n'])
 fprintf(['4 ',num2str(T_orb_hot(4)-273),' Celsius\n'])
 fprintf(['5 ',num2str(T_orb_hot(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
-fprintf(['ant',num2str(T_orb_hot(7)-273),' Celsius\n'])
+fprintf(['ant ',num2str(T_orb_hot(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
 % add mass and specific heat for transient
 

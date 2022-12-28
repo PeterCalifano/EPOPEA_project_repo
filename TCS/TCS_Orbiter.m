@@ -187,7 +187,7 @@ R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
 
 R.R_1ant = sigma_SB*A1_ext * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
 C.C_1ant = k_str*l_str/(A1-A1_ext);
-% C.C_1ant = 0;
+C.C_1ant = 0;
 R.R_10 = sigma_SB*A1_ext * epsilon_MLI;
 R.R_20 = sigma_SB*A2 * epsilon_MLI;
 R.R_30 = sigma_SB*A3 * epsilon_MLI;
@@ -220,7 +220,7 @@ C.C_3rad = 10;
 C.C_4rad = 10;
 C.C_5rad = 10;
 C.C_6rad = 10;
-C.C_3extrad = 10;
+C.C_3extrad = 20;
 
 % External fluxes 
 q_Sun = q_sun_earth;
@@ -257,6 +257,7 @@ T0 = 293;
 Q_diss_hot =  Q_hot;
 
 %%% SOLVE THE SYSTEM 
+% Put Q_40 = O (in the clamped configuration...)
 T_guess = 273*ones(10,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, sigma_SB), T_guess, options);
@@ -314,7 +315,7 @@ R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
 
 R.R_1ant = sigma_SB*A1_ext * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
 C.C_1ant = k_str*l_str/(A1-A1_ext);
-% C.C_1ant = 0;
+C.C_1ant = 0;
 R.R_10 = sigma_SB*A1_ext * epsilon_MLI;
 R.R_20 = sigma_SB*A2 * epsilon_MLI;
 R.R_30 = sigma_SB*A3 * epsilon_MLI;
@@ -324,6 +325,11 @@ R.R_60 = sigma_SB*A6 * epsilon_MLI;
 R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
 C.C_3extrad = 0;
+C.C_1rad = 0;
+C.C_3rad = 0;
+C.C_4rad = 0;
+C.C_5rad = 0;
+C.C_6rad = 0;
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
 q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
@@ -332,8 +338,9 @@ q_Enc = F_enc_min * sigma_SB *T_Enc^4 *epsilon_Enc;
 % HYP: nadir pointing
 % face 3 with cameras points Enceladus and receive IR from Enceladus
 % Saturn ? HYP: face 4 (CHANGE!)
-P_added_RHU = 125;
-P_added_3ext = 90;
+P_added_RHU = 60;
+P_added_3ext = 95;
+
 theta_3Enc = 0;
 theta_4Sat = 0; % CHANGE!
 Q_ext_cold = [P_added_RHU;

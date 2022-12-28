@@ -1,29 +1,44 @@
-function [balances] = HeatBalance_Lander(T, R, T_E, Q_Sat_T,Q_Sat_L , Q_diss, Q_RTG, sigma,C_LB,C_LT)
+function [balances] = HeatBalance_Lander_new(T, R,C, Q_ext , Q_diss, sigma)
 
-T_B = T(1);
-T_L = T(2);
-T_T = T(3);
+T1 = T(1);
+T2 = T(2);
+T3 = T(3);
+T4 = T(4);
+T5 = T(5);
 
-Cond_LB = C_LB/(4*sigma*0.5^3*(T_L + T_B)^3);
-Cond_LT = C_LT/(4*sigma*0.5^3*(T_L + T_T)^3);
+% Conductive coupling
+Cond_15 = C.C_15/(4*sigma*0.5^3*(T1 + T5)^3);
 
-% balance bottom
-Q_EB = R.R_EB*sigma*(T_E^4-T_B^4);
-Q_LB = (R.R_LB + Cond_LB)*sigma*(T_L^4-T_B^4);
-Q_TB = R.R_TB*sigma*(T_T^4-T_B^4);
+% Balance 1
+% Q_10 = R.R_10*sigma*(T1^4 - 0);
+Q_15 = Cond_15*sigma*(T1^4-T5^4);
+Q_12 = R.R_21*sigma*(T1^4 - T2^4);
+Q_13 = R.R_31*sigma*(T1^4 - T3^4);
+Q_14 = R.R_41*sigma*(T1^4 - T4^4);
 
-% balance lateral surfaces
-Q_BL = (R.R_BL + Cond_LB) *sigma*(T_B^4-T_L^4);
-Q_TL = (R.R_TL + Cond_LT) *sigma*(T_T^4-T_L^4);
-Q_LDS = R.R_LDS*sigma*T_L^4;
+balances(1) = Q_15 + Q_12 + Q_13 + Q_14 - Q_ext(1) - Q_diss;
 
-% balance top surface
-Q_BT = R.R_BT*sigma*(T_B^4-T_T^4);
-Q_LT = (R.R_LT + Cond_LT)*sigma*(T_L^4-T_T^4);
-Q_TDS = R.R_TDS*sigma*T_T^4;
+% Balance 2
+Q_21 = - Q_12;
+Q_20 = R.R_20*sigma*(T2^4 - 0);
 
-balances(1) = Q_EB+Q_LB+Q_TB;
-balances(2) = Q_BL+Q_TL-Q_LDS+Q_Sat_L+Q_diss+Q_RTG;
-balances(3) = Q_BT+Q_LT-Q_TDS+Q_Sat_T; 
+balances(2) = Q_20 + Q_21 - Q_ext(2);
+
+% Balance 3
+Q_31 = - Q_13;
+Q_30 = R.R_30*sigma*(T3^4 - 0);
+
+balances(3) = Q_30 + Q_31 - Q_ext(3); 
+
+% Balance 4
+Q_41 = - Q_14;
+Q_40 = R.R_40*sigma*(T4^4 - 0);
+
+balances(4) = Q_40 + Q_41 - Q_ext(4);
+
+% Balance 5 (Radiator)
+Q_51 = - Q_15;
+Q_50 = R.R_50*sigma*(T5^4 - 0);
+balances(5) = Q_51 + Q_50 - Q_ext(5);
 
 end

@@ -41,8 +41,8 @@ orbiter.Isp_main = 321 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 292 ; % [s] - Specific impulse of sk thrusters
 orbiter.Isp_att = 292 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
-orbiter.dry = 1468.5 ; % [kg] - Orbiter dry mass
-lander.dry = 495.3 + 20 ; % [kg] - Lander dry mass
+orbiter.dry = 2359.1 * 1.2 ; % [kg] - Orbiter dry mass
+lander.dry = 465.3 * 1.2 ; % [kg] - Lander dry mass
 lander.hazard = 80 ; % [kg] - Hazard margin
 
 % OVERALL PROPELLANT MASS - both modules
@@ -78,8 +78,8 @@ orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 310 ; % [s] - Specific impulse of sk thrusters
 orbiter.Isp_att = 227.5 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
-orbiter.dry = 1468.5 ; % [kg] - Orbiter dry mass
-lander.dry = 495.3 + 20 ; % [kg] - Lander dry mass
+orbiter.dry = 2359.1 * 1.2 ; % [kg] - Orbiter dry mass
+lander.dry = 465.3 * 1.2 ; % [kg] - Lander dry mass
 lander.hazard = 80 ; % [kg] - Hazard margin
 
 % OVERALL PROPELLANT MASS - both modules
@@ -115,8 +115,8 @@ orbiter.Isp_main = 321 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 292 ; % [s] - Specific impulse of sk thrusters
 orbiter.Isp_att = 292 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
-orbiter.dry = 1468.5 ; % [kg] - Orbiter dry mass
-lander.dry = 495.3 + 20 ; % [kg] - Lander dry mass
+orbiter.dry = 2359.1 * 1.2 ; % [kg] - Orbiter dry mass
+lander.dry = 465.3 * 1.2 ; % [kg] - Lander dry mass
 lander.hazard = 80 ; % [kg] - Hazard margin
 
 % OVERALL PROPELLANT MASS - both modules
@@ -151,8 +151,8 @@ orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 310 ; % [s] - Specific impulse of sk thrusters
 orbiter.Isp_att = 227.5 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
-orbiter.dry = 1468.5 ; % [kg] - Orbiter dry mass
-lander.dry = 495.3 + 20 ; % [kg] - Lander dry mass
+orbiter.dry = 2359.1 * 1.2 ; % [kg] - Orbiter dry mass
+lander.dry = 465.3 * 1.2 ; % [kg] - Lander dry mass
 lander.hazard = 80 ; % [kg] - Hazard margin
 
 % OVERALL PROPELLANT MASS - both modules

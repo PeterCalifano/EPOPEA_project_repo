@@ -41,9 +41,12 @@ T_Sat = 97;
 %%% Spacecraft %%%
 
 % Area
-L1 = 4;
-L2 = 4;
-L3 = 2;
+% L1 = 4;
+% L2 = 4;
+% L3 = 2;
+L1 = 3.6;
+L2 = 3.6;
+L3 = 2.5;
 A1 = L1*L2;
 A6 = A1;
 A2_tot = L1*L3;
@@ -324,12 +327,12 @@ R.R_50 = sigma_SB*A5 * epsilon_MLI;
 R.R_60 = sigma_SB*A6 * epsilon_MLI;
 R.R_ant0 = sigma_SB*A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-C.C_3extrad = 0;
-C.C_1rad = 0;
-C.C_3rad = 0;
-C.C_4rad = 0;
-C.C_5rad = 0;
-C.C_6rad = 0;
+ C.C_3extrad = 0;
+% C.C_1rad = 0;
+% C.C_3rad = 0;
+% C.C_4rad = 0;
+% C.C_5rad = 0;
+% C.C_6rad = 0;
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
 q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
@@ -338,8 +341,8 @@ q_Enc = F_enc_min * sigma_SB *T_Enc^4 *epsilon_Enc;
 % HYP: nadir pointing
 % face 3 with cameras points Enceladus and receive IR from Enceladus
 % Saturn ? HYP: face 4 (CHANGE!)
-P_added_RHU = 60;
-P_added_3ext = 95;
+P_added_RHU = 50;
+P_added_3ext = 100;
 
 theta_3Enc = 0;
 theta_4Sat = 0; % CHANGE!

@@ -30,13 +30,13 @@ end
 % Baseline
 load('E_EEJ_S_bestvalue1.016.mat')
 
-clearvars -except min_at_iter NLPoptset_local planet_seq min_pos
 % Main backup
 % load('E_EEJ_S_bestvalue1.14backup2035.mat')
 
 % Secondary backup
 % load('E_EEJ_S_bestvalue1.02backup2043.mat')
 
+clearvars -except min_at_iter NLPoptset_local planet_seq min_pos
 %% Compute trajectory
 R_Saturn = astroConstants(26); % [km]
 Ra_target = 200*R_Saturn;
@@ -107,12 +107,22 @@ for idfb = 1:howmanyfb
         hold on;
     end
 
+
+    % Define directions for plot
     SunDir = Xplanets(1:3, idfb)./norm(Xplanets(1:3, idfb));
-
     R_traj = xstate_cell{idfb}(:, 1:3);
-    plot3(R_traj(:, 1), R_traj(:, 2), R_traj(:, 3), 'Color', [0.01, 0.15, 0.5], 'LineWidth', 1.05)
+    Vpdir = Xplanets(4:6, idfb)./norm(Xplanets(4:6, idfb));
 
+    % Plot Sun direction and planet velocity
+    quiver3(0, 0, 0, Vpdir(1), Vpdir(2), Vpdir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#8ae222', 'LineWidth', 1.05, 'MaxHeadSize', 2);
     quiver3(0, 0, 0, SunDir(1), SunDir(2), SunDir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#e27722', 'LineWidth', 1.05, 'MaxHeadSize', 2);
+
+    % Plot trajectory
+    idmid = (length(R_traj(:, 1))-1)/2;
+
+    plot3(R_traj(1:idmid, 1), R_traj(1:idmid, 2), R_traj(1:idmid, 3), 'Color', [0.01, 0.15, 0.5], 'LineWidth', 1.05)
+    plot3(R_traj(idmid+1:end, 1), R_traj(idmid+1:end, 2), R_traj(idmid+1:end, 3), 'Color', [0.6, 0.05, 0.01], 'LineWidth', 1.05)
+
 
     grid minor;
     axis auto;
@@ -124,7 +134,8 @@ for idfb = 1:howmanyfb
     zlabel('$Z_{planet}$ [km]')
 
     ax.LineWidth = 1.08;
-    legend(bodynm, 'Trajectory', 'Sun direction');
+    legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', 'Outbound leg');
+    title("Flyby " + num2str(idfb) + " at " + bodynm)
 
 end
 

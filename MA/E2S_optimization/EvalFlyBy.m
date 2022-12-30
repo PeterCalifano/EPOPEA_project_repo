@@ -127,7 +127,7 @@ Sb_h = dot(S, H_dir, 2);
 
 Sb = [Sb_r, Sb_theta, Sb_h];
 % Compute Solar Aspect Angle in deg from component normal to trajectory plane
-SAA = asind(Sb_h); 
+SAA = mean(asind(Sb_h)); 
 
 
 %% Local functions

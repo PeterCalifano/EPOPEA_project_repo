@@ -112,6 +112,11 @@ for idfb = 1:howmanyfb
     SunDir = Xplanets(1:3, idfb)./norm(Xplanets(1:3, idfb));
     R_traj = xstate_cell{idfb}(:, 1:3);
     Vpdir = Xplanets(4:6, idfb)./norm(Xplanets(4:6, idfb));
+    V_HelioPlus = Xplanets(4:6, idfb) + vinf_minunsplus(idfb, 4:6);
+    V_HelioPlus = V_HelioPlus./norm(V_HelioPlus);
+
+    V_HelioMinus = Xplanets(4:6, idfb) + vinf_minunsplus(idfb, 1:3);
+    V_HelioMinus = V_HelioMinus./norm(V_HelioMinus);
 
     % Plot Sun direction and planet velocity
     quiver3(0, 0, 0, Vpdir(1), Vpdir(2), Vpdir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#8ae222', 'LineWidth', 1.05, 'MaxHeadSize', 2);
@@ -120,8 +125,13 @@ for idfb = 1:howmanyfb
     % Plot trajectory
     idmid = (length(R_traj(:, 1))-1)/2;
 
+    % Inbound and Entry Helio Velocity
     plot3(R_traj(1:idmid, 1), R_traj(1:idmid, 2), R_traj(1:idmid, 3), 'Color', [0.01, 0.15, 0.5], 'LineWidth', 1.05)
+    quiver3(R_traj(1, 1), R_traj(1, 2), R_traj(1, 3), V_HelioMinus(1), V_HelioMinus(2), V_HelioMinus(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', [0.01, 0.15, 0.5], 'LineWidth', 1.05, 'MaxHeadSize', 2);
+    
+    % Outbound and Exit Helio Velocity
     plot3(R_traj(idmid+1:end, 1), R_traj(idmid+1:end, 2), R_traj(idmid+1:end, 3), 'Color', [0.6, 0.05, 0.01], 'LineWidth', 1.05)
+    quiver3(R_traj(end, 1), R_traj(end, 2), R_traj(end, 3), V_HelioPlus(1), V_HelioPlus(2), V_HelioPlus(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', [0.6, 0.05, 0.01], 'LineWidth', 1.05, 'MaxHeadSize', 2);
 
 
     grid minor;
@@ -134,7 +144,7 @@ for idfb = 1:howmanyfb
     zlabel('$Z_{planet}$ [km]')
 
     ax.LineWidth = 1.08;
-    legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', 'Outbound leg');
+    legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', '$V_{SC}^-$', 'Outbound leg', '$V_{SC}^+$');
     title("Flyby " + num2str(idfb) + " at " + bodynm)
 
 end

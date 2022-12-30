@@ -110,8 +110,8 @@ end
 
 % State vectors of planets (all)
 % Xplanets = [r_planets; v_planets];
-data.Xplanets = [r_planets; v_planets];
-data.EventEpochsJD = ephtimes;
+data.Xplanets = [r_planets(:, 2:end-1); v_planets(:, 2:end-1)];
+data.EventEpochsJD = ephtimes(2:end-1);
 
 %% DEPARTURE 
 % Position and velocity of the Earth

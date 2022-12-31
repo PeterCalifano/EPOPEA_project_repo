@@ -145,7 +145,7 @@ for idfb = 1:howmanyfb
 
     ax.LineWidth = 1.08;
     legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', '$V_{SC}^-$', 'Outbound leg', '$V_{SC}^+$');
-    title("Flyby " + num2str(idfb) + " at " + bodynm)
+    title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000")
 
 end
 

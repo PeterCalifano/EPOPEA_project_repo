@@ -1,4 +1,4 @@
-function [R_PROP,TIMES,FLAGS] = plot_trajectory(flag)
+function [R_PROP,TIMES,FLAGS, r_DSM, r_planets] = plot_trajectory(flag)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -15,9 +15,13 @@ function [R_PROP,TIMES,FLAGS] = plot_trajectory(flag)
 % TIMES [1 x n] - Times corresponding to each position
 % FLAGS [1 x n] - A vector of zeros with 1 at the beginning and at the end
 %               of every arc
+% r_DSM [3 x m] - Postions of DSM [AU]
+% r_planets [3 x m+1] - Positions of planets during main important
+% manoeuvers
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % 28/11/2022 Matteo Lusvarghi - First Version
+% 02/01/2023 Elena Pilo - Added r_DSM and r_positions as output
 % -------------------------------------------------------------------------------------------------------------
 %% EXPLANATION OF VAR VECTOR
 %

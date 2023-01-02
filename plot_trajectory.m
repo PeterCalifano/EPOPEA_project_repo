@@ -242,7 +242,7 @@ DV_capture = DV_capture * VU;
 DV_breakdown = [DV_DSM,DV_capture];
 %% PLOT POSITION OF PLANETS
 if flag == 2
-    planets = {'Earth DEP','Venus FB 1','Earth FB 2','Earth FB 3','Saturn ARR'};
+    planets = {'Earth DEP','Earth FB 1','Earth FB 2','Jupiter FB 3','Saturn ARR'};
     t_v = linspace(ephtimes(1),ephtimes(end),1000);
     leg1 = zeros(1,N+2);
     figure

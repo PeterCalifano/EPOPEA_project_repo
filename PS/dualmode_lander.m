@@ -1,4 +1,4 @@
-function [ tank_prop, tank_gas ] = dualmode_lander( main_thruster, att_thruster, lander_data, tank, rho_f, pressurant )
+function [ tank_prop, tank_gas, V_prop_att, V_gas_att ] = dualmode_lander( main_thruster, att_thruster, lander_data, tank, rho_f, pressurant )
 
 % main_thruster, sk_thruster, att_thruster structures:
 % .Pc_mean  [Pa] - Mean combustion chamber pressure

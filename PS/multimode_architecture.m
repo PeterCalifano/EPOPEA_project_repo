@@ -1,4 +1,4 @@
-function [ tank_ox, tank_fu, tank_gas ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, pressurant )
+function [ tank_ox, tank_fu, tank_gas, V_gas_sec, V_prop_sec ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, pressurant )
 
 % main_thruster, sk_thruster, att_thruster structures:
 % .Pc_mean  [Pa] - Mean combustion chamber pressure
@@ -100,6 +100,10 @@ m_gas_sk = ( Pi_gas * V_gas_sk ) / ( R_gas * T_tank ) ; % [kg] - Pressurant mass
 %% BLOWDOWN - MONOPROPELLANT THRUSTERS (ATTITUDE)
 V_gas_att = V_prop_att / ( B_att - 1 ) ; % [m3] - Initial volume of pressurant gas
 m_gas_att = ( Pi_gas * V_gas_att ) / ( R_gas * T_tank ) ; % [kg] - Pressurant mass 
+
+V_gas_sec = V_gas_sk + V_gas_att ;
+
+V_prop_sec = V_prop_att + V_ox_sk + V_fu_sk ;
 
 %% CUMULATIVE MASSES
 m_gas = ( m_gas_main + m_gas_sk + m_gas_att ) * 1.2 ; % [kg] - Overall pressurant mass

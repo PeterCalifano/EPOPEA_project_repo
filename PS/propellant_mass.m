@@ -14,7 +14,6 @@ function [ m_prop_orb, m_prop_lan, m_prop_main, m_prop_sk, m_prop_att, m_prop_ma
         % Isp_sk             [s]   - Specific impulse of sk
         % Isp_att            [s]   - Specific impulse of attitude thrusters 
         % dry                [kg]  - Dry mass
-        % hazard             [kg]  - Propellant mass needed for hazard maneuvers (HAZARD MARGIN)
 
 % lander  -  structure:
         % dV_des             [m/s] - Delta v for descending phase 
@@ -70,14 +69,14 @@ m_prop_lan = m_prop_att_lan + m_prop_des + m_hazard ; % [kg] Total propellant ma
 
 %% ORBITER 
 
-% Disposal 
+% Disposal
 mf = m_dry_orb ;
 m_prop_disp = mf * ( exp( dV_disp / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for disposal of the orbiter
 
-% SK and Attitude 
-A = [ 1, ( 1 - exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) ); ( 1 - exp( dV_att_orb / ( Isp_att_orb * g0 ) ) ), 1 ] ; 
+% SK and Attitude
+A = [ 1, ( 1 - exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) ); ( 1 - exp( dV_att_orb / ( Isp_att_orb * g0 ) ) ), 1 ] ;
 B = ( m_dry_orb + m_prop_disp ) * [ ( exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) - 1 );...
-                                    ( exp( dV_att_orb / ( Isp_att_orb * g0 ) ) - 1 ) ] ;
+    ( exp( dV_att_orb / ( Isp_att_orb * g0 ) ) - 1 ) ] ;
 m_prop_temp = A\B ;
 m_prop_sk_orb = m_prop_temp( 1 ) ; % [kg] - propellant mass needed for sk of orbiter
 m_prop_att_orb = m_prop_temp( 2 ) ; % [kg] - propellant mass needed for attitude control of orbiter
@@ -115,11 +114,11 @@ m_prop_orb = m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_int ; % [
 m_prop_orb = m_prop_orb * 1.025 ;
 m_prop_lan = m_prop_lan * 1.025 ;
 
-m_prop_main = m_prop_main * 1.025 ;
-m_prop_sk = m_prop_sk * 1.025 ;
-m_prop_att = m_prop_att * 1.025 ;
-m_prop_main_lan = (m_prop_des + m_hazard ) * 1.025 ;
-m_prop_att_lan = m_prop_att_lan * 1.025 ;
+m_prop_main = m_prop_main ;
+m_prop_sk = m_prop_sk ;
+m_prop_att = m_prop_att ;
+m_prop_main_lan = (m_prop_des + m_hazard ) ;
+m_prop_att_lan = m_prop_att_lan ;
 
 end
 

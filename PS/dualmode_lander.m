@@ -55,7 +55,7 @@ m_prop_att = m_prop_att * 1.01 ; % [kg] - Oxidizer mass + ullage margin (1%)
 V_prop_att = m_prop_att / rho_f ; % [m3] - Volume of the propellant for attitude 
 
 m_prop = m_prop_att + m_prop_main ; % [kg] - Propellant mass
-V_prop = V_prop_att + V_prop_main ; % [m3] - Volume of the propellant 
+V_prop = ( V_prop_att + V_prop_main ) * 1.1 ; % [m3] - Volume of the propellant + MAR-CP-010
 
 Pi_prop_main = Pc_main + dP_inj_main + dP_feed ; % [ Pa ] - Initial propellant pressure (thrusters)
 Pi_prop_att = Pc_att + dP_inj_main + dP_inj_att ; % [ Pa ] - Initial propellant pressure 
@@ -71,7 +71,7 @@ V_gas_att = V_prop_att / ( B_att - 1 ) ; % [m3] - Initial volume of pressurant g
 m_gas_att = ( Pi_gas * V_gas_att ) / ( R_gas * T_tank ) ; % [kg] - Pressurant mass 
 
 %% CUMULATIVE MASSES
-m_gas = ( m_gas_main + m_gas_att ) * 1.2 ; % [kg] - Overall pressurant mass
+m_gas = m_gas_main + m_gas_att ; % [kg] - Overall pressurant mass
 V_gas = V_gas_main + V_gas_att ; % [m3] - Overall pressurant mass 
 
 %% TANK SIZING - Assuming that oxidizer, fuel and pressurant are in three separate tanks

@@ -90,7 +90,7 @@ m_gas_fu_main = ( Pi_prop_tank * V_fu_main ) / ( R_gas * T_tank ) * gamma / ... 
 
 V_gas_fu_main = ( m_gas_fu_main * R_gas * T_tank ) / Pi_gas ;  % [ m3 ] - Pressurant volume needed for the fuel (coincides with initial pressurant tank volume)
 
-m_gas_main = m_gas_fu_main + m_gas_ox_main ; % [kg] - Pressurant mass needed for main propellant
+m_gas_main = ( m_gas_fu_main + m_gas_ox_main ) * 1.2 ; % [kg] - Pressurant mass needed for main propellant + Margin MAR-MAS-090
 V_gas_main = V_gas_fu_main + V_gas_ox_main ; % [m3] - Pressurant volume needed for main propellant
 
 %% BLOWDOWN - BIPROPELLANT THRUSTER (SK)
@@ -106,13 +106,13 @@ V_gas_sec = V_gas_sk + V_gas_att ;
 V_prop_sec = V_prop_att + V_ox_sk + V_fu_sk ;
 
 %% CUMULATIVE MASSES
-m_gas = ( m_gas_main + m_gas_sk + m_gas_att ) * 1.2 ; % [kg] - Overall pressurant mass
+m_gas = m_gas_main + m_gas_sk + m_gas_att ; % [kg] - Overall pressurant mass
 m_ox = m_ox_main + m_ox_sk ; % [kg] - Overall oxidizer mass
 m_fu = m_fu_main + m_fu_sk + m_prop_att ; % [kg] - Overall fuel mass
 
 V_gas = V_gas_main + V_gas_sk + V_gas_att ; % [m3] - Overall pressurant mass 
-V_ox = ( V_ox_main + V_ox_sk ) * 1.1 ; % [m3] - Overall oxidizer volume + 10% of unsable volume margin
-V_fu = ( V_fu_main + V_fu_sk + V_prop_att ) * 1.1 ; % [m3] - Overall fuel volume + 10% of unsable volume margin
+V_ox = ( V_ox_main + V_ox_sk ) * 1.1 ; % [m3] - Overall oxidizer volume + Margin MAR-CP-010
+V_fu = ( V_fu_main + V_fu_sk + V_prop_att ) * 1.1 ; % [m3] - Overall fuel volume + Margin MAR-CP-010
 
 %% TANK SIZING - Assuming that oxidizer, fuel and pressurant are in three separate tanks
 

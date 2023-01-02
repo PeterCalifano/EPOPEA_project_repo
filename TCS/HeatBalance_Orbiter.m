@@ -1,4 +1,4 @@
-function [balances] = HeatBalance_Orbiter(T, R,C, Q_ext , Q_diss, sigma)
+function [balances] = HeatBalance_Orbiter(T, R,C, Q_ext , Q_diss, Clamped)
 
 T1 = T(1);
 T2 = T(2);
@@ -8,11 +8,6 @@ T5 = T(5);
 T6 = T(6);
 Tant = T(7);
 Trad = T(8);
-T3_ext = T(10);
-T5_ext = T(9);
-
-% Conductive coupling
-% Cond_15 = C.C_15/(4*0.5^3*(T1 + T5)^3);
 
 % Balance 1 
 Q_12 = R.R_12*(T1^4 - T2^4) + C.C_12*(T1 - T2);
@@ -34,26 +29,13 @@ Q_24 = R.R_24*(T2^4 - T4^4) + C.C_24*(T2 - T4);
 Q_25 = R.R_25*(T2^4 - T5^4) + C.C_25*(T2 - T5);
 Q_26 = R.R_26*(T2^4 - T6^4) + C.C_26*(T2 - T6);
 Q_2ant = 0;
-Q_2rad = C.C_2rad*(T2 - Trad);
+Q_2rad = R.R_rad2*(T2^4 - Trad^4) + C.C_2rad*(T2 - Trad); 
 Q_20 = R.R_20*(T2^4 - 0);
 
 balances(2) = Q_20 + Q_21 + Q_23 + Q_24  + Q_25  + Q_26 +...
      + Q_2ant+  + Q_2rad- Q_ext(2);
 
 % Balance 3
-% Q_31 = - Q_13;
-% Q_32 = - Q_23;
-% Q_34 = R.R_24*(T3^4 - T4^4) + C.C_34*(T3 - T4);
-% Q_35 = R.R_25*(T3^4 - T5^4) + C.C_35*(T3 - T5);
-% Q_36 = R.R_26*(T3^4 - T6^4) + C.C_36*(T3 - T6);
-% Q_3ant = 0;
-% Q_3rad = R.R_rad3*(T3^4 - Trad^4);
-% Q_30 = R.R_30*(T3^4 - 0);
-% 
-% balances(3) = Q_30 + Q_31 + Q_32 + Q_34  + Q_35  + Q_36 +...
-%      + Q_3ant+  + Q_3rad- Q_ext(3);
-
-% Balance 3 int
 Q_31 = - Q_13;
 Q_32 = - Q_23;
 Q_34 = R.R_24*(T3^4 - T4^4) + C.C_34*(T3 - T4);
@@ -61,15 +43,10 @@ Q_35 = R.R_25*(T3^4 - T5^4) + C.C_35*(T3 - T5);
 Q_36 = R.R_26*(T3^4 - T6^4) + C.C_36*(T3 - T6);
 Q_3ant = 0;
 Q_3rad = R.R_rad3*(T3^4 - Trad^4) + C.C_3rad*(T3 - Trad); 
-Q_3extrad = C.C_3extrad*(T3_ext - Trad); 
-Q_3ext0 = R.R_30*(T3_ext^4 - 0);
-Q_3int3ext = R.R_3int3ext*(T3^4 - T3_ext^4);
+Q_30 = R.R_30*(T3^4 - 0);
+balances(3) = Q_30 + Q_31 + Q_32 + Q_34  + Q_35  + Q_36 +...
+            + Q_3ant+  + Q_3rad - Q_ext(3);
 
-balances(3) =  Q_31 + Q_32 + Q_34  + Q_35  + Q_36 +...
-     + Q_3ant+ Q_3int3ext + Q_3rad;
-
-balances(10) = Q_3extrad + Q_3ext0 - Q_3int3ext - Q_ext(3)  - Q_ext(10);
- 
 % Balance 4
 Q_41 = - Q_14;
 Q_42 = - Q_24;
@@ -78,23 +55,19 @@ Q_45 = R.R_45*(T4^4 - T5^4) + C.C_45*(T4 - T5);
 Q_46 = R.R_46*(T4^4 - T6^4) + C.C_46*(T4 - T6);
 Q_4ant = 0;
 Q_4rad = R.R_rad4*(T4^4 - Trad^4)  + C.C_4rad*(T4 - Trad); 
-Q_40 = R.R_40*(T4^4 - 0);
+
+if Clamped ==1
+    Q_40 = 0;
+else
+    if Clamped == 0
+    Q_40 = R.R_40*(T4^4 - 0);
+    end
+end
 
 balances(4) = Q_40 + Q_41 + Q_42 + Q_43  + Q_45  + Q_46 +...
      + Q_4ant+  + Q_4rad- Q_ext(4);
+
 % Balance 5 
-% Q_51 = - Q_15;
-% Q_52 = - Q_25;
-% Q_53 = - Q_35;
-% Q_54 = - Q_45;
-% Q_56 = R.R_56*(T5^4 - T6^4) + C.C_56*(T5 - T6);;
-% Q_5ant = 0;
-% Q_5rad = R.R_rad5*(T5^4 - Trad^4);
-% Q_50 = R.R_50*(T5^4 - 0);
-% 
-% balances(5) = Q_50 + Q_51 + Q_52 + Q_53  + Q_54  + Q_56 +...
-%      + Q_5ant+  + Q_5rad- Q_ext(5);
-% Balance 5 int
 Q_51 = - Q_15;
 Q_52 = - Q_25;
 Q_53 = - Q_35;
@@ -102,13 +75,9 @@ Q_54 = - Q_45;
 Q_56 = R.R_56*(T5^4 - T6^4) + C.C_56*(T5 - T6);
 Q_5ant = 0;
 Q_5rad = R.R_rad5*(T5^4 - Trad^4)  + C.C_5rad*(T5 - Trad);
-Q_5int5ext = R.R_5int5ext*(T5^4 - T5_ext^4);
-Q_5ext0 = R.R_50*(T5_ext^4 - 0);
-
-balances(5) =   Q_51 + Q_52 + Q_53  + Q_54  + Q_56 +...
-     + Q_5ant+  + Q_5rad + Q_5int5ext;
-Q_5ext5int = - Q_5int5ext;
-balances(9) = Q_5ext0 + Q_5ext5int - Q_ext(5)- Q_ext(9);
+Q_50 = R.R_50*(T5^4 - 0);
+balances(5) = Q_50 + Q_51 + Q_52 + Q_53  + Q_54  + Q_56 +...
+         + Q_5ant+  + Q_5rad- Q_ext(5);
 
 % Balance 6 
 Q_61 = - Q_16;

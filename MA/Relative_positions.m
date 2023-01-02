@@ -36,7 +36,7 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 %% FIND INITIAL TIME OF PROPAGATION
 
 % Select the initial time to look for the instant of intersection
-t0 = cspice_str2et('2022 DEC 31 12:00:00.00')/TU;
+t0 = cspice_str2et('2052 DEC 31 12:00:00.00')/TU;
 fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t0*TU, 'C', 0));
 
 % Equatorial rotation
@@ -53,7 +53,7 @@ R_i_EncSat=[1 0 0;
 n_days = 1.37;      
 
 % DEFINE the number of points
-n_points = 2000;
+n_points = 5000;
 
 % Time Grid
 tf = t0 + n_days*24*3600/TU;
@@ -91,6 +91,7 @@ i_zen = zeros(1,length(tt));
 i_tan = zeros(1,length(tt));
 i_out = zeros(1,length(tt));
 ES_angle = zeros(1,length(tt));
+count = 0;
 for j = 1:length(tt)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Saturn orbital parameters recovery
@@ -127,6 +128,7 @@ for j = 1:length(tt)
     Sat2Earth = cspice_spkpos('EARTH',  tt(j)*TU, 'ECLIPJ2000', 'NONE', '699');
     Sun_dir_EC(:,j) = Sat2Sun/norm(Sat2Sun);
     Earth_dir_EC(:,j) = Sat2Earth/norm(Sat2Earth);
+
     
     % Enceladus position in SATURN EQUATORIAL INERTIAL
     x_sc_IS(1,j) = ((x_CR3BP(1,j)+mu)*cos(tt(j)-t0) - x_CR3BP(2,j)*sin(tt(j)-t0))*DU;
@@ -167,7 +169,16 @@ for j = 1:length(tt)
     i_zen(j) = rad2deg(acos(dot(Sun_dir_IS(:,j), -sc2enc_dir(:,j))));
     i_tan(j) = rad2deg(acos(dot(Sun_dir_IS(:,j), sc_tang_dir(:,j))));
     i_out(j) = rad2deg(acos(dot(Sun_dir_IS(:,j), sc_out_dir(:,j))));
-    ES_angle(j) = rad2deg(acos(dot(Sun_dir_EC(:,j),Earth_dir_EC(:,j))));
+    ES_angle(j) = rad2deg(acos(dot(Sun_dir_IS(:,j),Earth_dir_IS(:,j))));
+    ES_angle_EC(j) = rad2deg(acos(dot(Sun_dir_EC(:,j),Earth_dir_EC(:,j))));
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Save indices of equatorial passages 
+    res(j) = Sat2Enc_IS(3,j) - x_sc_IS(3,j);
+    if abs(res(j)) < 5
+        count = count+1;
+        index(count) = j;
+    end
 end
 
 % Out of plane direction
@@ -182,7 +193,8 @@ i_err = acos(dot(h_fake,h_real));
 fprintf('\n\nOut-of-plane misalignment:\n %.5f', i_err)
 
 % Sun-Earth angle
-fprintf('\n\nSun-Earth angle:\n %.5f', min(ES_angle))
+fprintf('\n\nSun-Earth angle IS:\n %.5f', min(ES_angle))
+fprintf('\n\nSun-Earth angle EC:\n %.5f', min(ES_angle_EC))
 
 % PLOT
 figure
@@ -216,38 +228,43 @@ plot(time, i_zen, 'b', 'Linewidth', 1.2)
 ylabel('$\theta_{Sun/Zenith}\ [deg]$')
 title('Angle between Sun and Zenith')
 grid on; grid minor
-ax = gca;
-ax.XTick = time(1):0.3:time(end);
-datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
-xtickangle(45);
+% ax = gca;
+% ax.XTick = time(1):0.3:time(end);
+% datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
+% xtickangle(45);
 
 figure;
 plot(time, i_tan, 'r', 'Linewidth', 1.2)
 ylabel('$\theta_{Sun/Tan}\ [deg]$')
 title('Angle between Sun and Tangential direction')
 grid on; grid minor
-ax = gca;
-ax.XTick = time(1):0.3:time(end);
-datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
-xtickangle(45);
+% ax = gca;
+% ax.XTick = time(1):0.3:time(end);
+% datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
+% xtickangle(45);
 
 figure;
 plot(time, i_out, 'g', 'Linewidth', 1.2)
 ylabel('$\theta_{Sun/Out-of-plane}\ [deg]$')
 title('Angle between Sun and out-of-plane direction')
 grid on; grid minor
-ax = gca;
-ax.XTick = time(1):0.3:time(end);
-datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
-xtickangle(45);
+% ax = gca;
+% ax.XTick = time(1):0.3:time(end);
+% datetick('x', 'yy mmm dd - HH:MM', 'keeplimits', 'keepticks');
+% xtickangle(45);
 
 %% For Alessia: plot this to see the same graph I sent you
 figure
 scatter3(0,0,0,50);
 hold on
 plot3(Sat2Enc_IS(1,:),Sat2Enc_IS(2,:),Sat2Enc_IS(3,:),'r', 'LineWidth', 1.3)   %SPICE
-plot3(x_sc_IS(1,:),x_sc_IS(2,:),x_sc_IS(3,:),'-k')                    %S/C
+plot3(x_sc_IS(1,:),x_sc_IS(2,:),x_sc_IS(3,:),'-k')  
+% quiver3(zeros(1,length(tt)),zeros(1,length(tt)),zeros(1,length(tt)), ...
+%     5e4*Sun_dir_IS(1,:), 5e4*Sun_dir_IS(2,:), 5e4*Sun_dir_IS(3,:))
+% quiver3(zeros(1,length(tt)),zeros(1,length(tt)),zeros(1,length(tt)), ...
+%     5e4*Earth_dir_IS(1,:), 5e4*Earth_dir_IS(2,:), 5e4*Earth_dir_IS(3,:))%S/C
 title(sprintf(cspice_et2utc(t0*TU, 'C', 0)))
+% axis equal
 legend('Saturn','FAKE','S/C')
 xlabel('X')
 ylabel('Y')

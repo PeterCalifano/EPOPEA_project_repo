@@ -11,6 +11,9 @@ function [DV,DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(nlpvar, planet
 % planets - Cell array with the names of all the planets visited
 % Ra_target - Apoapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
 % Rp_target - Periapsis Radius for capture orbit (SEE EstimateDVtoCapture.m)
+% typeofplot - Can be: - 'none' --> No Plot
+%                      - 'static' --> Regular Plot
+%                      - 'dynamic' --> Moving plot (not perfect)
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
 % DV: [scalar] Sum of the DSMs and of the DVs given during the Powered Fly Bys
@@ -236,48 +239,48 @@ DV = (DV_capture + sum(DV_DSM));
 
 DV_breakdown = [DV_DSM,DV_capture];
 %% PLOT POSITION OF PLANETS
-planets = {'Earth DEP','Venus FB 1','Earth FB 2','Earth FB 3','Saturn ARR'};
-t_v = linspace(ephtimes(1),ephtimes(end),1000);
-leg1 = zeros(1,N+2);
-figure
-hold on
-for i = 1:N+2
-    leg1(i) = scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),50,'filled','DisplayName',planets{i});
-end
-grid minor
-xlabel('X [AU]')
-ylabel('Y [AU]')
-zlabel('Z [AU]')
-legend()
-axis equal
-pos_plot = zeros(3,N+2,length(t_v));
-flags = zeros(1,N+2);
-for i = 1:length(t_v)
-    t = t_v(i);
-    for j = 1:N+2
-        id = planets_id(j);
-        flags(j) = 1;
-        if j > 1
-            for k = 1:j-1
-                if id == planets_id(k)
-                    flags(j) = 0;
+if strcmp(typeofplot,'static') || strcmp(typeofplot,'dynamic')
+    t_v = linspace(ephtimes(1),ephtimes(end),1000);
+    leg1 = zeros(1,N+2);
+    figure
+    hold on
+    for i = 1:N+2
+        leg1(i) = scatter3(r_planets(1,i),r_planets(2,i),r_planets(3,i),50,'filled','DisplayName',planets{i});
+    end
+    grid minor
+    xlabel('X [AU]')
+    ylabel('Y [AU]')
+    zlabel('Z [AU]')
+    legend()
+    axis equal
+    pos_plot = zeros(3,N+2,length(t_v));
+    flags = zeros(1,N+2);
+    for i = 1:length(t_v)
+        t = t_v(i);
+        for j = 1:N+2
+            id = planets_id(j);
+            flags(j) = 1;
+            if j > 1
+                for k = 1:j-1
+                    if id == planets_id(k)
+                        flags(j) = 0;
+                    end
                 end
             end
+            if flags(j) == 1
+                [kep1,~] = uplanet(t*TU, id);
+                [r1,~] = kep2car(kep1, mu_S);
+                pos_plot(:,j,i) = r1/DU;
+            end        
         end
-        if flags(j) == 1
-            [kep1,~] = uplanet(t*TU, id);
-            [r1,~] = kep2car(kep1, mu_S);
-            pos_plot(:,j,i) = r1/DU;
-        end        
+    end
+    
+    for i = 1:(N+2)
+        if flags(i) == 1
+            plot3(squeeze(pos_plot(1,i,:)),squeeze(pos_plot(2,i,:)),squeeze(pos_plot(3,i,:)),'k')
+        end
     end
 end
-
-for i = 1:(N+2)
-    if flags(i) == 1
-        plot3(squeeze(pos_plot(1,i,:)),squeeze(pos_plot(2,i,:)),squeeze(pos_plot(3,i,:)),'k')
-    end
-end
-
 %% PLOT TRAJECTORY
 
 col = {'b','r','g','m','c','k'};
@@ -296,12 +299,11 @@ if strcmp(typeofplot,'static')
         leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{i},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
         if i == N
             legend([leg1(1:N),leg2(leg2>0),leg3(leg3>0)])
-            title('E-VEE-S Inner Solar System Tour')
-            a = 1;
+            %title('E-VEE-S Inner Solar System Tour')
         end
     end
     legend([leg1,leg2,leg3])
-    title('E-VEE-S Transfer')
+    title('Interplanetary Transfer')
 
 
 elseif strcmp(typeofplot,'dynamic')

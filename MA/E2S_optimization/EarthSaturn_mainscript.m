@@ -43,24 +43,26 @@ marker = 7;
 % 5 --> E-VVE-S
 % 6 --> E-J-S
 % 7 --> E-EEJ-S
+% 8 --> E-EJ-S
 
 [planets_id,planets,N] = sequence_selector(marker);
 
 % Target orbit at Saturn
-Ra_target = 200*R_Saturn;
-Rp_target = 2.55*R_Saturn;
+Ra_target1 = 200*R_Saturn;
+Rp_target1 = 2.55*R_Saturn;
 
 %% Analyze solution
 %load('E_EEJ_S_bestvalue1.016.mat');
 load('E_EEJ_S_1.033_FBhigh.mat');
-%load(['E_EEJ_S_bestvalue2.5194_C3_20.mat']);
+%load('E_EEJ_S_bestvalue1.14backup2035.mat');
+%load('E_EEJ_S_bestvalue1.02backup2043.mat');
 
 [m, index_iter] = min(min_at_iter(min_at_iter>0));
 index_pos = min_pos(index_iter);
 
 initial_guess = NLPoptset_local(index_pos, :, index_iter);
 
-[DV_opt, DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target, Rp_target,'static');
+[DV_opt, DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(initial_guess, planets_id, planets, Ra_target1, Rp_target1,'static');
 
 T_FB = T_FB/(24*3600);
 %%
@@ -90,11 +92,11 @@ end
 
 N = length(planets_id) - 2;
 ind_tof = 5:(5+N);
-ind_rp = (2*N + 7):(2*N+7 +N-1);
-
+ind_rp = (2*N + 7):(2*N + 7 + N-1);
+ind_beta = (3*N + 7) : (3*N + 7 + N - 1);
 
 %%%%%% SELECT THE VARIABLES TO BE PLOTTED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ind_v = [ind_rp];
+ind_v = [1,2,3,4];
 
 
 ind_names_all = {'Departure Date','v inf','u','v','tof 1','tof 2','tof 3','tof 4',...
@@ -127,3 +129,10 @@ end
 
 % Find total time of flight
 total_tof = sum(NLPoptset_local(N+2:(N+2+N)))./365.5;
+
+%%
+for i = 1:10
+    for k = 1:4
+    cspice_et2utc(NLPoptset_local(i,1,k)*3600*24,'C',0 )
+    end
+end

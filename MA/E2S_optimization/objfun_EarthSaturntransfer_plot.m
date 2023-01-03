@@ -17,11 +17,13 @@ function [DV,DV_breakdown,T_FB] = objfun_EarthSaturntransfer_plot(nlpvar, planet
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
 % DV: [scalar] Sum of the DSMs and of the DVs given during the Powered Fly Bys
+% T_FB: Times inside the SOI of each planet [s]
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % 17/11/2022 - Matteo Lusvarghi - First version
 % 19/11/2022 - Matteo Lusvarghi - Fixed the plotting legend
 % 23/11/2022 - Matteo Lusvarghi - Added dynamic plot
+% 03/01/2023 - Matteo Lusvarghi - Small modifications
 % -------------------------------------------------------------------------------------------------------------
 %% EXPLANATION OF VAR VECTOR
 %
@@ -293,13 +295,14 @@ if strcmp(typeofplot,'static')
     leg3 = zeros(1,N+1);
     for i = 1:N+1
         scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k')
-        [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+        [r_prop1, ~, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
         leg2(i) = plot3(r_prop1(1,:),r_prop1(2,:),r_prop1(3,:),col{i},'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Pre DSM']);
-        [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+        [r_prop2, ~, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
         leg3(i) = plot3(r_prop2(1,:),r_prop2(2,:),r_prop2(3,:),[col{i},'--'],'linewidth',1,'DisplayName',['Arc ', num2str(i),' - Post DSM']);
         if i == N
             legend([leg1(1:N),leg2(leg2>0),leg3(leg3>0)])
-            %title('E-VEE-S Inner Solar System Tour')
+            title('Inner Solar System Tour')
+            % Place a breakpoint here to plot only the inner SS part
         end
     end
     legend([leg1,leg2,leg3])
@@ -310,8 +313,8 @@ elseif strcmp(typeofplot,'dynamic')
     % DYNAMIC PLOT
     for i = 1:N+1
         scatter3(r_DSM(1,i),r_DSM(2,i),r_DSM(3,i),10,'filled','MarkerFaceColor','k','DisplayName',['DSM ',num2str(i)])
-        [r_prop1, v_propagated, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
-        [r_prop2, v_propagated, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
+        [r_prop1, ~, ~] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+        [r_prop2, ~, ~] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);
         h = animatedline('LineWidth',1.5,'Color',col{i},'DisplayName','Trajectory');
         for k = 1:length(r_prop1(1,:))
             addpoints(h,r_prop1(1,k),r_prop1(2,k),r_prop1(3,k));
@@ -326,6 +329,10 @@ elseif strcmp(typeofplot,'dynamic')
         %delete(h)
     end
     legend(leg1)
+
+
+
+% OLD VERSION: DON'T CONSIDER IT !!!
 elseif strcmp(typeofplot,'VVE')
 
     leg1 = zeros(1,N+2);

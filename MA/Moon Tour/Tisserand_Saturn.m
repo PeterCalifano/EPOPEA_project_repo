@@ -68,10 +68,16 @@ R_Tethys = 294.66e+3;
 R_Enceladus = 230.25e+3;
 RR = [R_Titan,R_Rhea,R_Dione,R_Tethys,R_Enceladus];
 TT = sqrt(RR.^3/mu_Saturn);
-man(1).N = [2,1];
-man(1).M = [1,1];
-man(1).vinf = [1.27,1.27];
+man(1).N = [2,1,0];
+man(1).M = [1,1,0];
+man(1).vinf = [1.27,1.27,1.27];
 man(1).perc = [1.3,1.5];
+for ii = 1:length(man)
+    man(ii).DV = zeros(size(man(ii).N));
+    man(ii).T = zeros(size(man(ii).N));
+end
+
+
 moons = {'Titan','Rhea','Dione','Tethys','Enceladus'};
 
 v_inf0 = 1.9245;
@@ -133,8 +139,8 @@ for moon = 1%:2%length(RR)
     % Build isolines
     rp_iso = @(ra_iso,N,M) - ra_iso + 2*(mu_Saturn*(N/M * TT(moon))^2)^(1/3);
     
-    N_vec = man(moon).N;
-    M_vec = man(moon).M;
+    N_vec = man(moon).N(1:end-1);
+    M_vec = man(moon).M(1:end-1);
 
     for id_iso = 1:length(N_vec)
         ra_v = plot_isoline(rp_iso,N_vec(id_iso),M_vec(id_iso),RR(moon),man(moon).perc(id_iso));
@@ -176,6 +182,7 @@ for moon = 1%:2%length(RR)
         end
         
         [DV1,r_plus,r_minus] = VILT(rp_iso,N,M,[Ra_SC(1,:);Rp_SC(1,:)],[Ra_SC(end,:);Rp_SC(end,:)],mu_Saturn);
+        man(moon).DV(id_man) = DV1;
         scatter(r_plus(1),r_plus(2),40,'b','filled')
         if r_minus(2) ~= r_plus(2)
             scatter(r_minus(1),r_minus(2),40,'g','filled')
@@ -183,6 +190,7 @@ for moon = 1%:2%length(RR)
 
         % Update v_inf0
         v_inf0 = vinf_tar;
+
     end
 
 end

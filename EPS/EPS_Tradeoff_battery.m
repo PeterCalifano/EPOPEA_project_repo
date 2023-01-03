@@ -6,8 +6,8 @@ load("Saft_VES16_LiIonCell") ;
 % Set inputs
 powerRegulationMethod = 'DET' ;
 Batt_capacityMargin_percent = 1 ;
-PowerDefect_watt = 173 ;
-PowerDefectDuration_hours = 4.3333 ; % [h]
+PowerDefect_watt = 55.59 ;
+PowerDefectDuration_hours = 0.02 ; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, ~, ~, ~, ~ ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod ) ;
 
 % REFINED ANALYSIS -> Saft cell VES16 (Li-Ion)
@@ -43,7 +43,7 @@ fprintf( '-------------------------------------------\n' ) ;
 %% PRIMARY BATTERY DESIGN Li-SOCl battery
 clearvars ; close all ; clc ;
 
-Batt_data.NumberOfBatteries = 1 ;
+Batt_data.NumberOfBatteries = 2 ;
 Batt_data.cycles = 1 ;
 Batt_data.DOD = 1 ;
 Batt_data.Em = 480 ; % Wh/Kg
@@ -52,7 +52,7 @@ Batt_data.Ev = 1024 ; % Wh/dm^3
 % Set inputs
 powerRegulationMethod = 'DET' ;
 Batt_capacityMargin_percent = 0.20 ; % for 15 y (time before landing)
-PowerDefect_watt = 124 ;
+PowerDefect_watt = 271.13 ;
 PowerDefectDuration_hours = 1 ; % [h]
 [ TheoreticalBattCapacity_Wh_withmargin, TheoreticalBattCapacity_Wh_nomargin, TheoreticalBattMass_kg_withmargin, TheoreticalBattVolume_dm3_withmargin, RequiredEnergy_Wh_nomargin ] = BatterySizing_withRTG( PowerDefect_watt, PowerDefectDuration_hours, Batt_data, Batt_capacityMargin_percent, powerRegulationMethod ) ;
 

@@ -8,6 +8,7 @@ T5 = T(5);
 T6 = T(6);
 Tant = T(7);
 Trad = T(8);
+T6ext = T(9);
 
 % Balance 1 
 Q_12 = R.R_12*(T1^4 - T2^4) + C.C_12*(T1 - T2);
@@ -20,7 +21,7 @@ Q_1rad = R.R_1rad*(T1^4 - Trad^4) + C.C_1rad*(T1 - Trad);
 Q_10 = R.R_10*(T1^4 - 0);
 
 balances(1) = Q_10 + Q_12 + Q_13 + Q_14  + Q_15  + Q_16 +...
-     + Q_1ant+  + Q_1rad- Q_ext(1) - Q_diss;
+     + Q_1ant+  + Q_1rad- Q_ext(1);
 
 % Balance 2
 Q_21 = - Q_12;
@@ -77,7 +78,7 @@ Q_5ant = 0;
 Q_5rad = R.R_rad5*(T5^4 - Trad^4)  + C.C_5rad*(T5 - Trad);
 Q_50 = R.R_50*(T5^4 - 0);
 balances(5) = Q_50 + Q_51 + Q_52 + Q_53  + Q_54  + Q_56 +...
-         + Q_5ant+  + Q_5rad- Q_ext(5);
+         + Q_5ant+  + Q_5rad- Q_ext(5)  - Q_diss;
 
 % Balance 6 
 Q_61 = - Q_16;
@@ -87,10 +88,13 @@ Q_64 = - Q_46;
 Q_65 = - Q_56;
 Q_6ant = 0;
 Q_6rad = R.R_rad6*(T6^4 - Trad^4)  + C.C_6rad*(T6 - Trad);
-Q_60 = R.R_60*(T6^4 - 0);
+Q_6ext0 = R.R_60*(T6ext^4 - 0);
+Q_6int6ext = R.R_6int6ext*(T6^4 - T6ext^4);
 
-balances(6) = Q_60 + Q_61 + Q_62 + Q_63  + Q_64  + Q_65 +...
-     + Q_6ant+  + Q_6rad- Q_ext(6);
+balances(9) =  + Q_6ext0 - Q_6int6ext - Q_ext(6);
+
+balances(6) = + Q_61 + Q_62 + Q_63  + Q_64  + Q_65 +...
+     + Q_6ant+  + Q_6rad + Q_6int6ext;
 
 % Balance 7 (antenna)
 Q_ant1 = - Q_1ant;

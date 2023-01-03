@@ -53,7 +53,7 @@ A2 = L1*L3;
 A4 = A2;
 A3 = L2*L3;
 A5_tot = A3;
-D_ant = 3.2; % diameter of antenna ??
+D_ant = 3.72; % diameter of antenna ??
 A_ant = pi*(D_ant/2)^2; 
 A1_ext = A1-A_ant; % external area of surface 1 not covered by the antenna
 
@@ -66,10 +66,10 @@ epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, 
 
 % MLI 
 epsilon_MLI = 0.03;
-% epsilon_MLI = 0.01
+epsilon_MLI = 0.015 %%%%%%%%%%%%%%%%%%%%%%
 % alpha_MLI = 0.14; % max. typ = 0.12 
 alpha_MLI = 0.12;
-% alpha_MLI = 0.08;
+% alpha_MLI = 0.1;
 % Antenna painted white
 epsilon_ant = 0.90;
 alpha_ant = 0.18; % do sensitivity analysis
@@ -88,7 +88,7 @@ eps_rad = eps_louv_open; % if open louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 15; %% can be changed
+n_rad = 20; %% can be changed
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 A5 = A5_tot-A_rad_tot+eps; % area on surface 5 not covered by radiators
 k_rad = 1;
@@ -105,6 +105,7 @@ P_diss_TMTC_h = 15.38;  % ask Antoine
 We = 676;              % electrical power from RTG
 Wt = 4506;             % thermal power from RTG
 Q_hot = P_budget_hot-P_input_TMTC_h+P_diss_TMTC_h; 
+Q_hot = 241;
 Q_shunt = We - Q_hot; % check if a shunt can dissipate this power
 
 % view factor
@@ -303,6 +304,7 @@ P_diss_TMTC_cold = 0;
 We = 577;
 Wt = 3850;
 Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
+We = 389-50;
 Q_diss_cold = We;
 
 % close louvers and compute again thermal couplings
@@ -320,7 +322,7 @@ q_Enc = F_enc_min * sigma_SB * T_Enc^4 *epsilon_Enc;
 % HYP: nadir pointing with cameras
 % face 3 with cameras points Enceladus and receive IR from Enceladus
 % Saturn ? HYP: face 4 (CHANGE!)
-P_added_RHU_1 = 0;
+P_added_RHU_1 = 150;
 
 theta_3Enc = 0;
 theta_6Sat = 0; % CHANGE!

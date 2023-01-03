@@ -95,11 +95,12 @@ P_input_TMTC_h = 0;
 P_diss_TMTC_h = 0;
 % add batteries ...
 We =  456;
+We = 279;
 Wt = 3040;
 eff_shunt = 0.6;
 Q_hot = We*eff_shunt;
 Q_hot  = 0;
-P_shunt = Q_hot - We; % check power can be dissipated though a shunt
+P_shunt = - Q_hot + We; % check power can be dissipated though a shunt
 % view factor
 % Surface 1
 F12 = VF_PerpRec(L3,L2,L1);
@@ -273,12 +274,12 @@ fprintf(['rad ',num2str(T_land_hot(7)-273),' Celsius\n'])
 
 %% Cold case
 % Power
-P_budget_cold = 277;
-P_input_TMTC_cold = 20;       % ask Antoine
-P_diss_TMTC_cold =18.86;      % ask Antoine
+P_budget_cold = 200.9;
+P_input_TMTC_cold = 0;       % ask Antoine
+P_diss_TMTC_cold =0;      % ask Antoine
 % add batteries ...
-We = 389;
-Wt = 2600;
+We = 239;
+Wt = 1589;
 Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
 
 Q_diss_cold = Q_cold;
@@ -305,7 +306,7 @@ theta_3Enc = 0;
 theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
-cold_case = 1; % orbit / during landing
+cold_case = 2; % orbit / during landing
 % cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 

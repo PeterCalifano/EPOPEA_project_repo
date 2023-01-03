@@ -29,7 +29,7 @@ tank.sigma = 950e6 ;
 dV_land = 244.6 * MAR_050 ;                                                     % Additional MAR-DV-020
 Isp_land = 228; 
 Tmax = 125 ;
-m_dry_land = 495.3+20;                                                          % Sampling lander
+m_dry_land = 458.8;                                                          % Sampling lander
 % m_dry_land = 746 ; % Dry mass from regression
 
 mdot_land = 0.03925;                                                            % [kg/s]

@@ -36,7 +36,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 dV_reg = MAR_080 + MAR_010*1.0332e+3 + MAR_020*1.1e+3 + MAR_100 + MAR_090 + 250 ;  % plus MAR-DV-010 / MAR-DV-020 / MAR-DV-080 / MAR-DV-100
 Isp_reg = 321; 
 Tmax = 440 ;
-m_dry_int = 1468.5 + 495.3 + 178 ;                          % Orbiter + lander dry masses 
+m_dry_int = 2386+458.8 + 0.0095 + 4.7922 + 0.3248 + 163.0993 ;                          % Orbiter + lander dry masses 
 % m_dry_int = 533 + 746 ; % Dry mass from regression
 m_prop_reg = preliminary_prop_mass(dV_reg,m_dry_int,Isp_reg);
 
@@ -81,7 +81,7 @@ dV_sec = dV_SK + dV_attitude ;
 dV_blow = dV_sec * 1 / 9 ;                           % 1/9 is the percentage of time in which orbiter and lander are clamped 
 Isp_blow = 292; 
 Tmax = 12.5 ;
-m_dry_sk_orb_lan = 1468.5+495.3 + 178;                    % Orbiter dry mass + lander dry mass
+m_dry_sk_orb_lan = 2386+458.8 + 0.0095 + 4.7922 + 0.3248 + 163.0993;                    % Orbiter dry mass + lander dry mass
 % m_dry_sk_orb_lan = 533 + 746 ; % Dry mass from regression
 m_prop_sk_orb_lan = preliminary_prop_mass(dV_blow,m_dry_sk_orb_lan,Isp_blow);
 m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
@@ -89,7 +89,7 @@ m_sk_orb_lan = m_prop_sk_orb_lan + m_dry_sk_orb_lan ;
 % Only orbiter
 dV_blow = dV_sec * 8 / 9 ; % 8/9 is the percentage of time in which orbiter and lander are clamped
 Isp_blow = 292; 
-m_dry_sk_orb = 1468.5;                          % Sampling orbiter
+m_dry_sk_orb = 2386 ;                          % Sampling orbiter
 % m_dry_sk_orb = 533 ; % Dry mass from regression
 m_prop_sk_orb = preliminary_prop_mass(dV_blow,m_dry_sk_orb,Isp_blow);
 m_sk_orb = m_prop_sk_orb + m_dry_sk_orb ;

@@ -56,6 +56,7 @@ A5_tot = A3;
 D_ant = 3.2; % diameter of antenna ??
 A_ant = pi*(D_ant/2)^2; 
 A1_ext = A1-A_ant; % external area of surface 1 not covered by the antenna
+
 %%% Structure properties (Al-5056-O)
 k_str = 117;
 l_str = 0.02;
@@ -65,14 +66,15 @@ epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, 
 
 % MLI 
 epsilon_MLI = 0.03;
+% epsilon_MLI = 0.01
 % alpha_MLI = 0.14; % max. typ = 0.12 
 alpha_MLI = 0.12;
-alpha_MLI = 0.1;
+% alpha_MLI = 0.08;
 % Antenna painted white
 epsilon_ant = 0.90;
 alpha_ant = 0.18; % do sensitivity analysis
 
-% Thermal stripes
+% Thermal straps
 k_TS = 398; 
 L_TS = 120e-3; %?????
 
@@ -201,6 +203,9 @@ R.R_60 = sigma_SB * A6 * epsilon_MLI;
 R.R_ant0 = sigma_SB * A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
 
+% Add MLI on surface 6
+R.R_6int6ext = sigma_SB * A6 * epsilon_MLI;
+
 % Conductive Coupling
 C.C_12 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
 C.C_13 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
@@ -272,9 +277,8 @@ T0 = 293;
 Q_diss_hot =  Q_hot;
 
 %%% SOLVE THE SYSTEM 
-% Put Q_40 = O (in the clamped configuration...)
 Clamped = 1;
-T_guess = 273*ones(8,1);
+T_guess = 273*ones(9,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
 
@@ -299,7 +303,6 @@ P_diss_TMTC_cold = 0;
 We = 577;
 Wt = 3850;
 Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
-
 Q_diss_cold = We;
 
 % close louvers and compute again thermal couplings
@@ -328,7 +331,7 @@ Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat);
 
 %%% SOLVE THE SYSTEM 
 Clamped = 0;
-T_guess = 273*ones(8,1);
+T_guess = 273*ones(9,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_orb_cold = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
 
@@ -348,5 +351,3 @@ fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
 % 4) External p/l ?
 % sensitivity analysis, check properties
 % T of RTG
-
-

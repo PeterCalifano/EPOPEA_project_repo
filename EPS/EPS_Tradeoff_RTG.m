@@ -37,7 +37,7 @@ catch
 end
 
 % Real RTG data - Used to select which type of RTG to consider
-RTG_data = RTG_data_nextGenRTG10 ; % This RTG type can be tuned since it is modular, do this once power is known.
+RTG_data = RTG_data_nextGenRTG16 ; % This RTG type can be tuned since it is modular, do this once power is known.
 %RTG_data = RTG_data_GPHSRTG ; 
 %RTG_data = RTG_data_MMRTG ; 
 %RTG_data = RTG_data_ASRG ; 
@@ -45,7 +45,7 @@ RTG_data = RTG_data_nextGenRTG10 ; % This RTG type can be tuned since it is modu
 % Power requirements EoL
 %P_req_NSOSL_orb = 375 ;
 P_req_lan = 201 ;
-P_req_SOSL_orb = 325 ;
+P_req_SOSL_orb = 336 ;
 
 % EoL
 t_EoL_years_NSOSL_orb = 20 ;

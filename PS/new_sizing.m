@@ -144,7 +144,7 @@ orbiter.dV_att_o = dV_att * 8 / 9 ; % When only orbiter ( 24 months )
 
 orbiter.dV_sk_cl = dV_sk / 9  ; % When clamped ( 3 months )
 orbiter.dV_att_cl = dV_att / 9 ; % When clamped ( 192 months )
-orbiter.dV_EOI = MAR_020 * 1100 + MAR_100 ; % [m/s] - Delta v for moon tour and Enceladus orbit inseriton (includes margin for moon approach navigation)
+orbiter.dV_EOI = ( 500 + 163 ) * MAR_010 + ( 111 + 370 + 142 + 53 + 105 ) * 1.25 + MAR_100 ; % [m/s] - Delta v for moon tour and Enceladus orbit inseriton (includes margin for moon approach navigation)
 orbiter.dV_cap = 0.2477 * MAR_010 ;
 orbiter.dV_int = 785.5 * MAR_010 + MAR_080 + MAR_090 ; % [m/s] - Delta v for interplanetary leg (includes margins on launcher dispersion and fly by)
 orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters

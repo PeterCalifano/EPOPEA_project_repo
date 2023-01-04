@@ -132,7 +132,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 lander.dV_des = 244.6 * MAR_050 ; % [m/s] - Delta v for descending phase
 lander.dV_att = 10 * MAR_030 ; % [m/s] - Delta v for attitude control during landing phase
 lander.Isp_main = 234 ; % [s] - Specific impulse of main thrusters for landing
-lander.Isp_att = 227.5 ; % [s] - Specific impulse of attitude thrusters for landing
+lander.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters for landing
 
 % Orbiter
 dV_sk = 370 * MAR_020 ; % [m/s] - Cumulative delta v for station keeping
@@ -149,7 +149,7 @@ orbiter.dV_cap = 0.2477 * MAR_010 ;
 orbiter.dV_int = 785.5 * MAR_010 + MAR_080 + MAR_090 ; % [m/s] - Delta v for interplanetary leg (includes margins on launcher dispersion and fly by)
 orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 310 ; % [s] - Specific impulse of sk thrusters
-orbiter.Isp_att = 227.5 ; % [s] - Specific impulse of attitude thrusters (same as sk)
+orbiter.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
 orbiter.dry = 2359.1 * 1.2 ; % [kg] - Orbiter dry mass
 lander.dry = 465.3 * 1.2 ; % [kg] - Lander dry mass

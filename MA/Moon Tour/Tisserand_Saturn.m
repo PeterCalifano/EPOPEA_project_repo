@@ -83,7 +83,7 @@ man(2).typeFB{end-2} = 'int';
 % Dione (7)
 man(3).N = [5,6,9,1,9,6,0];
 man(3).M = [4,5,8,1,10,7,0];
-man(3).vinf = [0.82,0.7,0.7,0.77,0.7,0.65,0.65];
+man(3).vinf = [0.8,0.7,0.7,0.77,0.7,0.65,0.65];
 man(3).perc = [1.05,1.06,1.1,1.14,1.15,1.2,0];
 man(3).typeFB = cell(size(man(3).N));
 man(3).typeFB{end-2} = 'int';
@@ -92,7 +92,7 @@ man(3).typeFB{end-1} = 'int';
 % Tethys (9)
 man(4).N = [6,7,9,14,1,13,9,7,0];
 man(4).M = [5,6,8,13,1,14,10,8,0];
-man(4).vinf = [0.77,0.7,0.7,0.7,0.7,0.67,0.67,0.63,0.63];
+man(4).vinf = [0.75,0.7,0.7,0.7,0.7,0.67,0.67,0.63,0.63];
 man(4).perc = [1.06,1.06,1.06,1.06,1.06,1.06,1.06,1.06,0];
 man(4).typeFB = cell(size(man(4).N));
 man(4).typeFB{end-3} = 'int';
@@ -101,7 +101,7 @@ man(4).typeFB{end-1} = 'int';
 % Enceladus (9)
 man(5).N = [7,15,8,17,9,10,11,13,14];
 man(5).M = [6,13,7,15,8,9,10,12,13];
-man(5).vinf = [0.8,0.82,0.75,0.6,0.6,0.5,0.52,0.37,0.30];
+man(5).vinf = [0.7,0.7,0.65,0.6,0.6,0.5,0.52,0.37,0.30];
 man(5).perc = [1.06,1.06,1.06,1.06,1.06,1.06,1.06,1.06];
 man(5).typeFB = cell(size(man(5).N));
 
@@ -123,9 +123,9 @@ a0 = (ra0+rp0)/2;
 DV_PRM = sqrt(mu_Saturn)*abs(sqrt(2/ra00 - 1/a00) - sqrt(2/ra0 - 1/a0));
 
 
-% Set the v_infinite at the beginning of each moon to the value taken by
+% Vector og the v_infinite at the beginning of each moon to the value taken by
 % the paper (this represents a check to verify that the FBs performed are
-% coherent)
+% coherent with the paper)
 v_inf0_moon = [1.9245,1.75,0.9,0.77,0.8];
 
 % Loop over the moons
@@ -140,11 +140,17 @@ for moon = 1:length(RR)
     
     %%%% Build Tisserand plane of each moon 
     
+    % Find vinf0 from initial orbit
+    options = optimoptions('fminunc','FunctionTolerance',1e-9,'OptimalityTolerance',1e-6,...
+    'StepTolerance',1e-9,'MaxIterations',50000,'MaxFunctionEvaluations',5000000,'display','iter');
+    par0 = fminunc(@(par) SolveForVinf(par,ra0/DU,rp0/DU), [1.5/VU;20],options);
+    v_inf0 = par0(1)*VU;
+
     % Define range of v_infinite
     if moon == 5 % Enceladus' Tisserand starts from a lower v_inf
-         v_inf_range_dim = linspace(0.3,v_inf0_moon(moon),6);
+         v_inf_range_dim = linspace(0.3,v_inf0,6);
     else
-        v_inf_range_dim = linspace(0.5,v_inf0_moon(moon),11);
+        v_inf_range_dim = linspace(0.5,v_inf0,11);
     end
     v_inf_range = v_inf_range_dim./VU;
 
@@ -214,7 +220,7 @@ for moon = 1:length(RR)
     %%% COMPUTE VILTS AND FBs %%%
 
     % Initialize the v_inf at the beginning of the FBs with a certain moon
-    v_inf0 = v_inf0_moon(moon);
+    %v_inf0 = v_inf0_moon(moon);
 
     % Loop over the number of GA for each moon
     for id_man = 1:length(man(moon).N)

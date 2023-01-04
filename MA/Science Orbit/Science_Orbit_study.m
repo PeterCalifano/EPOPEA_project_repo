@@ -218,45 +218,67 @@ grid minor
 %  end
 % 
 % end
-
-latlim=-75; %[deg] northest jet source latitude (according to Porco et Al and altri amici loro)
-latlim=deg2rad(latlim);
+% 
+% latlim=-75; %-75[deg] northest jet source latitude (according to Porco et Al and altri amici loro)
+% latlim=deg2rad(latlim);
+% 
+% flag=0;
+% for k=1:length(t_vec_Halo)
+%     delta=deg2rad(lon_Halo(k)); % longitude of the s/c
+%     r_enc_vec=R_enc*DU*[cos(latlim)*cos(delta);
+%                         cos(latlim)*sin(delta);
+%                         sin(latlim)]; %pos. vector of the northest jet source at the s/c's longitude
+%     r_enc2sc=pos_Halo_Enc(:,k);
+%     e_vec=r_enc2sc-r_enc_vec; %relative position s/c vs northest jet source
+%     
+%     r_enc_dir=r_enc_vec/norm(r_enc_vec);
+%     e_dir=e_vec/norm(e_vec);
+%     
+%     beta=rad2deg(acos(dot(r_enc_dir,e_dir))); %angle wrt the jet
+%     if beta>35 && lat_Halo(k)>latlim && flag==0 %check if the angle wrt the jet is larger than the amplitude of the jet 
+%        t_exit=t_vec_Halo(k);
+%        r_exit=state_vec_Halo(1:3,k);
+%        r_source_exit=r_enc_vec;
+%        flag=1;  
+%     end
+%    
+% end
+%     
+% %propagation of the fly-through arc
+% [t_vec_FT,state_vec_FT]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 t_exit],state0_Halo,options_ode);
+% state_vec_FT=state_vec_FT';
+% 
+% state_vec_FT(1:3,:)=state_vec_FT(1:3,:)*DU;
+% state_vec_FT(4:6,:)=state_vec_FT(4:6,:)*DU/TU;
+% 
+% Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
+% P3=plot3(r_exit(1),r_exit(2),r_exit(3),'o','markersize',3,'linewidth',2)
+% P2=plot3((1-mu)*DU+r_source_exit(1),r_source_exit(2),r_source_exit(3),'x','markersize',10,'linewidth',2)
+% P1=plot3(state_vec_FT(1,:),state_vec_FT(2,:),state_vec_FT(3,:),'b','linewidth',2);
+% %plot3(state_vec_FT(1,:),-state_vec_FT(2,:),state_vec_FT(3,:),'b','linewidth',2);
+% legend([P1 P2 P3],'fly-through arc','source','exit from the plume')
 
 flag=0;
-for k=1:length(t_vec_Halo)
-    delta=deg2rad(lon_Halo(k)); % longitude of the s/c
-    r_enc_vec=R_enc*DU*[cos(latlim)*cos(delta);
-                        cos(latlim)*sin(delta);
-                        sin(latlim)]; %pos. vector of the northest jet source at the s/c's longitude
-    r_enc2sc=pos_Halo_Enc(:,k);
-    e_vec=r_enc2sc-r_enc_vec; %relative position s/c vs northest jet source
-    
-    r_enc_dir=r_enc_vec/norm(r_enc_vec);
-    e_dir=e_vec/norm(e_vec);
-    
-    beta=rad2deg(acos(dot(r_enc_dir,e_dir))); %angle wrt the jet
-    if beta>35 && lat_Halo(k)>latlim && flag==0 %check if the angle wrt the jet is larger than the amplitude of the jet 
-       t_exit=t_vec_Halo(k);
-       r_exit=state_vec_Halo(1:3,k);
-       r_source_exit=r_enc_vec;
-       flag=1;  
-    end
-   
-end
-    
-%propagation of the fly-through arc
-[t_vec_FT,state_vec_FT]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[t0 t_exit],state0_Halo,options_ode);
-state_vec_FT=state_vec_FT';
+theta_lim=-66.06; %limit latitude for plume presence (for a circular orbit with h=60km)
 
-state_vec_FT(1:3,:)=state_vec_FT(1:3,:)*DU;
-state_vec_FT(4:6,:)=state_vec_FT(4:6,:)*DU/TU;
+for k=1:length(lat_Halo)
+    if lat_Halo(k)>=theta_lim && flag==0
+        flag=1;
+        k_lim=k;
+        t_lim=t_vec_Halo(k);
+    end
+    
+end
+
+Time_plume=2*t_lim*TU/60 %[min] time in the plume for our science orbit
 
 Enceladus_3D(R_enc*DU,[(1-mu)*DU,0,0])
-P3=plot3(r_exit(1),r_exit(2),r_exit(3),'o','markersize',3,'linewidth',2)
-P2=plot3((1-mu)*DU+r_source_exit(1),r_source_exit(2),r_source_exit(3),'x','markersize',10,'linewidth',2)
-P1=plot3(state_vec_FT(1,:),state_vec_FT(2,:),state_vec_FT(3,:),'b','linewidth',2);
-%plot3(state_vec_FT(1,:),-state_vec_FT(2,:),state_vec_FT(3,:),'b','linewidth',2);
-legend([P1 P2 P3],'fly-through arc','source','exit from the plume')
+P1=plot3(state_vec_RS(1,:),state_vec_RS(2,:),state_vec_RS(3,:),'k','linewidth',1.25);
+plot3(state_vec_RS(1,:),-state_vec_RS(2,:),state_vec_RS(3,:),'k','linewidth',1.25);
+P2=plot3(state_vec_Halo(1,k_lim),state_vec_Halo(2,k_lim),state_vec_Halo(3,k_lim),'or','linewidth',2,'markersize',6);
+plot3(state_vec_Halo(1,k_lim),-state_vec_Halo(2,k_lim),state_vec_Halo(3,k_lim),'or','linewidth',2,'markersize',6);
+grid minor
+legend([P1 P2],'Halo','Fly through extremes')
 
 
 %% event function

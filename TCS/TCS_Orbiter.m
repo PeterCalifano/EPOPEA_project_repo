@@ -64,11 +64,11 @@ k_str = 117;
 l_str = 0.02;
 
 % Structure
-epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
+% epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
 % epsilon_int = 0.874; % black paint to maximize exchange (you can change it)
 epsilon_int = 0.034; 
 
-epsilon_MLI = 0.03;
+% epsilon_MLI = 0.03;
 epsilon_MLI = 0.02; %%%%%%%%%%%%%%%%%%%%%%
 % alpha_MLI = 0.08 (Kapton, silvered, aluminum oxide coated, 1 mil)
 %           = 0.11 Kapton, aluminized, silicon oxide coated, 1 mil
@@ -78,6 +78,10 @@ alpha_MLI = 0.11;
 % Antenna painted white: Vita-var PV-100 white paint
 alpha_ant = 0.22; % from 0.17 to 0.27
 epsilon_ant = 0.82; % do sensitivity analysis up to 0.9
+% antenna coating : PCBZ (book says 0.16 to 0.24 )
+alpha_ant = 0.2; % BOL
+alpha_ant_EOL = 0.4;
+epsilon_ant = 0.86;
 
 % Thermal straps
 k_TS = 398; 
@@ -510,7 +514,7 @@ Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) + P_VRHU_3;
 Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat) + P_VRHU_6;
 
 %%% SOLVE THE SYSTEM 
-Clamped = 1;
+Clamped = 0;
 if Clamped == 0
     P_added_6 = 60; % from RTG (look Cassini Reference)
 P_VRHU_6 = 50; % for batteries

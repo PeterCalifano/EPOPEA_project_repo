@@ -195,7 +195,7 @@ pressurant.gamma = 1.67 ; % Specific heat ratio of the gas
 pressurant.Pi = 300e5 ; % [Pa] - Initial pressure of the pressurant gas
 
 fprintf( '---------------------- Orbiter tank sizing ---------------------- \n' )
-[ orb_tank_ox, orb_tank_fu, orb_tank_gas ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, pressurant )
+[ orb_tank_ox, orb_tank_fu, orb_tank_gas, V_gas_sec, V_prop_sec ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, pressurant )
 
 %% TANK SIZING - NEW CONFIGURATION - LANDER
 lander_data.prop_main = m_prop_main_lan ; % [kg] - Propellant mass required by main thrusters
@@ -223,7 +223,7 @@ pressurant.gamma = 1.67 ; % Specific heat ratio of the gas
 pressurant.Pi = 300e5 ; % [Pa] - Initial pressure of the pressurant gas
 
 fprintf( '---------------------- Lander tank sizing ---------------------- \n' )
-[ lan_tank_prop, lan_tank_gas ] = dualmode_lander( main_thruster, att_thruster, lander_data, tank, rho_f, pressurant )
+[ lan_tank_prop, lan_tank_gas, V_prop_att, V_gas_att ] = dualmode_lander( main_thruster, att_thruster, lander_data, tank, rho_f, pressurant )
 
 %% FIRING TIME
 

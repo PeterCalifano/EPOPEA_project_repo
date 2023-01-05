@@ -19,8 +19,8 @@ clear; close all; clc;
 % Constants
 G = astroConstants(1);
 mu_tbp = 1.90095713928102*1e-7;
-DU = 238411468.296/1000; %km
-TU = 118760.57/(2*pi); 
+DU=238411468.296/1000; %km
+TU=118760.57/(2*pi); 
 
 %mu_tbp = M_E/(M_E+M_S);
 
@@ -31,6 +31,7 @@ R_Enceladus = mean(cspice_bodvrd('602','RADII',3));
 mu_Enceladus = cspice_bodvrd('602','GM',1);
 J2_Saturn = 1.629061510215236e-2; 
 J2_Enceladus = 5435.2e-6; 
+
 %mu_tbp = (mu_Enceladus)/(mu_Enceladus+mu_Saturn);
 
 R_v = [R_Saturn, R_Enceladus]/DU;
@@ -54,21 +55,21 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=0.5; %days of prapagation
+FlightDays=5; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 
 %propagation - Halo
-[t_vec_Halo,state_vec_Halo]=ode113(@SCR3BP_dyn,[t0 tf],state0_Halo,...
-    options_ode,mu_tbp,mu_v,R_v,J2_v);
+[t_vec_Halo,state_vec_Halo]=ode113(@CR3BP_dyn,[t0 tf],state0_Halo,...
+    options_ode,mu_tbp);%,mu_v,R_v,J2_v);
 state_vec_Halo=state_vec_Halo';
 
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 
 
-Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
+Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0])
 P2=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
     'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
 %S = scatter3(-mu_tbp*DU,0,0,100,'filled','DisplayName','Saturn');
@@ -77,7 +78,7 @@ grid minor
 
 %% STATION KEEPING
 N = 4 % Select the number of control points for the SK during one orbit
-states_SK = zeros(6,N); % Adimensional SK states
+states_SK0 = zeros(6,N); % Adimensional SK states
 %times_SK = zeros(1,N); % Adimensional SK times
 
 
@@ -91,7 +92,7 @@ tf_SK = tf_CI+h_SK/2*3600/TU;
 t_half = 1.142397328535602;
 ti_SK2 = t_half + (t_half - tf_SK);
 tf_SK2 = 2*t_half - tf_CI;
-times_SK = [tf_CI,tf_SK,ti_SK2,tf_SK2];
+times_SK0 = [tf_CI,tf_SK,ti_SK2,tf_SK2];
 
 % Define integration options
 options_ode_event = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13,'Events',@(t,x) FirstZeroCrossing(t,x));
@@ -103,29 +104,40 @@ state0_prop_ii = state0_Halo;
 for ii = 1:N
 
     % Propagate until time of interest
-    [t_ii,state_v_ii] = ode113(@(t,x) CR3BP_dyn(t,x,mu_tbp),[t0_prop_ii, times_SK(ii)],state0_prop_ii, options_ode);
+    [t_ii,state_v_ii] = ode113(@(t,x) CR3BP_dyn(t,x,mu_tbp),[t0_prop_ii, times_SK0(ii)],state0_prop_ii, options_ode);
 
     % Save the state
-    states_SK(:,ii) = state_v_ii(end,:)';
+    states_SK0(:,ii) = state_v_ii(end,:)';
 
     % Update for the next propagation
-    t0_prop_ii = times_SK(ii);
-    state0_prop_ii = states_SK(:,ii);
+    t0_prop_ii = times_SK0(ii);
+    state0_prop_ii = states_SK0(:,ii);
 end
 
-%% PERFORM SK
+%% SIMPLE SHOOTING
 clc
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-    'OptimalityTolerance', 1e-9, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+    'OptimalityTolerance', 1e-6, 'StepTolerance', 1e-6, 'ConstraintTolerance', 1e-6,...
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
-    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-6); 
 
+N_orbits = 1;
+
+states_SK = [];
+times_SK = [];
+
+for i = 1 : N_orbits
+    states_SK = [states_SK, states_SK0];
+    times_SK = [times_SK, i * 2*t_half + times_SK0];
+end
 
 n_var = 8; % 6 components of state + 2 times
 
+N = length(times_SK);
+
 % Set thresholds
 threshold_t = 5 * 60/TU;
-threshold_r = 1e-3; % Adimensional
+threshold_r = 100/DU; 
 
 A = [];
 B = [];
@@ -133,48 +145,142 @@ Aeq = [];
 Beq = [];
 ub = 1e+10*ones(n_var,1);
 lb = -1e+10*ones(n_var,1);
-pert = [1e-7,1e-7,1e-7,1e-7,1e-7,1e-7]';
-for ii = 1:N-1
+
+state_output = zeros(n_var-2,N-1);
+times_output = zeros(2,N-1);
+DV_output = zeros(1,N-1);
+
+state0 = states_SK(:,1);
+time0 = times_SK(1);
+
+for ii = 1: N-1
+
+    if rem(ii,4) == 0
+        flag = 1; % Pericenter
+        bounds = [20,60]/DU;
+    elseif rem(ii,2) == 0 && rem(ii,4) ~= 0
+        flag = 2; % Apocenter
+        bounds = [800,1500]/DU;
+    else
+        flag = 0; % SK arcs
+        bounds = [0,0];
+    end
+
     r_nom_i = states_SK(1:3,ii);
     r_nom_f = states_SK(1:3,ii+1);
     v_nom_i = states_SK(4:6,ii);
-    x0 = [states_SK(:,ii) ;
-        times_SK(ii);
-        times_SK(ii+1)];
+
+    x0 = [state0 ;
+        time0;
+        times_SK(ii+1) - times_SK(ii) + time0];
     lb(7) = times_SK(ii) - threshold_t;
     ub(7) = times_SK(ii) + threshold_t;
     lb(8) = times_SK(ii + 1) - threshold_t;
     ub(8) = times_SK(ii + 1) + threshold_t;
 
-[X_ss, DV_ss] = fmincon(@(var) objfun_SK(var,mu_tbp,mu_v,R_v,J2_v,v_nom_i),x0,A,B,...
-    Aeq,Beq,lb,ub,@(var) nlcon_SK(var,mu_tbp,mu_v,R_v,J2_v,r_nom_i,r_nom_f,threshold_r),options);
-
-a = 1;
+    [X_ss, DV_ss] = fmincon(@(var) objfun_SK(var,mu_tbp,mu_v,R_v,J2_v,v_nom_i),x0,A,B,...
+        Aeq,Beq,lb,ub,@(var) nlcon_SK(var,mu_tbp,mu_v,R_v,J2_v,r_nom_i,r_nom_f,threshold_r,flag,bounds),options);
+    
+    state_output(:,ii) = X_ss(1:6);
+    times_output(1,ii) = X_ss(7);
+    times_output(2,ii) = X_ss(8);
+    
+    DV_output(ii) = DV_ss;
+    
+    state0 = state_output(:,ii);
+    time0 = times_output(2,ii);
 end
 
+DV_output = DV_output * DU/TU * 1000;
 
-% Propagation of a full nominal Halo
+%% MULTIPLE SHOOTING
+% clc
+% options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+%     'OptimalityTolerance', 1e-9, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+%     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+%     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
+% 
+% 
+% n_var = 8; % 6 components of state + 2 times
+% 
+% % Set thresholds
+% threshold_t = 5 * 60/TU;
+% threshold_r = 1e-6; % Adimensional
+% 
+% A = [];
+% B = [];
+% Aeq = [];
+% Beq = [];
+% ub = 1e+10*ones(n_var,1);
+% lb = -1e+10*ones(n_var,1);
+% pert = [1e-7,1e-7,1e-7,1e-7,1e-7,1e-7]';
+% 
+% state_output = zeros(n_var-2,N);
+% times_output = zeros(2,N);
+% DV_output = zeros(1,N);
+% 
+% state0 = states_SK(:,1);
+% time0 = times_SK(1);
+% 
+% for ii = 1:N
+% 
+% 
+% 
+%     r_nom_i = states_SK(1:3,ii);
+%     r_nom_f = states_SK(1:3,ii+1);
+%     v_nom_i = states_SK(4:6,ii);
+% 
+%     x0 = [state0 ;
+%         time0;
+%         times_SK(ii+1) - times_SK(ii) + time0];
+%     lb(7) = times_SK(ii) - threshold_t;
+%     ub(7) = times_SK(ii) + threshold_t;
+%     lb(8) = times_SK(ii + 1) - threshold_t;
+%     ub(8) = times_SK(ii + 1) + threshold_t;
+% 
+%     [X_ss, DV_ss] = fmincon(@(var) objfun_SK(var,mu_tbp,mu_v,R_v,J2_v,v_nom_i),x0,A,B,...
+%         Aeq,Beq,lb,ub,@(var) nlcon_SK(var,mu_tbp,mu_v,R_v,J2_v,r_nom_i,r_nom_f,threshold_r,flag),options);
+%     
+%     state_output(:,ii) = X_ss(1:6);
+%     times_output(1,ii) = X_ss(7);
+%     times_output(2,ii) = X_ss(8);
+%     
+%     DV_output(ii) = DV_ss;
+%     
+%     state0 = state_output(:,ii);
+%     time0 = times_output(2,ii);
+% end
+
+%% Propagation of a full nominal Halo
 [t_v,state_fullHalo]=ode113(@(t,x) CR3BP_dyn(t,x,mu_tbp),[t0, 2*t_half],state0_Halo, options_ode);
 state_fullHalo(:,1:3) = state_fullHalo(:,1:3)*DU;
 state_fullHalo(:,4:6) = state_fullHalo(:,4:6)*DU/TU;
 
+
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
 P2=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
-    'k','linewidth',1.25,'DisplayName','Nominal Halo Orbit');
+    'k--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
 grid minor
 hold on
 scatter3(states_SK(1,:)*DU,states_SK(2,:)*DU,states_SK(3,:)*DU,40,'r','filled',...
     'DisplayName','SK Points')
+scatter3(state_output(1,:)*DU,state_output(2,:)*DU,state_output(3,:)*DU,40,'g','filled',...
+    'DisplayName','Optim 1')
+
+
+for ii = 1:N-1
+    xx_0 = state_output(:,ii);
+    t0 = times_output(1,ii);
+    tf = times_output(2,ii);
+    [~,prop_state] = ode113(@SCR3BP_dyn,[t0, tf],xx_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
+    prop_state = prop_state';
+    plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,'DisplayName','Propagation')
+end
 legend()
 
 
 
-function [value,isterminal,direction] = FirstZeroCrossing(t,x) %Event function 
-%to stop the integration at the intersection point with the x-z plane 
 
-value=x(2);
-isterminal=1;
-direction=-1;
 
-end
+

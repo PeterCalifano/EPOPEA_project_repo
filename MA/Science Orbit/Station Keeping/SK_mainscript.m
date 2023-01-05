@@ -113,13 +113,43 @@ for ii = 1:N
     state0_prop_ii = states_SK(:,ii);
 end
 
-% PERFORM SK
+%% PERFORM SK
+clc
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-9, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
 
-for ii = 1:N
-    
 
+n_var = 8; % 6 components of state + 2 times
 
+% Set thresholds
+threshold_t = 5 * 60/TU;
+threshold_r = 1e-3; % Adimensional
 
+A = [];
+B = [];
+Aeq = [];
+Beq = [];
+ub = 1e+10*ones(n_var,1);
+lb = -1e+10*ones(n_var,1);
+pert = [1e-7,1e-7,1e-7,1e-7,1e-7,1e-7]';
+for ii = 1:N-1
+    r_nom_i = states_SK(1:3,ii);
+    r_nom_f = states_SK(1:3,ii+1);
+    v_nom_i = states_SK(4:6,ii);
+    x0 = [states_SK(:,ii) ;
+        times_SK(ii);
+        times_SK(ii+1)];
+    lb(7) = times_SK(ii) - threshold_t;
+    ub(7) = times_SK(ii) + threshold_t;
+    lb(8) = times_SK(ii + 1) - threshold_t;
+    ub(8) = times_SK(ii + 1) + threshold_t;
+
+[X_ss, DV_ss] = fmincon(@(var) objfun_SK(var,mu_tbp,mu_v,R_v,J2_v,v_nom_i),x0,A,B,...
+    Aeq,Beq,lb,ub,@(var) nlcon_SK(var,mu_tbp,mu_v,R_v,J2_v,r_nom_i,r_nom_f,threshold_r),options);
+
+a = 1;
 end
 
 

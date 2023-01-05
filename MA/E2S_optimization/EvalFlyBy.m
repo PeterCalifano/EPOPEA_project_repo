@@ -131,7 +131,7 @@ Sb = [Sb_r, Sb_theta, Sb_h];
 SAA = mean(asind(Sb_h)); 
 
 % compute angles in deg of relative trajectory sc-planet wrt zenith, tangential, and tranversal direction
-SunDir = - S;
+SunDir = S;
 i_tan = rad2deg(acos(dot(SunDir, v_dir,2)));
 i_tran = rad2deg(acos(dot(SunDir, theta_dir,2)));
 i_out = rad2deg(acos(dot(SunDir, H_dir,2)));

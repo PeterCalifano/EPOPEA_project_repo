@@ -70,7 +70,7 @@ eps_rad = eps_louv_open; % if open louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 4; %% can be changed
+n_rad = 6; %% can be changed
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 k_rad = 1;
 

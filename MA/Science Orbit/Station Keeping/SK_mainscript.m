@@ -193,63 +193,6 @@ end
 
 DV_output = DV_output * DU/TU * 1000;
 
-%% MULTIPLE SHOOTING
-% clc
-% options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-%     'OptimalityTolerance', 1e-9, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
-%     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
-%     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
-% 
-% 
-% n_var = 8; % 6 components of state + 2 times
-% 
-% % Set thresholds
-% threshold_t = 5 * 60/TU;
-% threshold_r = 1e-6; % Adimensional
-% 
-% A = [];
-% B = [];
-% Aeq = [];
-% Beq = [];
-% ub = 1e+10*ones(n_var,1);
-% lb = -1e+10*ones(n_var,1);
-% pert = [1e-7,1e-7,1e-7,1e-7,1e-7,1e-7]';
-% 
-% state_output = zeros(n_var-2,N);
-% times_output = zeros(2,N);
-% DV_output = zeros(1,N);
-% 
-% state0 = states_SK(:,1);
-% time0 = times_SK(1);
-% 
-% for ii = 1:N
-% 
-% 
-% 
-%     r_nom_i = states_SK(1:3,ii);
-%     r_nom_f = states_SK(1:3,ii+1);
-%     v_nom_i = states_SK(4:6,ii);
-% 
-%     x0 = [state0 ;
-%         time0;
-%         times_SK(ii+1) - times_SK(ii) + time0];
-%     lb(7) = times_SK(ii) - threshold_t;
-%     ub(7) = times_SK(ii) + threshold_t;
-%     lb(8) = times_SK(ii + 1) - threshold_t;
-%     ub(8) = times_SK(ii + 1) + threshold_t;
-% 
-%     [X_ss, DV_ss] = fmincon(@(var) objfun_SK(var,mu_tbp,mu_v,R_v,J2_v,v_nom_i),x0,A,B,...
-%         Aeq,Beq,lb,ub,@(var) nlcon_SK(var,mu_tbp,mu_v,R_v,J2_v,r_nom_i,r_nom_f,threshold_r,flag),options);
-%     
-%     state_output(:,ii) = X_ss(1:6);
-%     times_output(1,ii) = X_ss(7);
-%     times_output(2,ii) = X_ss(8);
-%     
-%     DV_output(ii) = DV_ss;
-%     
-%     state0 = state_output(:,ii);
-%     time0 = times_output(2,ii);
-% end
 
 %% Propagation of a full nominal Halo
 [t_v,state_fullHalo]=ode113(@(t,x) CR3BP_dyn(t,x,mu_tbp),[t0, 2*t_half],state0_Halo, options_ode);
@@ -263,7 +206,7 @@ P2=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
     'k--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
 grid minor
 hold on
-scatter3(states_SK(1,:)*DU,states_SK(2,:)*DU,states_SK(3,:)*DU,40,'r','filled',...
+scatter3(states_SK0(1,:)*DU,states_SK0(2,:)*DU,states_SK0(3,:)*DU,40,'r','filled',...
     'DisplayName','SK Points')
 scatter3(state_output(1,:)*DU,state_output(2,:)*DU,state_output(3,:)*DU,40,'g','filled',...
     'DisplayName','Optim 1')
@@ -279,6 +222,68 @@ for ii = 1:N-1
 end
 legend()
 
+%% MULTIPLE SHOOTING
+clc
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-9, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
+
+% var [14*N_orbits]
+
+lb_peri = 20/DU;
+ub_peri = 60/DU;
+lb_apo = 800/DU;
+ub_apo = 1500/DU;
+
+N_orbits = 1
+
+n_var = 14*N_orbits;
+
+t_orb = 2*t_half;
+
+% Create linear constraints and boundaries
+A = [];
+B = [];
+Aeq = [];
+Beq = [];
+ub = 1e+10*ones(n_var,1);
+lb = -1e+10*ones(n_var,1);
+
+for ii = 1:2*N_orbits
+    
+    if rem(ii,2) ~= 0
+        % SK1 ( peri --> apo )
+        ub(7*ii) = (ii-1)/2 * t_orb + tf_SK;
+        lb(7*ii) = (ii-1)/2 * t_orb + tf_CI;
+    else
+        % SK2 ( apo --> peri )
+        ub(7*ii) = ii/2 * t_orb - tf_CI;
+        lb(7*ii) = ii/2 * t_orb - tf_SK;
+    end
+
+end
+
+% Create initial guess
+initial_guess = zeros(n_var,1);
+
+for ii = 1:2*N_orbits
+
+    if rem(ii,2) ~= 0
+        index = 2;
+    else
+        index = 4;
+    end
+
+    initial_guess(7*ii-6:7*ii-1) = states_SK0(:,index);
+    initial_guess(7*ii) = times_SK0(index);
+
+end
+
+[X_ms, DV_ms] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits),initial_guess,A,B,...
+    Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo),...
+    options);
+    
 
 
 

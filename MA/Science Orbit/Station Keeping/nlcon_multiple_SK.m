@@ -1,6 +1,6 @@
-function [c,c_eq] = nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo)
+function [c,ceq] = nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo)
 % INPUTS
-% var - [7N_orbitsx1] design variables
+% var - [14*N_orbitsx1] design variables
 % lb_peri - [1x1] lower bound for the pericentre
 % ub_peri - [1x1] upper bound for the pericentre
 % lb_apo - [1x1] lower bound for the apocentre
@@ -35,12 +35,15 @@ for k=1:2*N_orbits-1
     t1=var(7*k);
     t2=var(7*(k+1));
     [~,prop_state,~,state_aps,~] = ode113(@SCR3BP_dyn,[t1 t2],var(7*k-6:7*k-1),options_ode_cycle,mu_tbp,mu_v,R_v,J2_v);
+    if exist("state_aps") == 0
+        plot3(prop_state(:,1),prop_state(:,2),prop_state(:,3),'linewidth',2)
+    end
     state_aps(1)=state_aps(1)-(1-mu_tbp);
     r_aps=norm(state_aps(1:3));
     
     %position matching (equality constraints)
     flow=prop_state(end,:)';
-    ceq(3*(k+1)-2:3*(k+1))=flow(1:3)-var(7*(k+1)-6:7*(k+1)-4);
+    ceq(3*(k+1)-2:3*(k+1)) = flow(1:3)-var(7*(k+1)-6:7*(k+1)-4);
     %inequality constraints - apse line bounds
     if rem(k,2)~=0
         c(2*k-1)=-r_aps+lb_apo;

@@ -1,4 +1,4 @@
-function [DV,r_plus,r_minus] = VILT(rp_iso,N,M,iso_target,iso_dep,mu)
+function [DV,r_plus,r_minus] = VILT(rp_iso,N,M,iso_target,iso_dep,mu,type)
 
     % Check if the target and departure curves are equal --> in this case no
     % VILT is needed
@@ -28,15 +28,25 @@ function [DV,r_plus,r_minus] = VILT(rp_iso,N,M,iso_target,iso_dep,mu)
         ra_plus = Ra_target(index1);
         rp_plus = Rp_target(index1);
         r_plus = [ra_plus;rp_plus];
-    
+        
+    if strcmp(type,'int')
+        rp_minus = rp_plus;
+        Ra_dep = interp(iso_dep(1,:),1000);
+        Rp_dep = interp(iso_dep(2,:),1000);
+        [~,index2] = min(abs(Rp_dep - rp_minus));
+        ra_minus = Ra_dep(index2);
+    else
+
         % Find the orbit before the VILT
         ra_minus = ra_plus;
         Ra_dep = interp(iso_dep(1,:),1000);
         Rp_dep = interp(iso_dep(2,:),1000);
         [~,index2] = min(abs(Ra_dep - ra_minus));
-        err = abs(Ra_dep(index2) - ra_minus);
         rp_minus = Rp_dep(index2);
-        r_minus = [ra_minus;rp_minus];
+
+    end
+
+    r_minus = [ra_minus;rp_minus];
     
         % Compute the VILT
     

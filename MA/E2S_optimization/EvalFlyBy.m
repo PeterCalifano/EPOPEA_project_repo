@@ -118,8 +118,8 @@ theta_dir = cross(H_dir, r_dir);
 % Define SC position in SOI wrt SUN
 R_SC = R_p' + r_state;
 
-% Define Sb vector by projection at each epoch
-S = R_SC./vecnorm(R_SC, 2, 2); % Position vector of the planet assumed equal to Sun rays incoming direction
+% Define Sb vector by projection at each epoch in the r-theta-h frame
+S = -R_SC./vecnorm(R_SC, 2, 2); % Position vector of the planet assumed equal to Sun rays incoming direction
 
 Sb_r = dot(S, r_dir, 2);
 Sb_theta = dot(S, theta_dir, 2);

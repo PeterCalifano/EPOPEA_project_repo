@@ -154,27 +154,32 @@ for idfb = 1:howmanyfb
     i_out = RelPos{idfb}(:,4);
     
     time = [timegrids{idfb}(1:end); timegrids{idfb}(2:end) + timegrids{idfb}(end)];
+    time = time/3600; % hours
     figure;
     plot(time, i_zen, 'b', 'Linewidth', 1.2)
     ylabel('$\theta_{Sun/Zenith}\ [deg]$')
+    xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Zenith")
     grid on; grid minor
 
     figure;
     plot(time, i_out, 'g', 'Linewidth', 1.2)
     ylabel('$\theta_{Sun/Out-of-plane}\ [deg]$')
+    xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle out of plane")
     grid on; grid minor
 
     figure;
     plot(time, i_tan, 'g', 'Linewidth', 1.2)
     ylabel('$\theta_{Sun/Tan}\ [deg]$')
+    xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Tangential direction")
     grid on; grid minor
 
     figure;
     plot(time, i_tran, 'g', 'Linewidth', 1.2)
     ylabel('$\theta_{Sun/Transv}\ [deg]$')
+    xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Transversal direction")
     grid on; grid minor
 end

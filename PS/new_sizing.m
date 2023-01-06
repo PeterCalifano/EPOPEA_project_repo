@@ -8,11 +8,12 @@ n_flyby = 3 ;
 
 MAR_010 = 1.05;          % Deterministic maneuvers
 MAR_020 = 2;             % Stochastic
+MAR_030 = 2;             % Attitude maneuvers
 MAR_050 = 1.2;           % Apply on LANDING
-MAR_030 = 2;             % Attitude maneuvres
 MAR_080 = 30;            % [m/s] Launcher dispersion - apply only on primary
 MAR_090 = 15*n_flyby;    % [m/s] For each flyby
 MAR_100 = 10;            % [m/s] For Moon approach navigation maneuver
+MAR_attitude = 1.15;     % Propellant mass for attitude
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 %%%%%
 
@@ -140,11 +141,12 @@ dV_att = 30 * MAR_030 ; % [m/s] - Cumulative delta v for attitude control
 
 orbiter.dV_disp = 250 * MAR_020 ; % [m/s] - Delta v for disposal of the orbiter
 orbiter.dV_sk_o = dV_sk * 8 / 9 ; % When only orbiter ( 24 months )
-orbiter.dV_att_o = dV_att * 8 / 9 ; % When only orbiter ( 24 months )
+orbiter.m_att_science_o = 14.56 * MAR_attitude ; % When only orbiter ( 24 months )
 
 orbiter.dV_sk_cl = dV_sk / 9  ; % When clamped ( 3 months )
-orbiter.dV_att_cl = dV_att / 9 ; % When clamped ( 192 months )
-orbiter.dV_EOI = ( 500 + 163 ) * MAR_010 + ( 111 + 370 + 142 + 53 + 105 ) * 1.25 + MAR_100 ; % [m/s] - Delta v for moon tour and Enceladus orbit inseriton (includes margin for moon approach navigation)
+orbiter.m_att_science_cl = 106.3 * MAR_attitude ; % When clamped ( 192 months ) + 10% margin
+orbiter.m_att_dsm_cl = 0.15 * MAR_attitude ; % When clamped ( 192 months ) + 100% margin
+orbiter.dV_EOI = ( 500 + 163 ) * MAR_010 + ( 111 + 370 + 142 + 53 + 105 ) * 1.15 + MAR_100 ; % [m/s] - Delta v for moon tour and Enceladus orbit inseriton (includes margin for moon approach navigation)
 orbiter.dV_cap = 0.2477 * MAR_010 ;
 orbiter.dV_int = 785.5 * MAR_010 + MAR_080 + MAR_090 ; % [m/s] - Delta v for interplanetary leg (includes margins on launcher dispersion and fly by)
 orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters

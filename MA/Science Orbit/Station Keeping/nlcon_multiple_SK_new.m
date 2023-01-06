@@ -1,4 +1,4 @@
-function [c,ceq] = nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
+function [c,ceq] = nlcon_multiple_SK_new(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
     r_max,r_min,v_max,v_min)
 % INPUTS
 % var - [14*N_orbitsx1] design variables
@@ -45,34 +45,23 @@ for k=1:2*N_orbits-1
 %         zlabel('Z')
 %         grid minor
 %     end
-    if rem(k,2)~=0
-        max_dist = 0;
-        for i = 1:length(prop_state(:,1))
-            dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
-            if dist > max_dist
-                max_dist = dist;
-                index_apse = i;
-            end
-        end
-    else
-        min_dist = 1e+10;
-        for i = 1:length(prop_state(:,1))
-            dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
-            if dist < min_dist
-                min_dist = dist;
-                index_apse = i;
-            end
-        end
 
-    end
-    state_aps = prop_state(index_apse,:);
-    state_aps(1)=state_aps(1)-(1-mu_tbp);
-    r_aps=norm(state_aps(1:3));
-    
     %position matching (equality constraints)
     flow=prop_state(end,:)';
     ceq(3*(k+1)-2:3*(k+1)) = flow(1:3)-var(7*(k+1)-6:7*(k+1)-4);
 
+    if rem(k,2)~=0
+        prop_state(:,1)=prop_state(:,1)-(1-mu_tbp);
+        norm_array=sqrt(prop_state(:,1).^2+prop_state(:,2).^2+prop_state(:,3).^2);
+        [max_dist,index_apse]=max(norm_array);
+    else
+        prop_state(:,1)=prop_state(:,1)-(1-mu_tbp);
+        norm_array=sqrt(prop_state(:,1).^2+prop_state(:,2).^2+prop_state(:,3).^2);
+        [min_dist,index_apse]=min(norm_array);
+    end
+    state_aps = prop_state(index_apse,:);
+    r_aps=norm(state_aps(1:3));
+    
     %inequality constraints - apse line bounds
     if rem(k,2)~=0
         c(6*k-5)=-r_aps+lb_apo;
@@ -95,19 +84,16 @@ end
 t1=var(end);
 t2=var(end)+1;
 [~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(end-6:end-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
-min_dist = 1e+10;
-for i = 1:length(prop_state(:,1))
-    dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
-    if dist < min_dist
-        min_dist = dist;
-        index_apse = i;
-    end
-end
+
+
+prop_state(:,1)=prop_state(:,1)-(1-mu_tbp);
+norm_array=sqrt(prop_state(:,1).^2+prop_state(:,2).^2+prop_state(:,3).^2);
+[min_dist,index_apse]=min(norm_array);
+
 state_aps = prop_state(index_apse,:);
-state_aps(1)=state_aps(1)-(1-mu_tbp);
 r_aps=norm(state_aps(1:3));
 
-%cosntraint
+%constraint
 c(6*k+1)=-r_aps+lb_peri;
 c(6*k+2)=r_aps-ub_peri;
 

@@ -267,8 +267,8 @@ for i=1:length(in)
         % Add an identifier and constant here. Prototype:
         % case $identifier$
         %     out(i)=$constant_value$;
-        otherwise
-            warning('Constant identifier %d is not defined!',in(i));
-            out(i)=0;
+%         otherwise
+%             warning('Constant identifier %d is not defined!',in(i));
+%             out(i)=0;
     end
 end

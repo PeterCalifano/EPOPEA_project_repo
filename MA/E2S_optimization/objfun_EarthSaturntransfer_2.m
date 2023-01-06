@@ -188,11 +188,11 @@ for i = 1:N+1
         mu_pl = mu_planets(i+1);
 
         % Obtain the incoming infinite velocity
-        v_inf_in = v_FB_in - v_planets(:,i+1);
+        v_inf_in = v_FB_in' - v_planets(:,i+1);
 
         % Compute the fly-by
         %v_inf_out = perform_FB(v_inf_in,rp_FB(i),beta_FB(i));
-        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl);
+        v_inf_out = FindVinfOut(v_inf_in, beta_FB(i), rp_FB(i), mu_pl, v_planets(:, i+1));
 
         % Obtain the outcoming infinite velocity which is the input for the
         % next iteration of the loop
@@ -207,7 +207,7 @@ end
 
 mu_end = mu_planets(end);
 
-Vinf_entry = v_FB_in - v_planets(:,end);
+Vinf_entry = v_FB_in' - v_planets(:,end);
 
 norm_Vinf_entry = norm(Vinf_entry);
 

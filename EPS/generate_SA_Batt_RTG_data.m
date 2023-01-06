@@ -13,12 +13,21 @@ save( VarName, SA_data ) ;
 clearvars ; close all ; clc ;
 
 Batt_data.NumberOfBatteries = 1 ; % Number of batteries
-Batt_data.DOD = 0.44 ; % Depth of discharge [%]
-Batt_data.cycles = 20000 ; % Battery cycles that can be obtained with the selected DOD
-Batt_data.Em = 150 ; % Mass-specific energy [Wh/kg]
-Batt_data.Ev = 250 ; % Volume-specific energy [Wh/dm^3]
-%VarName = 'Batt_data_LiIon_generic_singleBatt' ;
+Batt_data.DOD = 0.40 ; % Depth of discharge [%]
+Batt_data.cycles = 40000 ; % Battery cycles that can be obtained with the selected DOD
+Batt_data.Em = 102.4 ; % Mass-specific energy [Wh/kg]
+Batt_data.Ev = 102.6 ; % Volume-specific energy [Wh/dm^3]
+VarName = 'Batt_data_LiIon_Saft_VES16_small_singleBatt' ;
 save( VarName, 'Batt_data' ) ;
+
+
+%% Generates structure containing battery cell data
+clearvars ; close all ; clc ;
+
+Cell_data.C = 4.5 ; % Nominal capacity [Ah]
+Cell_data.V = 4.1 ; % Nominal voltage [V]
+VarName = 'Saft_VES16_LiIonCell' ;
+save( VarName, 'Cell_data' ) ;
 
 %% Generates structure containing RTG data
 

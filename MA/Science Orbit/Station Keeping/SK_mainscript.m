@@ -232,10 +232,10 @@ options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',.
 
 % var [14*N_orbits]
 
-lb_peri = 20/DU;
-ub_peri = 60/DU;
-lb_apo = 800/DU;
-ub_apo = 1500/DU;
+lb_peri = (R_Enceladus+20)/DU;
+ub_peri = (R_Enceladus+60)/DU;
+lb_apo = (R_Enceladus+800)/DU;
+ub_apo = (R_Enceladus+1500)/DU;
 
 N_orbits = 1;
 

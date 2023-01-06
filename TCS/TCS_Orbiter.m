@@ -55,13 +55,13 @@ A2 = L1*L3;
 A4 = A2;
 A3 = L2*L3;
 A5_tot = A3;
-D_ant = 3.72; % diameter of antenna [m]
+D_ant = 3.8; % diameter of antenna [m]
 A_ant = pi*(D_ant/2)^2; 
 A1_ext = A1 - A_ant; % external area of surface 1 not covered by the antenna
 
 %%% Structure properties (Al-5056-O)
 k_str = 117;
-l_str = 0.02;
+l_str = 0.02; %%%%%%%%%??
 
 % Structure
 % epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
@@ -189,15 +189,15 @@ fprintf("Total area radiator required by PL in the hot case [m^2]: %f ",A_rad_pl
 Q_pl_budget = Q_NAC + Q_WAC + Q_TES + Q_LA;
 %%
 % Power
-P_budget_hot = 322.65;
-P_input_TMTC_h = 28.79; % ask Antoine
-P_diss_TMTC_h = 22.35;  % ask Antoine
+P_budget_hot = 347.56;
+P_input_TMTC_h = 29.93; % ask Antoine %%%%%%%%%%%%%
+P_diss_TMTC_h = 23.96;  % ask Antoine %%%%%%%%%%%%%
 % add batteries ...
-We = 397;              % electrical power from RTG
-Wt = 2647;             % thermal power from RTG
-Q_RHU_added = 50;
-Q_RTG_waste = 60;
-Q_hot = P_budget_hot - P_input_TMTC_h+P_diss_TMTC_h - Q_pl_budget + Q_RHU_added + Q_RTG_waste; 
+We = 456;              % electrical power from RTG
+Wt = 3040;             % thermal power from RTG
+Q_RHU_added = 0;
+
+Q_hot = P_budget_hot - P_input_TMTC_h+P_diss_TMTC_h - Q_pl_budget + Q_RHU_added; 
 Q_hot = P_budget_hot - P_input_TMTC_h+P_diss_TMTC_h - Q_pl_budget; 
 Q_shunt = We - Q_hot; % check if a shunt can dissipate this power
 
@@ -224,10 +224,6 @@ F13 = 0;
 F31 = 0;
 F14 = 0;
 F41 = 0;
-F15_tot = 0;
-F51_tot = 0;
-F1rad = 0;
-Frad1 = 0; 
 F15 = 0;
 F51 = 0;
 F16 = 0;
@@ -536,6 +532,7 @@ else
         Q_diss_cold(5) = We/2;
     end
 end
+% Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant;
 
 T_guess = 273*ones(14,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);

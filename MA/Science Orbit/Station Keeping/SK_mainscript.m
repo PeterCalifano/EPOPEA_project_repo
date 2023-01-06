@@ -195,7 +195,8 @@ DV_output = DV_output * DU/TU * 1000;
 
 
 %% Propagation of a full nominal Halo
-[t_v,state_fullHalo]=ode113(@(t,x) CR3BP_dyn(t,x,mu_tbp),[t0, 2*t_half],state0_Halo, options_ode);
+[t_v,state_fullHalo]=ode113(@SCR3BP_dyn,[t0, 2*t_half],state0_Halo, options_ode...
+    ,mu_tbp,mu_v,R_v,J2_v);
 state_fullHalo(:,1:3) = state_fullHalo(:,1:3)*DU;
 state_fullHalo(:,4:6) = state_fullHalo(:,4:6)*DU/TU;
 
@@ -253,16 +254,33 @@ lb = -1e+10*ones(n_var,1);
 for ii = 1:2*N_orbits
     
     if rem(ii,2) ~= 0
+
         % SK1 ( peri --> apo )
         ub(7*ii) = (ii-1)/2 * t_orb + tf_SK;
         lb(7*ii) = (ii-1)/2 * t_orb + tf_CI;
+        lb(7*ii - 5) = 0;
+
     else
+
         % SK2 ( apo --> peri )
         ub(7*ii) = ii/2 * t_orb - tf_CI;
         lb(7*ii) = ii/2 * t_orb - tf_SK;
+        ub(7*ii - 5) = 0;
+
     end
 
 end
+
+% Create bounds for SK position and velocity
+norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
+norm_r2 = norm(states_SK0(1:3,2) - [1-mu_tbp;0;0]);
+norm_v1 = norm(states_SK0(4:6,1));
+norm_v2 = norm(states_SK0(4:6,2));
+
+r_max = max(norm_r1,norm_r2)*1.2;
+r_min = min(norm_r1,norm_r2)*0.8;
+v_max = max(norm_v1,norm_v2)*1.2;
+v_min = min(norm_v1,norm_v2)*0.8;
 
 % Create initial guess
 initial_guess = zeros(n_var,1);
@@ -271,21 +289,21 @@ for ii = 1:2*N_orbits
 
     if rem(ii,2) ~= 0
         index = 2;
+        sum = -0.001;
     else
-        index = 4;
+        index = 3;
+        sum = 0.001;
     end
 
     initial_guess(7*ii-6:7*ii-1) = states_SK0(:,index);
-    initial_guess(7*ii) = times_SK0(index);
+    initial_guess(7*ii) = times_SK0(index) + sum;
 
 end
 
 [X_ms, DV_ms] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits),initial_guess,A,B,...
-    Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo),...
-    options);
+    Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
+    r_max,r_min,v_max,v_min), options);
     
-
-
 
 
 

@@ -1,4 +1,5 @@
-function [c,ceq] = nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo)
+function [c,ceq] = nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
+    r_max,r_min,v_max,v_min)
 % INPUTS
 % var - [14*N_orbitsx1] design variables
 % lb_peri - [1x1] lower bound for the pericentre
@@ -34,34 +35,88 @@ for k=1:2*N_orbits-1
     %propagation
     t1=var(7*k);
     t2=var(7*(k+1));
-    [~,prop_state,~,state_aps,~] = ode113(@SCR3BP_dyn,[t1 t2],var(7*k-6:7*k-1),options_ode_cycle,mu_tbp,mu_v,R_v,J2_v);
-    if exist("state_aps") == 0
-        plot3(prop_state(:,1),prop_state(:,2),prop_state(:,3),'linewidth',2)
+    [~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+%     if exist("state_aps") == 0
+%         plot3(prop_state(:,1),prop_state(:,2),prop_state(:,3),'linewidth',2)
+%         axis equal
+%         hold on
+%         xlabel('X')
+%         ylabel('Y')
+%         zlabel('Z')
+%         grid minor
+%     end
+    if rem(k,2)~=0
+        max_dist = 0;
+        for i = 1:length(prop_state(1,:))
+            dist = norm(prop_state(i,1:3));
+            if dist > max_dist
+                max_dist = dist;
+                index_apse = i;
+            end
+        end
+    else
+        min_dist = 1e+10;
+        for i = 1:length(prop_state(1,:))
+            dist = norm(prop_state(i,1:3));
+            if dist < min_dist
+                min_dist = dist;
+                index_apse = i;
+            end
+        end
+
     end
+    state_aps = prop_state(index_apse,:);
     state_aps(1)=state_aps(1)-(1-mu_tbp);
     r_aps=norm(state_aps(1:3));
     
     %position matching (equality constraints)
     flow=prop_state(end,:)';
     ceq(3*(k+1)-2:3*(k+1)) = flow(1:3)-var(7*(k+1)-6:7*(k+1)-4);
+
     %inequality constraints - apse line bounds
     if rem(k,2)~=0
-        c(2*k-1)=-r_aps+lb_apo;
-        c(2*k)=r_aps-ub_apo;
+        c(6*k-5)=-r_aps+lb_apo;
+        c(6*k-4)=r_aps-ub_apo;
     else
-        c(2*k-1)=-r_aps+lb_peri;
-        c(2*k)=r_aps-ub_peri;
+        c(6*k-5)=-r_aps+lb_peri;
+        c(6*k-4)=r_aps-ub_peri;
     end
+
+    % Limits on position and velocity of SK points
+    r_norm = norm(var(7*k-6:7*k-4) - [1-mu_tbp;0;0]);
+    v_norm = norm(var(7*k-3:7*k-1));
+
+    c(6*k - 3) = r_norm - r_max;
+    c(6*k - 2) = - r_norm + r_min;
+    c(6*k - 1) = v_norm - v_max;
+    c(6*k) = - v_norm + v_min;
 end
 %final propagation, pericentre check 
 t1=var(end);
 t2=var(end)+1;
-[~,prop_state,~,state_aps,~] = ode113(@SCR3BP_dyn,[t1 t2],var(end-6:end-1),options_ode_stop,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(end-6:end-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+min_dist = 1e+10;
+for i = 1:length(prop_state(1,:))
+    dist = norm(prop_state(i,1:3));
+    if dist < min_dist
+        min_dist = dist;
+        index_apse = i;
+    end
+end
+state_aps = prop_state(index_apse,:);
 state_aps(1)=state_aps(1)-(1-mu_tbp);
 r_aps=norm(state_aps(1:3));
+
 %cosntraint
-c(2*k+1)=-r_aps+lb_peri;
-c(2*k+2)=r_aps-ub_peri;
+c(6*k+1)=-r_aps+lb_peri;
+c(6*k+2)=r_aps-ub_peri;
+
+r_norm = norm(var(7*(k+1)-6:7*(k+1)-4) - [1-mu_tbp;0;0]);
+v_norm = norm(var(7*(k+1)-3:7*(k+1)-1));
+c(6*k+3) = r_norm - r_max;
+c(6*k+4) = - r_norm + r_min;
+c(6*k+5) = v_norm - v_max;
+c(6*k+6) = - v_norm + v_min;
 
 
 end

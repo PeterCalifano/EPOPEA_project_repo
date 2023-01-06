@@ -47,8 +47,8 @@ for k=1:2*N_orbits-1
 %     end
     if rem(k,2)~=0
         max_dist = 0;
-        for i = 1:length(prop_state(1,:))
-            dist = norm(prop_state(i,1:3));
+        for i = 1:length(prop_state(:,1))
+            dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
             if dist > max_dist
                 max_dist = dist;
                 index_apse = i;
@@ -56,8 +56,8 @@ for k=1:2*N_orbits-1
         end
     else
         min_dist = 1e+10;
-        for i = 1:length(prop_state(1,:))
-            dist = norm(prop_state(i,1:3));
+        for i = 1:length(prop_state(:,1))
+            dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
             if dist < min_dist
                 min_dist = dist;
                 index_apse = i;
@@ -96,8 +96,8 @@ t1=var(end);
 t2=var(end)+1;
 [~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(end-6:end-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
 min_dist = 1e+10;
-for i = 1:length(prop_state(1,:))
-    dist = norm(prop_state(i,1:3));
+for i = 1:length(prop_state(:,1))
+    dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);
     if dist < min_dist
         min_dist = dist;
         index_apse = i;

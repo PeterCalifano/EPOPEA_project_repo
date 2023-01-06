@@ -128,7 +128,7 @@ times_SK = [];
 
 for i = 1 : N_orbits
     states_SK = [states_SK, states_SK0];
-    times_SK = [times_SK, i * 2*t_half + times_SK0];
+    times_SK = [times_SK, (i-1) * 2*t_half + times_SK0];
 end
 
 n_var = 8; % 6 components of state + 2 times
@@ -237,7 +237,7 @@ ub_peri = 60/DU;
 lb_apo = 800/DU;
 ub_apo = 1500/DU;
 
-N_orbits = 1
+N_orbits = 1;
 
 n_var = 14*N_orbits;
 
@@ -304,6 +304,40 @@ end
     Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
     r_max,r_min,v_max,v_min), options);
     
+%% post processing
+DV_ms_Dim=0;
+x_sk1=X_ms(1:6);
+t_sk1=X_ms(7);
+[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],state0_Halo,options_ode,mu_tbp,mu_v,R_v,J2_v);
+prop_state=prop_state';
+
+Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
+for k=1:2*N_orbits-1
+    %propgation
+    t1=X_ms(7*k);
+    t2=X_ms(7*(k+1));
+    P1=plot3(X_ms(7*k-6)*DU,X_ms(7*k-5)*DU,X_ms(7*k-4)*DU,'ob','markersize',5,'linewidth',2);
+    
+    [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+    prop_state=[prop_state,prop_arc'];
+end
+
+t1=X_ms(end);
+t2=X_ms(end)+1;
+P1=plot3(X_ms(end-6)*DU,X_ms(end-5)*DU,X_ms(end-4)*DU,'ob','markersize',5,'linewidth',2);   
+[~,prop_arc_fin] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],X_ms(end-6:end-1),options_ode);
+prop_state=[prop_state,prop_arc_fin'];
 
 
+DV_ms_Dim=DV_ms*DU*1000/TU %[m/s]*N_orbits
+
+
+P2=plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
+    'k--','linewidth',0.5);
+P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
+    'r--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
+grid minor
+legend([P1,P2,P3],'SK points','trajectory','free dynamics')
+
+%% 
 

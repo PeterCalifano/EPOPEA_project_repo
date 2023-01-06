@@ -237,7 +237,7 @@ ub_peri = (R_Enceladus+60)/DU;
 lb_apo = (R_Enceladus+800)/DU;
 ub_apo = (R_Enceladus+1500)/DU;
 
-N_orbits = 1;
+N_orbits = 3;
 
 n_var = 14*N_orbits;
 
@@ -329,8 +329,8 @@ P1=plot3(X_ms(end-6)*DU,X_ms(end-5)*DU,X_ms(end-4)*DU,'ob','markersize',5,'linew
 prop_state=[prop_state,prop_arc_fin'];
 
 
-DV_ms_Dim=DV_ms*DU*1000/TU %[m/s]*N_orbits
-
+DV_tot_ms_Dim=DV_ms*DU*1000/TU %[m/s]*N_orbits
+DV_Day=2*DV_tot_ms_Dim/N_orbits
 
 P2=plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
     'k--','linewidth',0.5);

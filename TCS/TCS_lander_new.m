@@ -69,7 +69,7 @@ eps_rad = eps_louv_open; % if open louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 4; %% can be changed
+n_rad = 6; %% can be changed
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 k_rad = 1;
 
@@ -251,6 +251,11 @@ R.R_40 = sigma_SB * A4 * epsilon_MLI;
 R.R_50 = sigma_SB * A5 * epsilon_MLI;
 R.R_60 = sigma_SB * A6 * epsilon_MLI;
 R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
+
+% Add MLI on surface 3
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
+
 % Conductive Coupling
 C.C_12 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
 C.C_13 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
@@ -286,9 +291,9 @@ C.C_1rad = 0;
 C.C_2rad = 0;
 C.C_3rad = 0;    % opposite surface
 C.C_4rad = 0;
-C.C_6rad = 0;
-% C.C_5rad = 0;
-C.C_8rad = 0;
+C.C_6rad = 2*C_TS;
+C.C_5rad = C.C_5rad + 4*C_HP_max;
+C.C_8rad = 6*C_TS;
 % External fluxes 
 q_Sun = q_sun_earth;
 q_alb = q_Sun*F_earth*a_earth;
@@ -299,7 +304,7 @@ q_Earth = F_earth*sigma_SB*T_earth^4*epsilon_Earth;
 theta_6Sun = 24.7 * pi/180;
 theta_3Sun = 90 - theta_6Sun;
 
-Q_ext_hot = zeros(8,1);
+Q_ext_hot = zeros(9,1);
 % HOT CASE 1 : cameras towards Earth, face 5 sees the Sun
 % HOT CASE 2: cameras towards Earth, antenna towards Sun
 % HOT CASE 3: HGA (1) towards Earth, RTGs (6) towards Sun
@@ -307,10 +312,10 @@ Q_ext_hot = zeros(8,1);
 % HOT CASE 5: FIRST FLYBY, HGA towards Earth
 hot_case = 4;
 
-
 switch hot_case
     case 1
         theta_5Sun = 15 * pi/180;
+        theta_6Sun = 75 * pi/180;
         Q_ext_hot(3) = q_Earth*epsilon_MLI*A3 + q_alb*A3*alpha_MLI ;
         Q_ext_hot(5) = q_Sun * A5 * alpha_MLI* cos(theta_5Sun); 
         Q_ext_hot(6) = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
@@ -323,7 +328,7 @@ switch hot_case
         Q_ext_hot(6) = q_Sun * A6 * alpha_MLI* cos(theta_6Sun);
         Q_ext_hot(3) = q_Sun * A3 * alpha_MLI* cos(theta_3Sun);
         Q_ext_hot(1) = q_Earth * epsilon_MLI * A1 + q_alb * A1 * alpha_MLI ;
-case 4
+    case 4
         % first fly by: point cameras towards Earth
         theta_S1 = deg2rad(65.63);
         theta_S2 = deg2rad(70);
@@ -345,10 +350,11 @@ T0 = 293;
 
 % solve
 %%% Internal dissipation power
-Q_diss_hot =  Q_hot;
+Q_diss_hot = zeros(8,1);
+Q_diss_hot(5) =  Q_hot;
 %%% SOLVE THE SYSTEM 
 Clamped = 1;
-T_guess = 273*ones(8,1);
+T_guess = 273*ones(10,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_land_hot = fsolve(@(T) HeatBalance_Lander_new(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
 
@@ -364,7 +370,7 @@ fprintf(['8 ',num2str(T_land_hot(8)-273),' Celsius\n'])
 
 %% Cold case
 % Power
-P_budget_cold = 200.9;
+P_budget_cold = 200.46;
 P_input_TMTC_cold = 0;       % ask Antoine
 P_diss_TMTC_cold =0;      % ask Antoine
 % add batteries ...
@@ -372,14 +378,8 @@ We = 239;
 Wt = 1589;
 Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
 
-Q_diss_cold = Q_cold;
-
-% close louvers and compute again thermal couplings
-% perc_open_rad = 0.5; % percentage of open radiators
-% eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
-eps_rad = eps_louv_closed;
-% radiative coupling
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+Q_diss_cold = zeros(8,1);
+Q_diss_cold(5) = Q_cold;
 
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
@@ -396,27 +396,52 @@ theta_3Enc = 0;
 theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
-cold_case = 2; % orbit / during landing
-% cold_case = 2; % on ground
+% cold_case = 1; % orbit / during landing
+cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 
 switch cold_case
     case 1
     theta_6Sat = 0; % CHANGE!
-    Clamped = 0;
     Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI * cos(theta_3Enc);
     Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat); 
+    Clamped = 1;
+    switch Clamped
+        case 0
+            % close louvers and compute again thermal couplings
+            perc_open_rad = 4/n_rad; % percentage of open radiators
+            eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
+            % eps_rad = eps_louv_closed;
+            % radiative coupling
+            R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+            Q_diss_cold(5) = 344; % during landing --> chech batteries..
+        case 1
+            perc_open_rad = 0; % percentage of open radiators
+            eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
+            % eps_rad = eps_louv_closed;
+            % radiative coupling
+            R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+            Q_diss_cold(5) = 144; % SAFE --> to change
+    end
     case 2
-    theta_3Enc = deg2rad(20);
-    theta_2Enc = 0;
-    Clamped = 0;
-    Q_ext_cold(2) = q_Enc_ground * A2 * epsilon_MLI * cos(theta_2Enc);
-    Q_ext_cold(4) = q_Sat * A4*epsilon_MLI*cos(theta_4Sat);
-    Q_ext_cold(6) = q_Sat * A6*epsilon_MLI*cos(theta_6Sat);
+        perc_open_rad = 1/n_rad; % percentage of open radiators
+        eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
+        % eps_rad = eps_louv_closed;
+        % radiative coupling
+        Q_heaters = 9.5;
+        Q_diss_cold(8) = Q_heaters; % --> heaters
+        Q_diss_cold(5) = Q_cold;
+        R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+        theta_3Enc = deg2rad(20);
+        theta_2Enc = 0;
+        Clamped = 0;
+        Q_ext_cold(2) = q_Enc_ground * A2 * epsilon_MLI * cos(theta_2Enc);
+        Q_ext_cold(4) = q_Sat * A4*epsilon_MLI*cos(theta_4Sat);
+        Q_ext_cold(6) = q_Sat * A6*epsilon_MLI*cos(theta_6Sat);
 end
 
 %%% SOLVE THE SYSTEM 
-T_guess = 273*ones(8,1);
+T_guess = 273*ones(10,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_land_cold = fsolve(@(T) HeatBalance_Lander_new(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
 
@@ -427,6 +452,7 @@ fprintf(['4 ',num2str(T_land_cold(4)-273),' Celsius\n'])
 fprintf(['5 ',num2str(T_land_cold(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_land_cold(6)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_land_cold(7)-273),' Celsius\n'])
+fprintf(['8 ',num2str(T_land_cold(8)-273),' Celsius\n'])
 
 % compute the temperature of surface 2 external (where cameras are):
 % C.C_2int2ext = k_str*A2/l_str;

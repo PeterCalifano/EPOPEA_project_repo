@@ -109,7 +109,7 @@ for idfb = 1:howmanyfb
 
 
     % Define directions for plot
-    SunDir = Xplanets(1:3, idfb)./norm(Xplanets(1:3, idfb));
+    SunDir = -Xplanets(1:3, idfb)./norm(Xplanets(1:3, idfb));
     R_traj = xstate_cell{idfb}(:, 1:3);
     Vpdir = Xplanets(4:6, idfb)./norm(Xplanets(4:6, idfb));
     V_HelioPlus = Xplanets(4:6, idfb) + vinf_minunsplus(idfb, 4:6);

@@ -55,7 +55,8 @@ epsilon_1 = 0.874;
 epsilon_2 = 0.874; 
 epsilon_3 = 0.874; 
 epsilon_4 = 0.874;
-epsilon_8 = 0.874;
+% epsilon_8 = 0.874;
+epsilon_8 = 0.034;
 % epsilon_5 = 0.034;
 % epsilon_6 = 0.034;
 % epsilon_8 = 0.034;
@@ -263,7 +264,8 @@ C.C_4rad = 0;
 C.C_6rad = 0;
 C.C_8rad = 0;
 % C.C_5rad = C.C_5rad + 4*C_HP_max;
-C.C_8rad = 10*C_TS;
+C.C_8rad = 1*C_TS;
+C.C_2rad = 1*C_TS;
 
 l_str_tot = 20e-3; % do sensitivity analysis
 k_honeycomb = 1.59; % do sensitivity analysis
@@ -329,7 +331,8 @@ T0 = 293;
 % solve
 %%% Internal dissipation power
 Q_diss_hot = zeros(8,1);
-Q_diss_hot(5) =  Q_hot;
+Q_diss_hot(5) =  Q_hot/2;
+Q_diss_hot(2) =  Q_hot/2;
 %%% SOLVE THE SYSTEM 
 Clamped = 1;
 T_guess = 273*ones(10,1);
@@ -377,7 +380,8 @@ theta_4Sat = deg2rad(70); % CHANGE!
 % cold_case = 1; % orbit / during landing
 cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
-
+C.C_8rad = 0;
+C.C_2rad = 0*C_TS;
 switch cold_case
     case 1
     theta_6Sat = 0; % CHANGE!
@@ -407,8 +411,10 @@ switch cold_case
         % eps_rad = eps_louv_closed;
         % radiative coupling
         Q_heaters = 0;
+        % Q_diss_cold(2) = 4;
         Q_diss_cold(8) = Q_heaters; % --> heaters
-        Q_diss_cold(5) = Q_cold;
+        Q_diss_cold(5) = Q_cold/2;
+        Q_diss_cold(2) = Q_cold/2;
         R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
         theta_3Enc = deg2rad(20);
         theta_2Enc = 0;

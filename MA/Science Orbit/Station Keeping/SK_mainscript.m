@@ -369,12 +369,29 @@ prop_arc_0=prop_arc_0';
 
 
 %%
+
+% Define the options for the integration
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-10, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
+
 % Redefine the number of orbits per day (FIXED)
 N_orbits = 2;
 
 % Define the number of days of propagation
 N_days = 10; % VA a puttane con più di 6
 
+% Create bounds for SK position and velocity
+norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
+norm_r2 = norm(states_SK0(1:3,2) - [1-mu_tbp;0;0]);
+norm_v1 = norm(states_SK0(4:6,1));
+norm_v2 = norm(states_SK0(4:6,2));
+
+r_max = max(norm_r1,norm_r2)*1.2;
+r_min = min(norm_r1,norm_r2)*0.8;
+v_max = max(norm_v1,norm_v2)*1.2;
+v_min = min(norm_v1,norm_v2)*0.8;
 
 % Create initial guess as the output of the previous optimization
 initial_guess_opt = XX_ii;
@@ -383,6 +400,7 @@ initial_guess_opt = XX_ii;
 % preliminary optimization
 pericenter_0 = x0_Sk2';
 t_0=0;
+
 % Initialize storage variables
 DV_days = zeros(1,N_days);
 SK_points = zeros(7,N_days*4);
@@ -397,18 +415,19 @@ for ii = 1:N_days
     % Save outputs
     DV_days(ii) = DV_ii;
     for jj = 1 : 4
-        SK_points(:,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj);
+        SK_points(1:6,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
+        SK_points(7,4*(ii-1) + jj) = t_0 + XX_ii(7*jj);
     end
 
     % Update initial pericenter position and initial guess
     
-    t1=SK_points(7,4*ii);
-    t2=t1+1;
+    t1 = SK_points(7,4*ii);
+    t2 = t1 + 1;
     [~,prop_arc_0,t_0_init_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,4*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
     prop_arc_0=prop_arc_0';
     pericenter_0 = new_pericenter_0';
     initial_guess_opt = XX_ii;
-    t_0=t_0_init_new;
+    t_0 = t_0_init_new;
 
 end
     
@@ -426,8 +445,8 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-%for k = 1 : 4*(N_days-4)
-for k = 1 : 4*4
+for k = 1 : 4*(N_days-4)
+%for k = 1 : 4*4
 
     % Propagation
     t1 = SK_points(7,k);

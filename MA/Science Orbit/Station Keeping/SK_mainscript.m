@@ -373,7 +373,8 @@ prop_arc_0=prop_arc_0';
 N_orbits = 2;
 
 % Define the number of days of propagation
-N_days = 14;
+N_days = 14; % VA a puttane
+
 
 % Create initial guess as the output of the previous optimization
 initial_guess_opt = XX_ii;
@@ -412,7 +413,7 @@ for ii = 1:N_days
 end
     
 %% post processing - optimized
-
+close all
 % Initialize DV of each SK fire
 DV_array = zeros(1,2*N_orbits*N_days);
 
@@ -425,7 +426,8 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k = 1 : 4*N_days-1
+%for k = 1 : 4*(N_days-4)
+for k = 1 : 4*11
 
     % Propagation
     t1 = SK_points(7,k);
@@ -439,13 +441,13 @@ for k = 1 : 4*N_days-1
 
 end
 
-t1 = SK_points(7,end);
-t2 = t1 + 1;
-P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
-%[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-[~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-
-prop_state=[prop_state,prop_arc_fin'];
+% t1 = SK_points(7,end);
+% t2 = t1 + 1;
+% P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
+% %[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+% [~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+% 
+% prop_state=[prop_state,prop_arc_fin'];
 
 DV_array_dim = DV_array*DU*1000/TU;
 DV_days_dim = DV_days*DU*1000/TU

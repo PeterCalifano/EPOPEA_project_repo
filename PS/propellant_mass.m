@@ -13,10 +13,11 @@ function [ m_prop_orb, m_prop_lan, m_prop_main, m_prop_sk, m_prop_att, m_prop_ma
         % Isp_sk                 [s]   - Specific impulse of sk
         % Isp_att                [s]   - Specific impulse of attitude thrusters 
 
-        % m_prop_att_science_cl  [m/s] - Propellant mass for attitude maneuvers when clamped configuration (science orbit)
-        % m_prop_att_science_o   [m/s] - Propellant mass for attitude maneuvers when only orbiter (science orbit)
-        % m_prop_att_dsm_cl      [m/s] - Propellant mass for attitude maneuvers when clamped configuration (deep space maneuver)
-        % dry                    [kg]  - Dry mass
+        % m_att_moon_cl          [kg] - Propellant mass for attitude maneuvers during moon tour
+        % m_prop_att_science_cl  [kg] - Propellant mass for attitude maneuvers when clamped configuration (science orbit)
+        % m_prop_att_science_o   [kg] - Propellant mass for attitude maneuvers when only orbiter (science orbit)
+        % m_prop_att_dsm_cl      [kg] - Propellant mass for attitude maneuvers when clamped configuration (deep space maneuver)
+        % dry                    [kg] - Dry mass
 
 % lander  -  structure:
         % dV_des             [m/s] - Delta v for descending phase 
@@ -57,6 +58,7 @@ m_hazard = lander.hazard ;
 m_prop_att_science_o = orbiter.m_att_science_o ;
 m_prop_att_science_cl = orbiter.m_att_science_cl ;
 m_prop_att_dsm_cl = orbiter.m_att_dsm_cl ;
+m_prop_att_moon = orbiter.m_att_moon_cl ;
 
 g0 = 9.81 ; % [m/s] - gravitational acceleration
 
@@ -85,6 +87,9 @@ m_prop_disp = mf * ( exp( dV_disp / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - pro
 mf = m_dry_orb + m_prop_disp ;
 m_prop_sk_orb = mf * ( exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for sk of orbiter
 
+% m_prop_temp = mf * ( exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for sk of orbiter
+% m_prop_sk_orb = m_prop_temp - m_prop_att_science_o ; % [kg] - propellant mass needed for sk of orbiter
+
 %% CLAMPED (ORBITER + LANDER)
 
 % SK - science orbit
@@ -92,6 +97,10 @@ m_prop_sk_orb = mf * ( exp( dV_sk_orb / ( Isp_sk_orb * g0 ) ) - 1 ) ; % [kg] - p
 % mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_sk_orb + m_prop_disp + m_prop_att_science_o + m_prop_att_science_cl ;
 mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_sk_orb + m_prop_disp + m_prop_att_science_o ;
 m_prop_sk_cl = mf * ( exp( dV_sk_cl / ( Isp_sk_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for sk of clamped configuration
+
+% m_prop_temp = mf * ( exp( dV_sk_cl / ( Isp_sk_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for sk of clamped configuration
+% m_prop_sk_cl = m_prop_temp - m_prop_att_science_cl ; % [kg] - propellant mass needed for sk of clamped configuration
+
 
 m_prop_att = m_prop_att_science_cl + m_prop_att_science_o ; % [kg] - total propellant mass needed for attitude control
 m_prop_sk = m_prop_sk_orb + m_prop_sk_cl ; % [kg] - total propellant mass needed for sk
@@ -101,17 +110,17 @@ mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk ;
 m_prop_EOI = mf * ( exp( dV_EOI / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for moon tour and enceladus orbit insertion
 
 % Capture at Saturn
-mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI ;
+mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI + m_prop_att_moon ;
 m_prop_cap = mf * ( exp( dV_cap / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for capture at Saturn
  
 % Interplanetary leg
 % mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_att_dsm_cl ;
-mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap ;
+mf = m_dry_orb + m_dry_lan + m_prop_lan + m_prop_disp + m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_att_moon ;
 m_prop_int = mf * ( exp( dV_int / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - propellant mass needed for interplanetary transfer
  
 m_prop_main = m_prop_int + m_prop_cap + m_prop_EOI + m_prop_disp ;
 
-m_prop_orb = m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_int + m_prop_att_dsm_cl ; % [kg] - total propellant mass needed on the orbiter
+m_prop_orb = m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_int + m_prop_att_dsm_cl + m_prop_att_moon ; % [kg] - total propellant mass needed on the orbiter
 
 %% INCLUDE MARGINS:
 m_prop_orb = m_prop_orb * 1.025 ;
@@ -119,7 +128,7 @@ m_prop_lan = m_prop_lan * 1.025 ;
 
 m_prop_main = m_prop_main ;
 m_prop_sk = m_prop_sk ;
-m_prop_att = m_prop_att + m_prop_att_dsm_cl ;
+m_prop_att = m_prop_att + m_prop_att_dsm_cl + m_prop_att_moon ;
 m_prop_main_lan = (m_prop_des + m_hazard ) ;
 m_prop_att_lan = m_prop_att_lan ;
 

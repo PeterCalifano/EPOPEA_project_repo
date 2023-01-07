@@ -13,7 +13,7 @@ MAR_050 = 1.2;           % Apply on LANDING
 MAR_080 = 30;            % [m/s] Launcher dispersion - apply only on primary
 MAR_090 = 15*n_flyby;    % [m/s] For each flyby
 MAR_100 = 10;            % [m/s] For Moon approach navigation maneuver
-MAR_attitude = 1.2;     % Propellant mass for attitude
+MAR_attitude = 1.5;      % Propellant mass for attitude
 MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 %%%%%
 
@@ -137,7 +137,7 @@ lander.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters for landin
 
 % Orbiter
 dV_sk = 370 * MAR_020 ; % [m/s] - Cumulative delta v for station keeping
-dV_att = 30 * MAR_030 ; % [m/s] - Cumulative delta v for attitude control
+%dV_att = 30 * MAR_030 ; % [m/s] - Cumulative delta v for attitude control
 
 orbiter.dV_disp = 250 * MAR_020 ; % [m/s] - Delta v for disposal of the orbiter
 orbiter.dV_sk_o = dV_sk * 8 / 9 ; % When only orbiter ( 24 months )
@@ -146,9 +146,10 @@ orbiter.m_att_science_o = ( 14.56 ) * MAR_attitude ; % When only orbiter ( 24 mo
 %+ 54 * 189 / 216
 
 orbiter.dV_sk_cl = dV_sk / 9  ; % When clamped ( 3 months )
-orbiter.m_att_science_cl = ( 106.3 ) * MAR_attitude ; % When clamped ( 192 months ) + 10% margin
+orbiter.m_att_science_cl = ( 106.3 ) * MAR_attitude ; % When clamped ( 192 months ) + 20% margin
 %+ 54 * 3 / 216 
-orbiter.m_att_dsm_cl = 0.15 * MAR_attitude ; % When clamped ( 192 months ) + 100% margin
+orbiter.m_att_dsm_cl = 0.15 * MAR_attitude ; % When clamped ( 192 months ) + 20% margin
+orbiter.m_att_moon_cl = 0.5 * MAR_attitude ; % During moon tour + 20% margin
 orbiter.dV_EOI = ( 500 + 163 ) * MAR_010 + ( 111 + 370 + 142 + 53 + 105 ) * 1.25 + MAR_100 ; % [m/s] - Delta v for moon tour and Enceladus orbit inseriton (includes margin for moon approach navigation)
 orbiter.dV_cap = 0.2477 * MAR_010 ;
 orbiter.dV_int = 785.5 * MAR_010 + MAR_080 + MAR_090 ; % [m/s] - Delta v for interplanetary leg (includes margins on launcher dispersion and fly by)
@@ -156,8 +157,8 @@ orbiter.Isp_main = 329 ; % [s] - Specific impulse of main thrusters
 orbiter.Isp_sk = 310 ; % [s] - Specific impulse of sk thrusters
 orbiter.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters (same as sk)
 
-orbiter.dry = 2426.1 * 1.2 ; % [kg] - Orbiter dry mass
-lander.dry = 500.7 * 1.2 ; % [kg] - Lander dry mass
+orbiter.dry = 2390.3 * 1.2 ; % [kg] - Orbiter dry mass
+lander.dry = 508.2 * 1.2 ; % [kg] - Lander dry mass
 lander.hazard = 80 ; % [kg] - Hazard margin
 
 % OVERALL PROPELLANT MASS - both modules

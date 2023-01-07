@@ -373,7 +373,7 @@ prop_arc_0=prop_arc_0';
 N_orbits = 2;
 
 % Define the number of days of propagation
-N_days = 14; % VA a puttane
+N_days = 10; % VA a puttane con più di 6
 
 
 % Create initial guess as the output of the previous optimization
@@ -427,7 +427,7 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
 %for k = 1 : 4*(N_days-4)
-for k = 1 : 4*11
+for k = 1 : 4*4
 
     % Propagation
     t1 = SK_points(7,k);

@@ -306,114 +306,194 @@ legend()
 %     r_max,r_min,v_max,v_min), options);
 %     
  %% post processing - initial guess
-DV_ms_Dim=0;
-
-DV_array=zeros(1,2*N_orbits);
-
-x_sk1=X_ms(1:6);
-t_sk1=X_ms(7);
-[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],state0_Halo,options_ode,mu_tbp,mu_v,R_v,J2_v);
-prop_state=prop_state';
-
-DV_array(1)=norm(prop_state(4:6,end)-X_ms(4:6));
-Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k=1:2*N_orbits-1
-    %propgation
-    t1=X_ms(7*k);
-    t2=X_ms(7*(k+1));
-    P1=plot3(X_ms(7*k-6)*DU,X_ms(7*k-5)*DU,X_ms(7*k-4)*DU,'ob','markersize',5,'linewidth',2);
-    
-    [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
-    prop_state=[prop_state,prop_arc'];
-    DV_array(k+1)=norm(prop_state(4:6,end)-X_ms(7*(k+1)-3:7*(k+1)-1));
-end
-
-t1=X_ms(end);
-t2=X_ms(end)+1;
-P1=plot3(X_ms(end-6)*DU,X_ms(end-5)*DU,X_ms(end-4)*DU,'ob','markersize',5,'linewidth',2);   
-[~,prop_arc_fin,t_0_init,x0_Sk2,i_e] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(end-6:end-1),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-prop_state=[prop_state,prop_arc_fin'];
-
-DV_tot_ms_Dim=DV_ms*DU*1000/TU %[m/s]
-DV_array_dim=DV_array*DU*1000/TU
-
-DV_Day=2*DV_tot_ms_Dim/N_orbits %[m/s]/day, sizing number
-
-P2=plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
-    'k--','linewidth',0.5);
-P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
-    'r--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
-P4=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
-    'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
-grid minor
-legend([P1,P2,P3,P4],'SK points','trajectory','free dynamics crash','CR3BP')
+% DV_ms_Dim=0;
+% 
+% DV_array=zeros(1,2*N_orbits);
+% 
+% x_sk1=X_ms(1:6);
+% t_sk1=X_ms(7);
+% [~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],state0_Halo,options_ode,mu_tbp,mu_v,R_v,J2_v);
+% prop_state=prop_state';
+% 
+% DV_array(1)=norm(prop_state(4:6,end)-X_ms(4:6));
+% Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
+% for k=1:2*N_orbits-1
+%     %propgation
+%     t1=X_ms(7*k);
+%     t2=X_ms(7*(k+1));
+%     P1=plot3(X_ms(7*k-6)*DU,X_ms(7*k-5)*DU,X_ms(7*k-4)*DU,'ob','markersize',5,'linewidth',2);
+%     
+%     [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+%     prop_state=[prop_state,prop_arc'];
+%     DV_array(k+1)=norm(prop_state(4:6,end)-X_ms(7*(k+1)-3:7*(k+1)-1));
+% end
+% 
+% t1=X_ms(end);
+% t2=X_ms(end)+1;
+% P1=plot3(X_ms(end-6)*DU,X_ms(end-5)*DU,X_ms(end-4)*DU,'ob','markersize',5,'linewidth',2);   
+% [~,prop_arc_fin,t_0_init,x0_Sk2,i_e] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(end-6:end-1),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+% prop_state=[prop_state,prop_arc_fin'];
+% 
+% DV_tot_ms_Dim=DV_ms*DU*1000/TU %[m/s]
+% DV_array_dim=DV_array*DU*1000/TU
+% 
+% DV_Day=2*DV_tot_ms_Dim/N_orbits %[m/s]/day, sizing number
+% 
+% P2=plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
+%     'k--','linewidth',0.5);
+% P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
+%     'r--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
+% P4=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
+%     'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
+% grid minor
+% scatter3((x0_Sk2(1))*DU,x0_Sk2(2)*DU,x0_Sk2(3)*DU,50,'filled')
+% legend([P1,P2,P3,P4],'SK points','trajectory','free dynamics crash','CR3BP')
 
 %% SK optimization
 clear;clc;close all
-load('Data_2_orbits_SKinitial.mat')
 
-% Create initial guess
-initial_guess_opt = zeros(n_var,1);
+% Load workspace from preliminary optimization
+%load('Workspace_initial_SK.mat')
 
-N_orbits_opt=2;
+% Load workspace for nominal time
+load('FirstTrial_SK_1day.mat')
 
-for ii = 1:2*N_orbits_opt
+clear sum;
+
+
+t1=SK_points(7,4);
+t2=t1+1;
+[~,prop_arc_0,t_0_init,x0_Sk2,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,4),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+prop_arc_0=prop_arc_0';
+
+
+
+%%
+
+% Define the options for the integration
+% options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+%     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+%     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+%     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); % così per 10 gg tiene, 0.8 m/s per day
+
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-10, 'ConstraintTolerance', 1e-8,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-11); %così costa un casino
+
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-3, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
+
+
+
+% Redefine the number of orbits per day (FIXED)
+N_orbits = 2;
+
+% Define the number of days of propagation
+N_days = 10; 
+
+% Create bounds for SK position and velocity
+norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
+norm_r2 = norm(states_SK0(1:3,2) - [1-mu_tbp;0;0]);
+norm_v1 = norm(states_SK0(4:6,1));
+norm_v2 = norm(states_SK0(4:6,2));
+
+r_max = max(norm_r1,norm_r2)*1.2;
+r_min = min(norm_r1,norm_r2)*0.8;
+v_max = max(norm_v1,norm_v2)*1.2;
+v_min = min(norm_v1,norm_v2)*0.8;
+
+% Create initial guess as the output of the previous optimization
+initial_guess_opt = XX_ii;
+
+% Define the initial pericenter state as the one coming from the
+% preliminary optimization
+pericenter_0 = x0_Sk2';
+t_0=0;
+t_update = 0;
+
+% Initialize storage variables
+DV_days = zeros(1,N_days);
+SK_points = zeros(7,N_days*4);
+
+for ii = 1:N_days
+
+   % Optimization
+    [XX_ii, DV_ii] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,pericenter_0,t_0,N_orbits),initial_guess_opt,A,B,...
+        Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK_old(var,mu_tbp,mu_v,R_v,J2_v,pericenter_0,t_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
+        r_max,r_min,v_max,v_min), options);
     
-end
+    % Save outputs
+    DV_days(ii) = DV_ii;
+    for jj = 1 : 4
+        SK_points(1:6,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
+        SK_points(7,4*(ii-1) + jj) = t_update + XX_ii(7*jj);
+    end
 
-[X_ms, DV_ms] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits),initial_guess_opt,A,B,...
-    Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK_old(var,mu_tbp,mu_v,R_v,J2_v,state0_Halo,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
-    r_max,r_min,v_max,v_min), options);
+    % Update initial pericenter position and initial guess
+    
+    t1 = SK_points(7,4*ii);
+    t2 = t1 + 1;
+    [~,prop_arc_0,t_0_init_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,4*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+    prop_arc_0=prop_arc_0';
+    pericenter_0 = new_pericenter_0';
+    initial_guess_opt = XX_ii;
+    t_update = t_0_init_new;
+
+end
     
 %% post processing - optimized
-DV_ms_Dim=0;
+close all
+% Initialize DV of each SK fire
+DV_array = zeros(1,2*N_orbits*N_days);
 
-DV_array=zeros(1,2*N_orbits);
-
-x_sk1=X_ms(1:6);
-t_sk1=X_ms(7);
-[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],state0_Halo,options_ode,mu_tbp,mu_v,R_v,J2_v);
+% First propagation
+x_sk1=SK_points(1:6,1);
+t_sk1=SK_points(7,1);
+[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],x0_Sk2',options_ode,mu_tbp,mu_v,R_v,J2_v);
 prop_state=prop_state';
+DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
-DV_array(1)=norm(prop_state(4:6,end)-X_ms(4:6));
+% Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k=1:2*N_orbits-1
-    %propgation
-    t1=X_ms(7*k);
-    t2=X_ms(7*(k+1));
-    P1=plot3(X_ms(7*k-6)*DU,X_ms(7*k-5)*DU,X_ms(7*k-4)*DU,'ob','markersize',5,'linewidth',2);
+for k = 1 : 4*N_days-1
+%for k = 1 : 4*4
+
+    % Propagation
+    t1 = SK_points(7,k);
+    t2 = SK_points(7,k+1);
+
+    plot3(SK_points(1,k)*DU,SK_points(2,k)*DU,SK_points(3,k)*DU,'o','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(k)]);
     
-    [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],X_ms(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,k),options_ode,mu_tbp,mu_v,R_v,J2_v);
     prop_state=[prop_state,prop_arc'];
-    DV_array(k+1)=norm(prop_state(4:6,end)-X_ms(7*(k+1)-3:7*(k+1)-1));
+    DV_array(k+1)=norm(prop_state(4:6,end)-SK_points(4:6,k+1));
+
 end
 
-t1=X_ms(end);
-t2=X_ms(end)+1;
-P1=plot3(X_ms(end-6)*DU,X_ms(end-5)*DU,X_ms(end-4)*DU,'ob','markersize',5,'linewidth',2);   
-[~,prop_arc_fin] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],X_ms(end-6:end-1),options_ode);
+t1 = SK_points(7,end);
+t2 = t1 + 1;
+P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
+%[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+
 prop_state=[prop_state,prop_arc_fin'];
 
-DV_tot_ms_Dim=DV_ms*DU*1000/TU %[m/s]
-DV_array_dim=DV_array*DU*1000/TU
+DV_array_dim = DV_array*DU*1000/TU;
+DV_days_dim = DV_days*DU*1000/TU
 
-DV_Day=2*DV_tot_ms_Dim/N_orbits %[m/s]/day, sizing number
+%DV_tot = sum(DV_days_dim)
 
 P2=plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
     'k--','linewidth',0.5);
 P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
-    'r--','linewidth',0.5,'DisplayName','Nominal Halo Orbit');
-P4=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
-    'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
+    'r--','linewidth',0.5,'DisplayName','Free dynamics Halo');
+% P4=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
+%     'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
 grid minor
-legend([P1,P2,P3,P4],'SK points','trajectory','free dynamics crash','CR3BP')
+legend()
+%legend([P1,P2,P3,P4],'SK points','trajectory','free dynamics crash','CR3BP')
 
-%% Function
-function [value,isterminal,direction] = FirstZeroCrossing(t,x,mu_tbp,mu_v,R_v,J2_v) %Event function 
-%to stop the integration at the intersection point with the x-z plane 
 
-value=x(2);
-isterminal=1;
-direction=0;
-
-end

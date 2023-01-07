@@ -1,4 +1,4 @@
-function [c,ceq] = nlcon_multiple_SK_old(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
+function [c,ceq] = nlcon_multiple_SK_old(var,mu_tbp,mu_v,R_v,J2_v,x_0,t_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
     r_max,r_min,v_max,v_min)
 % INPUTS
 % var - [14*N_orbitsx1] design variables
@@ -24,7 +24,7 @@ ceq=zeros(6*N_orbits,1);
 %1st propagation
 x_sk1=var(1:6);
 t_sk1=var(7);
-[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@SCR3BP_dyn,[t_0 t_0+t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
 
 flow1=prop_state(end,:)';
 ceq(1:3)=flow1(1:3)-x_sk1(1:3);
@@ -35,7 +35,7 @@ for k=1:2*N_orbits-1
     %propagation
     t1=var(7*k);
     t2=var(7*(k+1));
-    [~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_state] = ode113(@SCR3BP_dyn,[t_0+t1 t_0+t2],var(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
 %     if exist("state_aps") == 0
 %         plot3(prop_state(:,1),prop_state(:,2),prop_state(:,3),'linewidth',2)
 %         axis equal
@@ -94,7 +94,7 @@ end
 %final propagation, pericentre check 
 t1=var(end);
 t2=var(end)+1;
-[~,prop_state] = ode113(@SCR3BP_dyn,[t1 t2],var(end-6:end-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@SCR3BP_dyn,[t_0+t1 t_0+t2],var(end-6:end-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
 min_dist = 1e+10;
 for i = 1:length(prop_state(:,1))
     dist = norm(prop_state(i,1:3)-[1-mu_tbp 0 0]);

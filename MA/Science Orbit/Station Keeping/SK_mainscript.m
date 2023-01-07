@@ -371,16 +371,23 @@ prop_arc_0=prop_arc_0';
 %%
 
 % Define the options for the integration
+% options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+%     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+%     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+%     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); % così per 10 gg tiene, 0.8 m/s per day
+
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-10, 'ConstraintTolerance', 1e-8,...
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
-    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-11); %così costa un casino
+
+
 
 % Redefine the number of orbits per day (FIXED)
 N_orbits = 2;
 
 % Define the number of days of propagation
-N_days = 10; % VA a puttane con più di 6
+N_days = 10; 
 
 % Create bounds for SK position and velocity
 norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
@@ -446,7 +453,7 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k = 1 : 4*(N_days-4)
+for k = 1 : 4*N_days-1
 %for k = 1 : 4*4
 
     % Propagation
@@ -461,13 +468,13 @@ for k = 1 : 4*(N_days-4)
 
 end
 
-% t1 = SK_points(7,end);
-% t2 = t1 + 1;
-% P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
-% %[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-% [~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-% 
-% prop_state=[prop_state,prop_arc_fin'];
+t1 = SK_points(7,end);
+t2 = t1 + 1;
+P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
+%[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+
+prop_state=[prop_state,prop_arc_fin'];
 
 DV_array_dim = DV_array*DU*1000/TU;
 DV_days_dim = DV_days*DU*1000/TU

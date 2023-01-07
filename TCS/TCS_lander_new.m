@@ -42,12 +42,28 @@ T_Sat = 97;
 
 %%% Structure properties (Al-5056-O)
 k_str = 117;
-l_str = 0.02;
+% l_str = 0.02;
+l_str = 0.002;
 
 % Structure
 % epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
 % epsilon_int = 0.874; % black paint to maximize exchange (you can change it)
-epsilon_int = 0.034; 
+% epsilon_int = 0.034; 
+epsilon_5 =  0.874; % black paint to maximize exchange
+epsilon_6 = 0.874; % black paint to maximize exchange
+epsilon_1 = 0.874; 
+epsilon_2 = 0.874; 
+epsilon_3 = 0.874; 
+epsilon_4 = 0.874;
+epsilon_8 = 0.874;
+% epsilon_5 = 0.034;
+% epsilon_6 = 0.034;
+% epsilon_8 = 0.034;
+% epsilon_1 = 0.034;
+% epsilon_2 = 0.034;
+% epsilon_3 = 0.034;
+% epsilon_4 = 0.034;
+
 % MLI 
 epsilon_MLI = 0.03;
 % alpha_MLI = 0.08 (Kapton, silvered, aluminum oxide coated, 1 mil)
@@ -80,9 +96,10 @@ A2 = L^2;
 A3 = L^2;
 A4 = L^2;
 A5_tot = L^2;
+A5_int = A5_tot;
 A6 = L^2;
 A8 = 912319e-6; % from CAD: base of pl
-A5 = A5_tot - A_rad_tot;
+A5_ext = A5_tot - A_rad_tot;
 
 % RHU or heaters
 n_RHU = 0; % can be changed ! 
@@ -101,154 +118,108 @@ Q_hot  = 0;
 P_shunt = - Q_hot + We; % check power can be dissipated though a shunt
 % view factor
 % Surface 1
-% F12 = VF_PerpRec(L3,L2,L1);
-% F21 = F12*A1/A2;
-% F13 = VF_PerpRec(L3,L1,L3);
-% F31 = F13*A1/A3;
-% F14 = VF_PerpRec(L3,L2,L1);
-% F41 = VF_PerpRec(L2,L3,L1);
-% F15_tot = F13;
-% F51_tot = F15_tot*A5_tot/A1;
-% F1rad = F15_tot*A_rad_tot/A5_tot;
-% Frad1 = F1rad*A1/A_rad_tot; 
-% F15 = F15_tot*A5/A5_tot;
-% F51 = F15*A1/A5;
-% F16 = VF_ParallelEqualRec(L3,L1,L2);
-% F61 = F16;
-H8 = 830e-3;
-F12 = VF_PerpRec(L3,L2,L1) + 3*VF_PerpRec(L3,L1,L3)*H8/L2; % ADD FROM 1 TO BOXES !!!!!!!!!!
-F21 = VF_PerpRec(L3,L2,L1)*A1/A2;
-F13 = 0;
-F31 = 0;
-F14 = 0;
-F41 = 0;
-F15_tot = 0;
-F51_tot = 0;
-F1rad = 0;
-Frad1 = 0; 
-F15 = 0;
-F51 = 0;
-F16 = 0;
-F61 = 0;
-F18 = VF_PerpRec(L3,L2,L1) + 3*VF_PerpRec(L3,L1,L3)*(L2-H8)/L2;
+H8 = 830e-3; 
+L = L1;
+A8 = L^2;
+F12_a = VF_PerpRec(L,H8,L);
+F13_a = VF_PerpRec(L,L,H8);
+F15_a = F13_a;
+F16_a = VF_ParallelEqualRec(L,L,H8);
+F18_a = VF_PerpRec(L,H8,L)*H8/L;
+F12 = (F12_a + F13_a + F15_a + F16_a)*H8/L;
+F13 = VF_PerpRec(L,L,L-H8)*(L-H8)/L;
+F14 = VF_PerpRec(L,L-H8,L)*(L-H8)/L;
+F15 = F13*(L-H8)/L;
+F16 = VF_ParallelEqualRec(L,L,L-H8)*(L-H8)/L;
+F18_b = VF_PerpRec(L,L-H8,L)*(L-H8)/L;
+F18 = F18_a + F18_b;
+F21 = F12_a*H8/L;
+F31 = F13;
+F41 = F14;
+F51 = F15;
+F61 = F16;
 F81 = F18*A1/A8;
 
-% Surface 2 
-F23 = VF_PerpRec(L2,L3,L1); %%% add BOXES !!
-F32 = F23*A2/A3;
+% Surface 2
+F23 = F21;
+F32 = F12;
 F24 = 0;
 F42 = 0;
-F28 = VF_ParallelEqualRec(L2,L1,L3);
-F82 = F24*A2/A4;
-F25_tot = VF_PerpRec(L2,L3,L1);
-F52_tot = F25_tot*A5_tot/A2;
-F2rad = F25_tot*A_rad_tot/A5_tot;
-Frad2 = F2rad*A2/A_rad_tot; 
-F25 = F25_tot*A5/A5_tot;
-F52 = F25*A2/A5;
-F26 = VF_PerpRec(L2,L3,L1); %%% add BOXES !!
+F25 = F21;
+F52 = F12;
+F26 = F21;
 F62 = F12;
+F28 = VF_ParallelEqualRec(H8,L,L);
+F82 = F28;
 
 % Surface 3
-% F34 = F32;
-% F43 = F23;
-% F35_tot = VF_ParallelEqualRec(L1,L2,L3);
-% F53_tot = F35_tot*A5_tot/A3;
-% F3rad = F35_tot*A_rad_tot/A5_tot;
-% Frad3 = F3rad*A3/A_rad_tot; 
-% F35 = F35_tot*A5/A5_tot;
-% F53 = F35*A3/A5;
-% F36 = F31;
-% F63 = F13;
-
-F34 = 0;
-F43 = 0;
-F35_tot = 0;
-F53_tot = 0;
-F3rad = 0;
-Frad3 = 0; 
-F35 = 0;
-F53 = 0;
-F36 = 0;
-F63 = 0;
-
-F38 = 1 - F32;
-F83 = F38*A3/A8;
+F34 = F14;
+F43 = F41;
+F35 = F16;
+F53 = F61;
+F36 = F13;
+F63 = F31;
+F38 = F18;
+F83 = F81;
 
 % Surface 4
-% F45_tot = F43;
-% F54_tot = F45_tot*A5_tot/A4;
-% F4rad = F45_tot*A_rad_tot/A5_tot;
-% Frad4 = F4rad*A4/A_rad_tot; 
-% F45 = F45_tot*A5/A5_tot;
-% F54 = F45*A4/A5;
-% F46 = F41; 
-% F64 = F14;
+F45 = F43;
+F54 = F34;
+F46 = F45;
+F64 = F54;
+F48 = VF_ParallelEqualRec(L-H8,L,L);
+F84 = F48;
 
-F45_tot = 0;
-F54_tot = 0;
-F4rad = 0;
-Frad4 = 0; 
-F45 = 0;
-F54 = 0;
-F46 = 0; 
-F64 = 0;
+% Surface 5
+F56 = F13;
+F65 = F31;
+F58 = F18;
+F85 = F81;
 
-F48 = 1;
 % Surface 6
-% F65_tot = F63;
-% F56_tot = F65_tot*A5_tot/A6;
-% F6rad = F65_tot*A_rad_tot/A5_tot;
-% Frad6 = F6rad*A6/A_rad_tot; 
-% F65 = F65_tot*A5/A5_tot;
-% F56 = F65*A6/A5;
+F68 = F58;
+F86 = F85;
 
-F65_tot = 0;
-F56_tot = 0;
-F6rad = 0;
-Frad6 = 0; 
-F65 = 0;
-F56 = 0;
+F81 = F81/2;
+F82 = F82/2;
+F83 = F83/2;
+F84 = F84/2;
+F85 = F85/2;
+F86 = F86/2;
 
-F58 = F38;
-Frad8 = F58;
-F85 = F83*A5/A5_tot;
-F68 = F18;
-F86 = F28;
-F8rad = F85*A_rad_tot/A5_tot;
 % radiative coupling
-R.R_12 = sigma_SB * A1 * epsilon_int^2 * F12;
-R.R_1rad = sigma_SB * A1 * epsilon_int * eps_louv_open * F1rad;
-R.R_13 = sigma_SB * A1 * epsilon_int^2 * F13;
-R.R_14 = sigma_SB * A1 * epsilon_int^2 * F14;
-R.R_15 = sigma_SB * A1 * epsilon_int^2 * F15;
-R.R_16 = sigma_SB * A1 * epsilon_int^2 * F16;
-R.R_18 = sigma_SB * A1 * epsilon_int^2 * F18;
-R.R_23 = sigma_SB * A2 * epsilon_int^2 * F23;
-R.R_24 = sigma_SB * A2 * epsilon_int^2 * F24;
-R.R_25 = sigma_SB * A2 * epsilon_int^2 * F25;
-R.R_26 = sigma_SB * A2 * epsilon_int^2 * F26;
-R.R_28 = sigma_SB * A2 * epsilon_int^2 * F28;
-R.R_rad3 = sigma_SB * A_rad_tot * epsilon_int * eps_louv_open * Frad3; % ?
-R.R_rad4 = sigma_SB * A_rad_tot * epsilon_int * eps_louv_open * Frad4; % ?
-R.R_rad2 = sigma_SB * A_rad_tot * epsilon_int * eps_louv_open * Frad2; % ?
-R.R_rad6 = sigma_SB * A_rad_tot * epsilon_int * eps_louv_open * Frad6; % ?
-R.R_rad8 = sigma_SB * A_rad_tot * epsilon_int * eps_louv_open * Frad8; % ?
+R.R_12 = sigma_SB * A1 * epsilon_1 * epsilon_2 * F12;
+R.R_1rad = 0;
+R.R_13 = sigma_SB * A1 * epsilon_1 * epsilon_3 * F13;
+R.R_14 = sigma_SB * A1 * epsilon_1 * epsilon_4 * F14;
+R.R_15 = sigma_SB * A1 * epsilon_1 * epsilon_5 * F15;
+R.R_16 = sigma_SB * A1 * epsilon_1 * epsilon_6 * F16;
+R.R_18 = sigma_SB * A1 * epsilon_1 * epsilon_8 * F18;
+R.R_23 = sigma_SB * A2 * epsilon_2 * epsilon_3 * F23;
+R.R_24 = sigma_SB * A2 * epsilon_2 * epsilon_4 * F24;
+R.R_25 = sigma_SB * A2 * epsilon_2 * epsilon_5 * F25;
+R.R_26 = sigma_SB * A2 * epsilon_2 * epsilon_6 * F26;
+R.R_28 = sigma_SB * A2 * epsilon_2 * epsilon_8 * F28;
+R.R_rad3 = 0; % ?
+R.R_rad4 = 0; % ?
+R.R_rad2 = 0; % ?
+R.R_rad6 = 0; % ?
+R.R_rad8 = 0; % ?
 R.R_rad5 = 0;
-R.R_34 = sigma_SB * A3 * epsilon_int^2 * F34;
-R.R_35 = sigma_SB * A3 * epsilon_int^2 * F35;
-R.R_36 = sigma_SB * A3 * epsilon_int^2 * F36;
-R.R_38 = sigma_SB * A3 * epsilon_int^2 * F38;
-R.R_45 = sigma_SB * A4 * epsilon_int^2 * F45;
-R.R_46 = sigma_SB * A4 * epsilon_int^2 * F46;
-R.R_48 = sigma_SB * A4 * epsilon_int^2 * F48;
-R.R_56 = sigma_SB * A5 * epsilon_int^2 * F56;
-R.R_58 = sigma_SB * A5 * epsilon_int^2 * F58;
+R.R_34 = sigma_SB * A3 * epsilon_3 * epsilon_4 * F34;
+R.R_35 = sigma_SB * A3 * epsilon_3 * epsilon_5 * F35;
+R.R_36 = sigma_SB * A3 * epsilon_3 * epsilon_6 * F36;
+R.R_38 = sigma_SB * A3 * epsilon_3 * epsilon_8 * F38;
+R.R_45 = sigma_SB * A4 * epsilon_4 * epsilon_5 * F45;
+R.R_46 = sigma_SB * A4 * epsilon_4 * epsilon_6 * F46;
+R.R_48 = sigma_SB * A4 * epsilon_4 * epsilon_8 * F48;
+R.R_56 = sigma_SB * A5_int * epsilon_5 * epsilon_6 * F56;
+R.R_58 = sigma_SB * A5_int * epsilon_5 * epsilon_8 * F58;
 R.R_10 = sigma_SB * A1 * epsilon_MLI;
 R.R_20 = sigma_SB * A2 * epsilon_MLI;
 R.R_30 = sigma_SB * A3 * epsilon_MLI;
 R.R_40 = sigma_SB * A4 * epsilon_MLI;
-R.R_50 = sigma_SB * A5 * epsilon_MLI;
+R.R_50 = sigma_SB * A5_ext * epsilon_MLI;
 R.R_60 = sigma_SB * A6 * epsilon_MLI;
 R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
 
@@ -273,14 +244,12 @@ C.C_36 = C.C_13;
 C.C_45 = C.C_34;
 C.C_46 = C.C_14;
 C.C_56 = C.C_13;
-
-C.C_5rad = k_str*(l_str*L3/(L2/2));
 C.C_18 = k_str*l_str*L2*(+1/(L3/2));
 C.C_28 = 0;
 C.C_38 = k_str*l_str*L2*(+1/(L3/2));
 C.C_48 = k_str*l_str*L2*(+1/(L3/2));
 C.C_58 = k_str*l_str*L2*(+1/(L3/2));
-C.C_68 = 0;
+C.C_68 = k_str*l_str*L2*(+1/(L3/2));
 % to tune:
 R_HP_min = 0.04;
 R_HP_max = 0.76;
@@ -291,9 +260,17 @@ C.C_1rad = 0;
 C.C_2rad = 0;
 C.C_3rad = 0;    % opposite surface
 C.C_4rad = 0;
-C.C_6rad = 2*C_TS;
-C.C_5rad = C.C_5rad + 4*C_HP_max;
-C.C_8rad = 6*C_TS;
+C.C_6rad = 0;
+C.C_8rad = 0;
+% C.C_5rad = C.C_5rad + 4*C_HP_max;
+C.C_8rad = 10*C_TS;
+
+l_str_tot = 20e-3; % do sensitivity analysis
+k_honeycomb = 1.59; % do sensitivity analysis
+C.C_5rad = k_honeycomb*(A_rad_tot/(l_str_tot));
+% C.C_6rad = 2*C_TS;
+% C.C_5rad = C.C_5rad + 4*C_HP_max;
+% C.C_8rad = 6*C_TS;
 % External fluxes 
 q_Sun = q_sun_earth;
 q_alb = q_Sun*F_earth*a_earth;
@@ -343,7 +320,8 @@ switch hot_case
         theta_S1 = deg2rad(25);
         Q_ext_hot(1) = q_Sun * A1 * alpha_MLI* cos(theta_S1) + q_Earth * epsilon_MLI * A1 + q_alb * A1 * alpha_MLI;
         Q_ext_hot(2) = q_Sun * A2 * alpha_MLI* cos(theta_S2);
-        Q_ext_hot(5) = q_Sun * A5 * alpha_MLI* cos(theta_S5);
+        Q_ext_hot(5) = q_Sun * A5_ext * alpha_MLI* cos(theta_S5);
+        % Q_ext_hot(7) = q_Sun * A_rad_tot * alpha_louv_open* cos(theta_S5);
 end
 % Initial condition
 T0 = 293;
@@ -370,7 +348,7 @@ fprintf(['8 ',num2str(T_land_hot(8)-273),' Celsius\n'])
 
 %% Cold case
 % Power
-P_budget_cold = 200.46;
+P_budget_cold = 211.14;
 P_input_TMTC_cold = 0;       % ask Antoine
 P_diss_TMTC_cold =0;      % ask Antoine
 % add batteries ...
@@ -414,7 +392,7 @@ switch cold_case
             % eps_rad = eps_louv_closed;
             % radiative coupling
             R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-            Q_diss_cold(5) = 344; % during landing --> chech batteries..
+            Q_diss_cold(5) = 344; % during landing --> check batteries..
         case 1
             perc_open_rad = 0; % percentage of open radiators
             eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
@@ -428,7 +406,7 @@ switch cold_case
         eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
         % eps_rad = eps_louv_closed;
         % radiative coupling
-        Q_heaters = 9.5;
+        Q_heaters = 0;
         Q_diss_cold(8) = Q_heaters; % --> heaters
         Q_diss_cold(5) = Q_cold;
         R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;

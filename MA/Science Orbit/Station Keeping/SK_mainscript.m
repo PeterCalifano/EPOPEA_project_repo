@@ -372,9 +372,9 @@ prop_arc_0=prop_arc_0';
 
 % Define the options for the integration
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-    'OptimalityTolerance', 1e-10, 'StepTolerance', 1e-9, 'ConstraintTolerance', 1e-9,...
+    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
-    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-9); 
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
 
 % Redefine the number of orbits per day (FIXED)
 N_orbits = 2;
@@ -400,13 +400,14 @@ initial_guess_opt = XX_ii;
 % preliminary optimization
 pericenter_0 = x0_Sk2';
 t_0=0;
+t_update = 0;
 
 % Initialize storage variables
 DV_days = zeros(1,N_days);
 SK_points = zeros(7,N_days*4);
 
 for ii = 1:N_days
-    
+
    % Optimization
     [XX_ii, DV_ii] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,pericenter_0,t_0,N_orbits),initial_guess_opt,A,B,...
         Aeq,Beq,lb,ub,@(var) nlcon_multiple_SK_old(var,mu_tbp,mu_v,R_v,J2_v,pericenter_0,t_0,N_orbits,lb_peri,ub_peri,lb_apo,ub_apo,...
@@ -416,7 +417,7 @@ for ii = 1:N_days
     DV_days(ii) = DV_ii;
     for jj = 1 : 4
         SK_points(1:6,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
-        SK_points(7,4*(ii-1) + jj) = t_0 + XX_ii(7*jj);
+        SK_points(7,4*(ii-1) + jj) = t_update + XX_ii(7*jj);
     end
 
     % Update initial pericenter position and initial guess
@@ -427,7 +428,7 @@ for ii = 1:N_days
     prop_arc_0=prop_arc_0';
     pericenter_0 = new_pericenter_0';
     initial_guess_opt = XX_ii;
-    t_0 = t_0_init_new;
+    t_update = t_0_init_new;
 
 end
     

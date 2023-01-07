@@ -1,4 +1,4 @@
-function [DV]=objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,N_orbits)
+function [DV]=objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,x_0,t_0,N_orbits)
 % INPUTS
 % var - [14*N_orbitsx1] design variables
 % x_0 - [6x1] initial state at the pericentre (fixed)
@@ -16,7 +16,7 @@ options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 %1st propagation
 x_sk1=var(1:6);
 t_sk1=var(7);
-[~,prop_state] = ode113(@SCR3BP_dyn,[0 t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@SCR3BP_dyn,[t_0 t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
 v_prop = prop_state(end,4:6)';
 
 %first DV contribution

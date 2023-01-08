@@ -69,6 +69,7 @@ timegrids = cell(1, howmanyfb);
 xstate_cell = cell(1, howmanyfb);
 Sb_cell = cell(1, howmanyfb);
 SAA_cell = cell(1, howmanyfb);
+RelPos = cell(1, howmanyfb);
 
 for idfb = 1:howmanyfb
     % Determine Planet properties
@@ -93,7 +94,7 @@ for idfb = 1:howmanyfb
 
     rp = Xsol(6 + 2*howmanyfb + idfb).*MeanR_planets(idfb); 
 
-    [fb_ToF(idfb), timegrids{idfb}, xstate_cell{idfb}, Sb_cell{idfb}, SAA_cell{idfb}] = EvalFlyBy(vinf_minunsplus(idfb, :), R_SOI(idfb), rp, GM_planets(idfb), Xplanets(:, idfb));
+    [fb_ToF(idfb), timegrids{idfb}, xstate_cell{idfb}, Sb_cell{idfb}, SAA_cell{idfb}, RelPos{idfb}] = EvalFlyBy(vinf_minunsplus(idfb, :), R_SOI(idfb), rp, GM_planets(idfb), Xplanets(:, idfb));
 
     figure('WindowState', 'maximized');
     hold on;
@@ -146,6 +147,43 @@ for idfb = 1:howmanyfb
     ax.LineWidth = 1.08;
     legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', '$V_{SC}^-$', 'Outbound leg', '$V_{SC}^+$');
     title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000")
+
+    % Plot angles
+    i_zen = RelPos{idfb}(:,1);
+    i_tan = RelPos{idfb}(:,2);
+    i_tran = RelPos{idfb}(:,3);
+    i_out = RelPos{idfb}(:,4);
+    
+    time = [timegrids{idfb}(1:end); timegrids{idfb}(2:end) + timegrids{idfb}(end)];
+    time = time/3600; % hours
+    figure;
+    plot(time, i_zen, 'b', 'Linewidth', 1.2)
+    ylabel('$\theta_{Sun/Zenith}\ [deg]$')
+    xlabel('$t\ [hours]$')
+    title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Zenith")
+    grid on; grid minor
+
+    figure;
+    plot(time, i_out, 'g', 'Linewidth', 1.2)
+    ylabel('$\theta_{Sun/Out-of-plane}\ [deg]$')
+    xlabel('$t\ [hours]$')
+    title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle out of plane")
+    grid on; grid minor
+
+    figure;
+    plot(time, i_tan, 'g', 'Linewidth', 1.2)
+    ylabel('$\theta_{Sun/Tan}\ [deg]$')
+    xlabel('$t\ [hours]$')
+    title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Tangential direction")
+    grid on; grid minor
+
+    figure;
+    plot(time, i_tran, 'g', 'Linewidth', 1.2)
+    ylabel('$\theta_{Sun/Transv}\ [deg]$')
+    xlabel('$t\ [hours]$')
+    title("Flyby " + num2str(idfb) + " at " + bodynm + " - Planet RF J2000: Angle between Sun and Transversal direction")
+    grid on; grid minor
+end
 
 end
 

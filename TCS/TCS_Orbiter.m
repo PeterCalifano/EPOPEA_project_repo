@@ -421,7 +421,7 @@ C.C_3rad = 40;
 
 % to tune:
 % heat pipes from Celsia heat pipes calculator
-R_HP_min = 0.04;
+R_HP_min = 0.03;
 R_HP_max = 0.76;
 C_HP_max = 1/R_HP_min;
 C_HP_min = 1/R_HP_max;

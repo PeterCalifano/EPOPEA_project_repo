@@ -102,7 +102,7 @@ var_N = var(end-12:end-2);
 r_N = var_N(1:3);
 v_N = var_N(4:6);
 psi_i = var(1:step_st) - [r1; v1; m1]; 
-psi_f = [norm(r_N); norm(v_N)] - [Re+(2e-3/DU); 1e-3/(DU/TU)];
+psi_f = [norm(r_N); norm(v_N)] - [Re+(2e-3/DU); 0/(DU/TU)];
 
 %fill Ceq
 Ceq = [vec_def; vec_alpha; psi_i; psi_f];              %check column vecs

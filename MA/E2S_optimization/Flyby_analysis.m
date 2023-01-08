@@ -184,7 +184,6 @@ for idfb = 1:howmanyfb
     title("Flyby " + num2str(idfb) + " at " + bodynm + "Angle between Sun and Transversal direction")
     grid on; grid minor
 
-end
 
 
 

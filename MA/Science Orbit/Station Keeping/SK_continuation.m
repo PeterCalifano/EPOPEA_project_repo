@@ -1,23 +1,11 @@
-%% SK optimization
+%% SK continuation
 clear;clc;close all
 
-% Load workspace for nominal time
-load('FirstTrial_SK_1day.mat', 'XX_ii','x0_Sk2')
 
-old_initial_guess = XX_ii;
-old_pericenter_0 = x0_Sk2;
-
-%load('Workspace_30days_1.1avg.mat')
-
-load('DV0.28_6days_4orbits.mat')
+load('DV0.27_6days_4orb.mat')
 
 clear sum;
 SK_points_old = SK_points;
-
-% Backpropagate to find the initial pericenter
-t1=SK_points_old(7,1);
-t2=t1-1;
-[~,~,t_0_init,new_peri0,~] = ode113(@SCR3BP_dyn,[t1 t2],SK_points_old(1:6,1),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
 
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
@@ -30,92 +18,27 @@ N_orbits = 4;
 n_var = 7*N_orbits*2;
 
 % Define the number of days of propagation
-N_days = 3; 
+N_days_prev = ii;
+N_days_new = 12; 
 
-%%% Create bounds for SK position and velocity
-    norm_r = sqrt((SK_points_old(1,:) - (1-mu_tbp)).^2 + (SK_points_old(2,:)).^2 +...
-        (SK_points_old(3,:)).^2);
-    norm_v = sqrt((SK_points_old(4,:)).^2 + (SK_points_old(5,:)).^2 +...
-        (SK_points_old(6,:)).^2);
-    
-    r_max = max(norm_r)*1.2;
-    r_min = min(norm_r)*0.8;
-    v_max = max(norm_v)*1.2;
-    v_min = min(norm_v)*0.8;
+check_lb = initial_guess_opt - lb;
+check_ub =  - initial_guess_opt + ub;
+list = 1:length(initial_guess_opt);
 
-    lb_peri = (R_Enceladus+19)/DU;
-    ub_peri = (R_Enceladus+60)/DU;
-    lb_apo = (R_Enceladus+800)/DU;
-    ub_apo = (R_Enceladus+1500)/DU;
-
-%%% Create linear constraints and boundaries
-    A = [];
-    B = [];
-    Aeq = [];
-    Beq = [];
-    ub0 = 1e+10*ones(n_var,1);
-    lb0 = -1e+10*ones(n_var,1);
-    t_ref = 0;
-    for ii = 1:2*N_orbits
-        
-        if rem(ii,2) ~= 0
-    
-            % SK1 ( peri --> apo )
-            ub0(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_SK)*1.2;
-            lb0(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_CI)*0.8;
-    
-        else
-    
-            % SK2 ( apo --> peri )
-            ub0(7*ii) = t_ref + (ii/2 * t_orb - tf_CI)*1.2;
-            lb0(7*ii) = t_ref + (ii/2 * t_orb - tf_SK)*0.8;
-            
-        end
-    
-    end
-
-%%% Create initial guess as:
-    % 1) the one coming from the preliminary optimization
-            % initial_guess_opt = old_initial_guess;
-    
-    % 2) the one coming from the 30 days run with decent results
-    initial_guess_opt = zeros(n_var,1);
-    for i = 1:N_orbits
-    initial_guess_opt(14*i-13:14*i) = [SK_points_old(:,2*i-1);
-                         SK_points_old(:,2*i)];
-    end
-
-
-% Check on boundaries
-% lb_check = initial_guess_opt - lb0;
-% list = 1:length(lb_check);
-% ind_lb = list(lb_check<0)
-% ub_check = - initial_guess_opt + ub0;
-% ind_ub = list(ub_check<0)
-
-
+list_lb = list(check_lb<0)
+list_ub = list(check_ub<0)
 
 %%
 
-%%% Define the initial pericenter state as:
+pericenter_0 = new_pericenter_0;
 
-    % 1) the one coming from the preliminary optimization
-            %pericenter_0 = old_pericenter_0';
-
-    % 2) the one corresponding to the initial guess given
-            pericenter_0 = new_peri0;
-
-%%% Initialize the times
-    t_0=0;
 
 %%% Initialize storage variables
-    DV_days = zeros(1,N_days);
-    SK_points = zeros(7,N_days*2*N_orbits);
+DV_days = [DV_days, zeros(1,N_days_new)];
+SK_points = [SK_points,zeros(7,N_days_new)];
 
-ub = ub0;
-lb = lb0;
 
-for ii = 1:N_days
+for ii = N_days_prev + 1 : N_days_prev + N_days_new
 
    % Optimization
     [XX_ii, DV_ii] = fmincon(@(var) objfcn_multiple_SK(var,mu_tbp,mu_v,R_v,J2_v,pericenter_0,t_0,N_orbits),initial_guess_opt,A,B,...
@@ -160,7 +83,7 @@ end
 %% post processing - optimized
 close all
 % Initialize DV of each SK fire
-DV_array = zeros(1,2*N_orbits*N_days);
+DV_array = zeros(1,2*N_orbits*N_days_new);
 
 % First propagation
 x_sk1=SK_points(1:6,1);
@@ -171,7 +94,7 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k = 1 : 2*N_orbits*N_days-1
+for k = 1 : 2*N_orbits*N_days_new-1
 %for k = 1 : 16
 
     % Propagation

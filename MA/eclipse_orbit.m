@@ -213,17 +213,23 @@ for j = 1:length(tt)
     %%% Check on Sun %%%
     
     % Check if Saturn is in the way
-    max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
-    ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
-
+    
+   % max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
+   max_ang_Sat=atan(R_Sat/norm(Sat2Sun(:,j)));
+   
+   %ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
+    ang_Sat=acos(dot(-Sat2Sun(:,j),-Sc2Sun)/(norm(Sat2Sun(:,j))*norm(Sc2Sun)));
     if ang_Sat < max_ang_Sat
         check_Sun(j) = check_Sun(j) + 1;
     end
 
     % Check if Enceladus is in the way
-    max_ang_Enc = atan(R_Enc/norm(Sc2Sat));
-    ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
-
+    % max_ang_Enc = atan(R_Enc/norm(Sc2Sat));
+    max_ang_Enc=atan(R_Enc/norm(Sat2Sun));
+    
+    %ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
+    ang_Enc=acos(dot(-Enc2Sun,-Sc2Sun)/(norm(Enc2Sun)*norm(Sc2Sun)));
+    
     if ang_Enc < max_ang_Enc
         check_Sun(j) = check_Sun(j) + 2;
     end

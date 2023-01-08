@@ -36,7 +36,7 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 
 % Select the initial time to look for the instant of intersection
 % t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
-t0_try = cspice_str2et('2022 DEC 25 12:00:00.00')/TU;
+t0_try = cspice_str2et('2052 DEC 25 12:00:00.00')/TU;
 tf_try = t0_try + 2 * 24 * 3600 / TU; % Final time is set 2 days later
 tt_try = linspace(t0_try,tf_try,500000);
 
@@ -110,7 +110,7 @@ t0 = t_start;
 fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 
 % DEFINE the n of hours to propagate
-n_hours = 33;
+n_hours = 33*6;
 
 % DEFINE the number of points
 n_points = 2000;
@@ -288,11 +288,11 @@ grid on; grid minor; axis equal
 title('CHECK_2')
 %%%%%%CHECK%%%%%%%
 
-% figure;
-% plot(tt,check_Sun)
-% xlabel('t')
-% title('Eclipse')
-% grid on; grid minor
+figure;
+plot(tt,check_Sun)
+xlabel('t')
+title('Eclipse')
+grid on; grid minor
 
 
 % figure

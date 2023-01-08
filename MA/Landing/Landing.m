@@ -10,16 +10,12 @@ clc
 
 n_T = 4; % number of thrusters.  try with 3 thrusters
 % step1: vehicle par (TO CHANGE!!!)
-Tmax = n_T*125e-3;                %[kN] Maximum Thrust  !!!!! 4* %%%%%%%%%%%%%%%%
-Isp = 228;                      %[s] Specific Impulse
-g0 = 9.81*1e-3;                 %[km/s^2] acceleration constant
-% m0 = 95+75.4;                   %[kg] initial mass of lander (both Non Sampling Orbiter- Sampling Lander and S-S)
-% m_dry = 75.4;
-% OLD:
-% m0 = 105+746;                   % [kg] initial mass of lander ( Non Sampling Orbiter- Sampling Lander)
-% m_dry = 746;
+Tmax = n_T*220e-3; %[kN] Maximum Thrust  !!!!! 4* 
+Isp = 229; %[s] Specific Impulse
+g0 = 9.81*1e-3; %[km/s^2] acceleration constant
+
 % NEW MASS:
-m_dry_lander = 495.1+20; % [kg] NOTE: 20 kg for ADCS TBC
+m_dry_lander =508; % [kg]
 m_prop_HA = 80; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
 m_dry = m_dry_lander + m_prop_HA; % NOTE: improper use of name "dry mass": 
 % it is the lower bound for the mass of the lander. 
@@ -28,10 +24,10 @@ m_prop = 252; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
 m0 = m_dry_lander+ m_prop; % [kg] WET MASS: initial mass of landing trajectory
 
 % Enceladus par
-Re = 251.1;                                       %[km] mean radius of Enceladus
-mu = (6.67430e-11 *1.0802e20 )*10^(-9) ;             % [km^3/s^2] Enceladus gravitational constant
-mass_ratio = 1.90095713928102*1e-7;               % Saturn-Enceladus mass ratio
-we = (1/32.9)*2*pi/3600;                          %[rad/s] enceladus angular rate
+Re = 251.1; %[km] mean radius of Enceladus
+mu = (6.67430e-11 *1.0802e20 )*10^(-9) ; % [km^3/s^2] Enceladus gravitational constant
+mass_ratio = 1.90095713928102*1e-7; % Saturn-Enceladus mass ratio
+we = (1/32.9)*2*pi/3600; %[rad/s] enceladus angular rate
 
 % Adimensionalization
 DU = Re;                        %[km]
@@ -136,11 +132,25 @@ switch initial
 end
 
 % Landing site
-% lonlat = [-80; 20]; th_e0  =0;
-% lonlat = [-70; 270]; th_e0 =deg2rad(290);
-lonlat = [-70; 270]; th_e0 =deg2rad(270);
-% lonlat = [-68;20]; t1 = -0.2; th_e0 =deg2rad(-10); % 
-% lonlat = [-90; 0]; th_e0  =0;
+landing_site = 3;
+switch landing_sit
+    case 1
+        lonlat = [-80; 20]; 
+        th_e0 = 0;
+    case 2
+        lonlat = [-70; 270]; 
+        th_e0 = deg2rad(290);
+    case 3
+        lonlat = [-70; 270]; 
+        th_e0 =deg2rad(270);
+    case 4
+        t1 = -0.2;
+        lonlat = [-68;20];  
+        th_e0 =deg2rad(-10);
+    case 5
+        lonlat = [-90; 0]; 
+        th_e0 = 0;
+end
 par(8) = th_e0;
 
 % NLP vars (x1, u1, ..., xN, uN, t1, tN)

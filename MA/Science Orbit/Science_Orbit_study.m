@@ -65,7 +65,7 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=10; %days of prapagation
+FlightDays=0.5; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
 
@@ -127,12 +127,8 @@ P1=plot3(state_vec_P(1,:)*DU,state_vec_P(2,:)*DU,state_vec_P(3,:)*DU,'b','linewi
 grid minor
 legend(P1,'Periodic orbit')
 
-%% Science orbit subdivision - 
 
-
-
-
-%% Science orbit subdivision - proposal
+%% Science orbit subdivision
 % propagation - half remote sensing arc (for the 3 modes)
 h_RS=1; %[h] - duration of the remote sensing arc (1 of the 3 modes)
 tf_RS=h_RS/2*3600/TU; 
@@ -141,7 +137,7 @@ state_vec_RS=state_vec_RS';
 state_vec_RS(1:3,:)=state_vec_RS(1:3,:)*DU;
 state_vec_RS(4:6,:)=state_vec_RS(4:6,:)*DU/TU;
 
-h_CI=2; %[h] - duration of the coarse imaging arc
+h_CI=1; %[h] - duration of the coarse imaging arc
 tf_CI=tf_RS+h_CI/2*3600/TU; 
 state0_CI=[state_vec_RS(1:3,end)/DU;state_vec_RS(4:6,end)*TU/DU];
 [t_vec_CI,state_vec_CI]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_RS tf_CI],state0_CI,options_ode);
@@ -152,7 +148,7 @@ state_vec_CI(4:6,:)=state_vec_CI(4:6,:)*DU/TU;
 
 
 %propagation - AOCS+sk arc/2
-h_SK=2; %Number of hours dedicated to SK
+h_SK=3; %Number of hours dedicated to SK
 tf_SK=tf_CI+h_SK/2*3600/TU; 
 state0_SK=[state_vec_CI(1:3,end)/DU;state_vec_CI(4:6,end)*TU/DU];
 [t_vec_SK,state_vec_SK]=ode113(@(t,x) CR3BP_dyn(t,x,mu),[tf_CI tf_SK],state0_SK,options_ode);
@@ -182,7 +178,7 @@ plot3(state_vec_SK(1,:),-state_vec_SK(2,:),state_vec_SK(3,:),'g','linewidth',2);
 plot3(state_vec_else(1,:),-state_vec_else(2,:),state_vec_else(3,:),'r','linewidth',2);
 %plot3(x0_Halo*DU, y0_Halo*DU, z0_Halo*DU, 'o', 'MarkerFaceColor', 'm', 'MarkerEdgeColor', 'k');
 grid minor
-legend([P1 P2 P3 P4],'One of (1),(2),(3): 1h ','(1):2h, 1h per arc','SK/ADCS: 2h, 1h per arc','TMTC: 7h')
+legend([P1 P2 P3 P4],'One of (1),(2),(3): 1h ','(1):1h, 0.5h per arc','SK/ADCS: 3h, 1.5h per arc','TMTC: 7h')
 %% Ground Tracks 
 %Ground tracks taking the state in the rotating frame
 w_Enc=0; %rad/s, in the CRTBP rotating frame

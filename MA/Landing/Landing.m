@@ -449,12 +449,12 @@ fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropell
 % Uncertainties: spring + sensors
 x_hat0 = x_final(1:6);
 % Covariance: adimensionalize with [km^2, km^2/s, km^2/s^2]
-P0 = [1e-4/DU^2     0           0           0               0               0 
-      0             1e-4/DU^2   0           0               0               0 
-      0             0           1e-4/DU^2   0               0               0 
-      0             0           0           1e-10/(DU/TU)^2 0               0 
-      0             0           0           0               1e-10/(DU/TU)^2 0
-      0             0           0           0               0               1e-10/(DU/TU)^2];
+P0 = [1e-4/DU^2          1e-4/(DU^2/TU)   1e-4/(DU^2/TU)   0               0               0 
+      1e-4/(DU^2/TU)     1e-4/DU^2        1e-4/(DU^2/TU)   0               0               0 
+      1e-4/(DU^2/TU)     1e-4/(DU^2/TU)   1e-4/DU^2        0               0               0 
+      0                  0                0                1e-10/(DU/TU)^2 0               0 
+      0                  0                0                0               1e-10/(DU/TU)^2 0
+      0                  0                0                0               0               1e-10/(DU/TU)^2];
 % P0 = zeros(6,6);
 tspan_new = linspace(t1, tN, N);
 options_ode = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);

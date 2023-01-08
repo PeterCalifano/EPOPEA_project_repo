@@ -91,11 +91,11 @@ epsilon_MLI = 0.02; %%%%%%%%%%%%%%%%%%%%%%
 alpha_MLI = 0.11; 
 
 % Antenna painted white: Vita-var PV-100 white paint
-alpha_ant = 0.22; % from 0.17 to 0.27
-epsilon_ant = 0.82; % do sensitivity analysis up to 0.9
+% alpha_ant = 0.22; % from 0.17 to 0.27
+% epsilon_ant = 0.82; % do sensitivity analysis up to 0.9
 % antenna coating : PCBZ (book says 0.16 to 0.24 )
 alpha_ant = 0.2; % BOL
-alpha_ant_EOL = 0.4;
+% alpha_ant_EOL = 0.4;
 epsilon_ant = 0.86;
 
 % Thermal straps
@@ -357,7 +357,6 @@ R.R_56 = sigma_SB * A5_int * epsilon_5*epsilon_6 * F56;
 R.R_1ant = sigma_SB * (A1-A1_ext) * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
 C_1ant_max = k_str * l_str/(A1 - A1_ext);
 C.C_1ant = C_1ant_max/10;  % hyp: diameter of contact antenna - structure is 1/10 of D antenna 
-
 % C.C_1ant = 0;
 R.R_10 = sigma_SB * A1_ext * epsilon_MLI;
 R.R_20 = sigma_SB * A2 * epsilon_MLI;
@@ -565,7 +564,8 @@ else
         Q_diss_cold(5) = We_av*(1-perc);
     end
 end
-% Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant;
+theta_Sun_enc = deg2rad(1); % Ask Antoine: min angle Sun-Earth during communications
+Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant*cos(theta_Sun_enc);
 
 T_guess = 273*ones(14,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);

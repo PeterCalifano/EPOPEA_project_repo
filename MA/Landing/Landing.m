@@ -5,7 +5,7 @@ set(groot,'defaulttextinterpreter','latex');
 set(0,'defaultAxesFontSize', 16)
 
 %%
-clearvars; close all; 
+clearvars;  
 clc 
 
 n_T = 4; % number of thrusters.  try with 3 thrusters
@@ -20,8 +20,10 @@ m_prop_HA = 80; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
 m_dry = m_dry_lander + m_prop_HA; % NOTE: improper use of name "dry mass": 
 % it is the lower bound for the mass of the lander. 
 % We cannot use the propellant dedicated to hazard avoidance maneouvre to land
-m_prop = 252; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
-m0 = m_dry_lander+ m_prop; % [kg] WET MASS: initial mass of landing trajectory
+m_prop = 102.2; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
+m0 = m_dry+ m_prop; % [kg] WET MASS: initial mass of landing trajectory
+% m_prop = 252; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
+% m0 = m_dry_lander + m_prop; % [kg] WET MASS: initial mass of landing trajectory
 
 % Enceladus par
 Re = 251.1; %[km] mean radius of Enceladus
@@ -56,7 +58,7 @@ par(5) = Re;
 par(6) = mass_ratio;
 par(7) = we;
 
-N = 20;
+N = 50;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
 initial = 3;
@@ -133,7 +135,7 @@ end
 
 % Landing site
 landing_site = 3;
-switch landing_sit
+switch landing_site
     case 1
         lonlat = [-80; 20]; 
         th_e0 = 0;
@@ -165,7 +167,7 @@ guess = zeros(step_var*N+2, 1);
 guess(1:step_st,1) = s0;
 guess(step_st+1) = 1-eps;
 guess(step_st+2:step_st+4) = -s0(4:6)'/norm(s0(4:6));
-options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
+options_ode = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 
 tspan_l(1) = t1;
 tspan_l(N) = tN;
@@ -175,7 +177,7 @@ end
 
 uk = guess(step_st+1:step_st+4);
 for k = 1:N-1
-    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0', options, uk, par);
+    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0', options_ode, uk, par);
     s0 = output(end,1:step_st);
     vv_vers = s0(4:6)'/norm(s0(4:6));
     if k == N-1
@@ -188,10 +190,10 @@ end
 guess(end-1:end) = [t1; tN];
 
 %one integration starting from second point
-[~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options, [0;0;0;0], par);
+[~, output1] = ode113(@landing_dyn, [tspan_l(2) tspan_l(N)], guess(step_var+1:step_var+step_st)', options_ode, [0;0;0;0], par);
 
 % Check guess point
-[time, output] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
+[time, output] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options_ode, mass_ratio); 
 r_enc = zeros(length(time), 3);
 for k = 1:length(time)
     % From rotating Saturn-Enceladus to IAU_Enceladus
@@ -246,18 +248,16 @@ end
 lb(end) = 0;
 
 %%
-
 options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
     'SpecifyObjectiveGradient', false, 'MaxIter', 1000, 'MaxFunctionEvaluations', 3*1e5);
 
 %[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
 %    @(var) land_nonlincon(var, state_i_rot, par, N),options);
 %
- %[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot,lonlat, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-  %  @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
+%[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot,lonlat, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%    @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
 [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfunpp(var, state_i_rot,lonlat, par, N),guess,A,b,Aeq,beq,lb,ub, ...
     @(var) land_nonlincon(var, state_i_rot, par, N),options);
-
 
 
 %% Pin-point: plot target landing site
@@ -292,7 +292,7 @@ vec_pp = A_rot2IAU*vec_rot;
 rr_fin = x_final(end-12:end-10);
 dist = norm(vec_pp-rr_fin);
 
-%%
+%% Post-processing
 % Trajectory
 Enceladus_3D(1, [0 0 0]);
 hold on; grid on; grid minor
@@ -322,6 +322,10 @@ ylabel('$u$')
 % Thrust
 Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
 Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
+T_evol = zeros(1,N);
+for k = 1:N
+    T_evol(k) = control(k)*(Tmax*FU)*1e3;    %[N]
+end
 
 % Final Velocity
 vv_fin = x_final(end-9:end-7)*VU;
@@ -379,68 +383,201 @@ fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropell
 % validation and plot
 % propagate initial orbit from t0 to t1
 % propagate vector of NLP variables and check consistency
-
-Enceladus_3D(1, [0 0 0]);
-hold on; grid on; grid minor
-t1 = x_final(end-1);
-tN = x_final(end);
-%plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
-[time_enc, output_enc] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
-r_enc_plot = zeros(length(time), 3);
-for k = 1:length(time_enc)
-    % From rotating Saturn-Enceladus to IAU_Enceladus
-    state_in = rot2iau_enc(time_enc(k), output_enc(k,:), mass_ratio);
-    r_in = state_in(1:3)*DD/DU;
-    v_in = state_in(4:6)*(DD/TT)/VU;
-    
-    % DCM Matrix: rigid rotation around X
-    A_rotx = [1  0  0
-              0  0  1
-              0 -1  0];
-    r_enc_plot(k,:) = A_rotx*r_in;
-end
-
-
-plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',2); % initial orbit
-plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
-% [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
-% circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
-% landing_site = Re*exp(1i*circ_admissible);
-% plot(landing_site,'-g','LineWidth',10)
-
-
-s0 = x_final(1:6);
-view(3);
-
-tspan = linspace(t1,tN,N);
-u_plot = x_final(step_st+1);
-x_plot = []; y_plot = []; z_plot = [];
-for k = 1:N-1
-    s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
-    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options, u_plot, par);
+% options_ode = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+% Enceladus_3D(1, [0 0 0]);
+% hold on; grid on; grid minor
+% t1 = x_final(end-1);
+% tN = x_final(end);
+% %plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
+% [time_enc, output_enc] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options_ode, mass_ratio); 
+% r_enc_plot = zeros(length(time), 3);
+% for k = 1:length(time_enc)
+%     % From rotating Saturn-Enceladus to IAU_Enceladus
+%     state_in = rot2iau_enc(time_enc(k), output_enc(k,:), mass_ratio);
+%     r_in = state_in(1:3)*DD/DU;
+%     v_in = state_in(4:6)*(DD/TT)/VU;
+%     
+%     % DCM Matrix: rigid rotation around X
+%     A_rotx = [1  0  0
+%               0  0  1
+%               0 -1  0];
+%     r_enc_plot(k,:) = A_rotx*r_in;
+% end
+% 
+% 
+% plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',2); % initial orbit
+% plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
+% % [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options_ode, par);
+% % circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
+% % landing_site = Re*exp(1i*circ_admissible);
+% % plot(landing_site,'-g','LineWidth',10)
+% 
+% 
+% s0 = x_final(1:6);
+% view(3);
+% 
+% tspan = linspace(t1,tN,N);
+% u_plot = x_final(step_st+1);
+% x_plot = []; y_plot = []; z_plot = [];
+% for k = 1:N-1
+%     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
+%     u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+%     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
+% %     x_plot = [x_plot;output(:,1)];
+% %     y_plot = [y_plot;output(:,2)];
+% %     z_plot = [z_plot;output(:,3)];
+%     y_plot = [y_plot;-output(:,3)];
+%     z_plot = [z_plot;output(:,2)];
 %     x_plot = [x_plot;output(:,1)];
-%     y_plot = [y_plot;output(:,2)];
-%     z_plot = [z_plot;output(:,3)];
-    y_plot = [y_plot;-output(:,3)];
-    z_plot = [z_plot;output(:,2)];
-    x_plot = [x_plot;output(:,1)];
+% end
+% plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
+% 
+% for k = 1:N
+% %     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+%  plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
+%     axis equal
+% end
+% plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
+% 
+% title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
+% xlabel('$x\ [DU]$')
+% ylabel('$y\ [DU]$')
+% zlabel('$z\ [DU]$')
+% legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajectory','NLP points')
+
+%% Uncertainties propagation - UT
+% Uncertainties: spring + sensors
+x_hat0 = x_final(1:6);
+% Covariance: adimensionalize with [km^2, km^2/s, km^2/s^2]
+P0 = [1e-4/DU^2     0           0           0               0               0 
+      0             1e-4/DU^2   0           0               0               0 
+      0             0           1e-4/DU^2   0               0               0 
+      0             0           0           1e-10/(DU/TU)^2 0               0 
+      0             0           0           0               1e-10/(DU/TU)^2 0
+      0             0           0           0               0               1e-10/(DU/TU)^2];
+% P0 = zeros(6,6);
+tspan_new = linspace(t1, tN, N);
+options_ode = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
+
+% Find 2km altitude position
+for k = 1:N-1
+    x_des = x_final((k-1)*step_var+1:(k-1)*step_var+3);
+    alt = norm(x_des - Re.*x_des/norm(x_des));
+    if alt <= 2/DU
+        index_alt = k;
+        break
+    end
 end
-plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 
-for k = 1:N
-%     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
- plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
-    axis equal
+alpha = 1e-3;
+beta = 2;
+n = 6;
+lambda = alpha^2*(n)-n;
+M = (n+lambda)*P0;
+R = sqrtm(M);
+
+chi = zeros(6,2*n+1);  %each column is a sigma point
+Wm = zeros(1,2*n+1);
+Wc = zeros(1,2*n+1);
+for i = 1:(2*n+1)
+    if i <= n
+        chi(:,i) = x_hat0 + R(:,i);
+        Wm(i) = 1/(2*(n+lambda));
+        Wc(i) = 1/(2*(n+lambda));
+    elseif i == n+1
+        chi(:,i) = x_hat0;
+        Wm(i) = lambda/(n+lambda);
+        Wc(i) = lambda/(n+lambda) + (1-alpha^2 + beta);
+    else
+        chi(:,i) = x_hat0 - R(:,i-(n+1));
+        Wm(i) = 1/(2*(n+lambda));
+        Wc(i) = 1/(2*(n+lambda));
+    end
 end
-plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
+chi(end+1,:) = m0;
 
-title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
-xlabel('$x\ [DU]$')
-ylabel('$y\ [DU]$')
-zlabel('$z\ [DU]$')
-legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajectory','NLP points')
+mean_ut = x_hat0;
+P_ut = P0;
+y = zeros(6,2*n+1);
+for j = 1:(2*n+1)
+    state0 = chi(:,j);
+    for k = 1:index_alt-1
+        u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+        [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
+        state0 = output(end,1:7)';
+    end
+    y(:,j) = state0(1:6,1);
+    mean_ut = Wm(j).*y(:,j) + mean_ut;
+end  
+for j = 1:(2*n+1)
+    col = y(:,j) - mean_ut;
+    row = col';
+    P_ut = (Wc(j) .* (col*row)) + P_ut;
+end
 
+% % Montecarlo
+% N_mc = 500;
+% samples = mvnrnd(x_hat0, P0, N_mc);
+% state_mc = zeros(N_mc,6);
+% state0 = zeros(1,7);
+% for i=1:N_mc
+%     state0(1:6) = samples(i,:);
+%     state0(end) = m0;
+%     state0 = state0';
+%     for k = 1:N-1
+%         u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+%         [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
+%         state0 = output(end,1:7)';
+%         check(k,:) = state0(1:6);
+%     end
+%     state_mc(i,:) = state0(1:6);
+% end
+% mean_mc = mean(state_mc, 1);
+% P_mc = cov(state_mc);
+
+% Montecarlo 2
+N_mc = 500;
+P_mc = P0;
+for k = 1:index_alt-1 
+    x_hat = x_final((k-1)*step_var+1:(k-1)*step_var+6);
+    samples = mvnrnd(x_hat, P_mc, N_mc);
+    state_mc = zeros(N_mc,6);
+    state0 = zeros(1,7);
+    for i=1:N_mc
+        state0(1:6) = samples(i,:);
+        state0(end) = x_final((k-1)*step_var+7);
+        state0 = state0';
+        u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+        [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
+        state0 = output(end,1:7)';
+        state_mc(i,:) = state0(1:6);
+    end
+    mean_mc = mean(state_mc, 1);
+    P_mc = cov(state_mc);
+
+end
+
+% Plot ellipse 
+p = 0.997;
+Enceladus_3D(1, [0 0 0])
+% figure;
+% e1 = error_ellipse(P_ut(1:2,1:2), mean_ut(1:2), p, '#EDB120', 1.2);
+% e1 = plot_gaussian_ellipsoid(mean_ut(1:3), P_ut(1:3,1:3), 3);
+hold on
+e2 = plot_gaussian_ellipsoid(mean_mc(1:3), P_mc(1:3,1:3), 3);
+% m1 = plot3(mean_ut(1), mean_ut(2), mean_ut(3), 's', 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120', 'MarkerSize', 10);
+m2 = plot3(mean_mc(1), mean_mc(2), mean_mc(3), 's', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r', 'MarkerSize', 10);
+p1 = plot3(x_final((index_alt-1)*step_var+1), x_final((index_alt-1)*step_var+2), x_final((index_alt-1)*step_var+3), 'o', 'MarkerSize', 10);
+s_mc = plot3(state_mc(:,1), state_mc(:,2), state_mc(:,3), '.', 'color', '#D95319');
+uistack(e2, 'bottom');
+xlabel('X [-]')
+ylabel('Y [-]')
+axis equal
+s = legend([p1 e2 m2 s_mc], 'Landing Site', '$3\sigma - MC$', '$MC - \hat{r}_{xy}$', '$MC samples$');
+s.FontSize = 12;
+grid on; grid minor;
+
+return
 %%
 % TO DO:
 % Change initial guess (?)
@@ -484,7 +621,7 @@ guess(step_st+2:step_st+4) = -s0(4:6)'/norm(s0(4:6));
 guess(end-12:end-10) = vec_pp;
 guess(end-5) =  1-eps;
 guess(end-4:end-2) = -(s0(1:3)'-vec_pp)/norm(s0(1:3)'-vec_pp);
-options = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
+options_ode = odeset('RelTol', 1e-12, 'AbsTol', 1e-12);
 
 tspan_l(1) = t1;
 tspan_l(N) = tN;
@@ -496,7 +633,7 @@ guess(end-1:end) = [t1; tN];
 
 
 % Check guess point
-[time, output] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
+[time, output] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options_ode, mass_ratio); 
 r_enc = zeros(length(time), 3);
 for k = 1:length(time)
     % From rotating Saturn-Enceladus to IAU_Enceladus
@@ -530,186 +667,186 @@ options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp',...
 %[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
 %    @(var) land_nonlincon(var, state_i_rot, par, N),options);
 %
-[x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
-   @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
+% [x_final, fval, exitflag, struct] = fmincon(@(var) land_objfun(var, state_i_rot, par, N),guess,A,b,Aeq,beq,lb,ub, ...
+%    @(var) land_nonlincon_pp(var, state_i_rot, lonlat, par, N),options);
 
-%% Pin-point: plot target landing site
-% initial and final time
-t1 = x_final(end-1);
-tN = x_final(end);
-
-% Point latitude and longitude
-lat = deg2rad(lonlat(1));
-lon = deg2rad(lonlat(2));
-we = par(7);
-Re = par(5);
-
-% From latitudinal to cartesian
-r_xz = Re*cos(lat);
-Xrot = r_xz*sin(lon);
-Yrot = Re*sin(lat);
-Zrot = r_xz*cos(lon);
-vec_rot = [Xrot; Yrot; Zrot];
-
-% Enceladus rotation
-th_e = we*(tN-t1) + th_e0;
-% From rotating enceladus to IAU_Enceladus
-A_rot2IAU = [cos(th_e)    0     sin(th_e)
-                 0        1         0
-            -sin(th_e)    0     cos(th_e)];
-% desired final state
-vec_pp = A_rot2IAU*vec_rot;
-
-% final distance wrt desired landing site
-rr_fin = x_final(end-12:end-10);
-dist = norm(vec_pp-rr_fin);
-
-%%
-% Trajectory
-Enceladus_3D(1, [0 0 0]);
-hold on; grid on; grid minor
-for k = 1:N
-    plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 2);
-    plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-b', 'LineWidth', 2);
-    %plot3(Re*exp(1i*circ),'-b')
-    axis equal
-end
-title('Optimized Landing Trajectory')
-plot3(vec_pp(1),vec_pp(2),vec_pp(3),'*')
-xlabel('$x$')
-ylabel('$y$')
-
-
-% Control law
-figure; hold on; grid on; grid minor
-t_plt = linspace(x_final(end-1), x_final(end), N);
-for k = 1:N
-    control(k) = x_final((k-1)*step_var+step_st+1);
-    plot(t_plt(k),control(k), 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
-end
-title('Control Law')
-xlabel('$t\ [hours]$')
-ylabel('$u$')
-
-% Thrust
-Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
-Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
-
-% Final Velocity
-vv_fin = x_final(end-9:end-7)*VU;
-v_fin = norm(vv_fin)*1e3;                    %[m/s]
-vel = zeros(N,3);
-vel_norm = zeros(N,1);
-for k =1:N
-    vel(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6);
-    vel_norm(k) = norm(vel(k,:)); 
-end
-figure; hold on; grid on; grid minor
-plot(t_plt, vel_norm*VU, 'ob', 'LineWidth', 1.2)
-title('Velocity')
-xlabel('$time\ [hours]$')
-ylabel('$v\ [km/s]$')
-
-% Mass
-figure; hold on; grid on; grid minor
-t_plt = linspace(x_final(end-1), x_final(end), N);
-for k = 1:N
-    mass(k) = x_final((k-1)*step_var+step_st);
-    plot(t_plt(k),mass(k)*MM, 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
-end
-title('Mass variation')
-xlabel('$t\ [hours]$')
-ylabel('$M\ [kg]$')
-
-
-% Propellant Mass
-m_fin = x_final(end-6)*MM;
-m0_dim = m0*MM;
-m_prop = m0_dim - m_fin;
-
-% Initial thrust for first "manoeuvre"
-init_thrust = 0;
-for i = 1:length(control)
-    if control(i) > 1e-10 
-        init_thrust = control(i)*(Tmax*FU) + init_thrust;
-    else
-        break
-    end
-end
-
-
-% DV: Tsiolkowsky
-Is_dim = Isp*TU;
-g0_dim = g0*acc;
-dV = Is_dim*g0_dim*log(m0_dim/m_fin);
-
-% Print Results
-fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, v_fin, m_prop, dV);
-
-
-%%
-% validation and plot
-% propagate initial orbit from t0 to t1
-% propagate vector of NLP variables and check consistency
-
-Enceladus_3D(1, [0 0 0]);
-hold on; grid on; grid minor
-t1 = x_final(end-1);
-tN = x_final(end);
-%plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
-[time_enc, output_enc] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options, mass_ratio); 
-r_enc_plot = zeros(length(time), 3);
-for k = 1:length(time_enc)
-    % From rotating Saturn-Enceladus to IAU_Enceladus
-    state_in = rot2iau_enc(time_enc(k), output_enc(k,:), mass_ratio);
-    r_in = state_in(1:3)*DD/DU;
-    v_in = state_in(4:6)*(DD/TT)/VU;
-    
-    % DCM Matrix: rigid rotation around X
-    A_rotx = [1  0  0
-              0  0  1
-              0 -1  0];
-    r_enc_plot(k,:) = A_rotx*r_in;
-end
-
-
-plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',2); % initial orbit
-plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
-% [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options, par);
-% circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
-% landing_site = Re*exp(1i*circ_admissible);
-% plot(landing_site,'-g','LineWidth',10)
-
-
-s0 = x_final(1:6);
-view(3);
-
-tspan = linspace(t1,tN,N);
-u_plot = x_final(step_st+1);
-x_plot = []; y_plot = []; z_plot = [];
-for k = 1:N-1
-    s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
-    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options, u_plot, par);
+% %% Pin-point: plot target landing site
+% % initial and final time
+% t1 = x_final(end-1);
+% tN = x_final(end);
+% 
+% % Point latitude and longitude
+% lat = deg2rad(lonlat(1));
+% lon = deg2rad(lonlat(2));
+% we = par(7);
+% Re = par(5);
+% 
+% % From latitudinal to cartesian
+% r_xz = Re*cos(lat);
+% Xrot = r_xz*sin(lon);
+% Yrot = Re*sin(lat);
+% Zrot = r_xz*cos(lon);
+% vec_rot = [Xrot; Yrot; Zrot];
+% 
+% % Enceladus rotation
+% th_e = we*(tN-t1) + th_e0;
+% % From rotating enceladus to IAU_Enceladus
+% A_rot2IAU = [cos(th_e)    0     sin(th_e)
+%                  0        1         0
+%             -sin(th_e)    0     cos(th_e)];
+% % desired final state
+% vec_pp = A_rot2IAU*vec_rot;
+% 
+% % final distance wrt desired landing site
+% rr_fin = x_final(end-12:end-10);
+% dist = norm(vec_pp-rr_fin);
+% 
+% %%
+% % Trajectory
+% Enceladus_3D(1, [0 0 0]);
+% hold on; grid on; grid minor
+% for k = 1:N
+%     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3),'.r', 'LineWidth', 2);
+%     plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '-b', 'LineWidth', 2);
+%     %plot3(Re*exp(1i*circ),'-b')
+%     axis equal
+% end
+% title('Optimized Landing Trajectory')
+% plot3(vec_pp(1),vec_pp(2),vec_pp(3),'*')
+% xlabel('$x$')
+% ylabel('$y$')
+% 
+% 
+% % Control law
+% figure; hold on; grid on; grid minor
+% t_plt = linspace(x_final(end-1), x_final(end), N);
+% for k = 1:N
+%     control(k) = x_final((k-1)*step_var+step_st+1);
+%     plot(t_plt(k),control(k), 'o', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'k');
+% end
+% title('Control Law')
+% xlabel('$t\ [hours]$')
+% ylabel('$u$')
+% 
+% % Thrust
+% Thrust_min = min(control)*(Tmax*FU)*1e3;     %[N]
+% Thrust_max = max(control)*(Tmax*FU)*1e3;     %[N]
+% 
+% % Final Velocity
+% vv_fin = x_final(end-9:end-7)*VU;
+% v_fin = norm(vv_fin)*1e3;                    %[m/s]
+% vel = zeros(N,3);
+% vel_norm = zeros(N,1);
+% for k =1:N
+%     vel(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6);
+%     vel_norm(k) = norm(vel(k,:)); 
+% end
+% figure; hold on; grid on; grid minor
+% plot(t_plt, vel_norm*VU, 'ob', 'LineWidth', 1.2)
+% title('Velocity')
+% xlabel('$time\ [hours]$')
+% ylabel('$v\ [km/s]$')
+% 
+% % Mass
+% figure; hold on; grid on; grid minor
+% t_plt = linspace(x_final(end-1), x_final(end), N);
+% for k = 1:N
+%     mass(k) = x_final((k-1)*step_var+step_st);
+%     plot(t_plt(k),mass(k)*MM, 'o', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'k');
+% end
+% title('Mass variation')
+% xlabel('$t\ [hours]$')
+% ylabel('$M\ [kg]$')
+% 
+% 
+% % Propellant Mass
+% m_fin = x_final(end-6)*MM;
+% m0_dim = m0*MM;
+% m_prop = m0_dim - m_fin;
+% 
+% % Initial thrust for first "manoeuvre"
+% init_thrust = 0;
+% for i = 1:length(control)
+%     if control(i) > 1e-10 
+%         init_thrust = control(i)*(Tmax*FU) + init_thrust;
+%     else
+%         break
+%     end
+% end
+% 
+% 
+% % DV: Tsiolkowsky
+% Is_dim = Isp*TU;
+% g0_dim = g0*acc;
+% dV = Is_dim*g0_dim*log(m0_dim/m_fin);
+% 
+% % Print Results
+% fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, v_fin, m_prop, dV);
+% 
+% 
+% %%
+% % validation and plot
+% % propagate initial orbit from t0 to t1
+% % propagate vector of NLP variables and check consistency
+% 
+% Enceladus_3D(1, [0 0 0]);
+% hold on; grid on; grid minor
+% t1 = x_final(end-1);
+% tN = x_final(end);
+% %plot3(r_enc(:,1), r_enc(:,2), r_enc(:,3), '--k', 'LineWidth', 1); % initial orbit
+% [time_enc, output_enc] = ode113(@CR3BP_dyn, [t1*TU/TT 24*TU/TT], state_i_rot(1:6)', options_ode, mass_ratio); 
+% r_enc_plot = zeros(length(time), 3);
+% for k = 1:length(time_enc)
+%     % From rotating Saturn-Enceladus to IAU_Enceladus
+%     state_in = rot2iau_enc(time_enc(k), output_enc(k,:), mass_ratio);
+%     r_in = state_in(1:3)*DD/DU;
+%     v_in = state_in(4:6)*(DD/TT)/VU;
+%     
+%     % DCM Matrix: rigid rotation around X
+%     A_rotx = [1  0  0
+%               0  0  1
+%               0 -1  0];
+%     r_enc_plot(k,:) = A_rotx*r_in;
+% end
+% 
+% 
+% plot3(r_enc(:,1), -r_enc(:,3), r_enc(:,2),'LineWidth',2); % initial orbit
+% plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
+% % [~, output_initial_orbit] = ode113(@dyn, [0 t1], [r_i;v_i], options_ode, par);
+% % circ_admissible = deg2rad(180+70):pi/1e4:deg2rad(270+20);
+% % landing_site = Re*exp(1i*circ_admissible);
+% % plot(landing_site,'-g','LineWidth',10)
+% 
+% 
+% s0 = x_final(1:6);
+% view(3);
+% 
+% tspan = linspace(t1,tN,N);
+% u_plot = x_final(step_st+1);
+% x_plot = []; y_plot = []; z_plot = [];
+% for k = 1:N-1
+%     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
+%     u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+%     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
+% %     x_plot = [x_plot;output(:,1)];
+% %     y_plot = [y_plot;output(:,2)];
+% %     z_plot = [z_plot;output(:,3)];
+%     y_plot = [y_plot;-output(:,3)];
+%     z_plot = [z_plot;output(:,2)];
 %     x_plot = [x_plot;output(:,1)];
-%     y_plot = [y_plot;output(:,2)];
-%     z_plot = [z_plot;output(:,3)];
-    y_plot = [y_plot;-output(:,3)];
-    z_plot = [z_plot;output(:,2)];
-    x_plot = [x_plot;output(:,1)];
-end
-plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
-
-for k = 1:N
-%     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
- plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
-    axis equal
-end
-plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
-
-title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
-xlabel('$x\ [DU]$')
-ylabel('$y\ [DU]$')
-zlabel('$z\ [DU]$')
-legend('Enceladus','Initial science orbit','Target Landing Site','Trajectory','NLP points')
+% end
+% plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
+% 
+% for k = 1:N
+% %     plot3(x_final((k-1)*step_var+1), x_final((k-1)*step_var+2), x_final((k-1)*step_var+3), 'om', 'LineWidth', 1.2,'MarkerSize',5);
+%  plot3(x_final((k-1)*step_var+1), -x_final((k-1)*step_var+3), x_final((k-1)*step_var+2), 'ok', 'LineWidth', 1.5,'MarkerSize',4,'markerfacecolor','k');
+%     axis equal
+% end
+% plot3(vec_pp(1),-vec_pp(3),vec_pp(2),'*m','LineWidth',2.5,'Markersize',8)
+% 
+% title('Fuel-optimal Landing Trajectory. $DU = 251.1\ km$')
+% xlabel('$x\ [DU]$')
+% ylabel('$y\ [DU]$')
+% zlabel('$z\ [DU]$')
+% legend('Enceladus','Initial science orbit','Target Landing Site','Trajectory','NLP points')
  

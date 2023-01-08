@@ -185,7 +185,6 @@ for idfb = 1:howmanyfb
     grid on; grid minor
 end
 
-end
 
 
 

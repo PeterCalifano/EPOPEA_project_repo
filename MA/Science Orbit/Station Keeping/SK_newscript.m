@@ -9,26 +9,15 @@ old_pericenter_0 = x0_Sk2;
 
 load('Workspace_30days_1.1avg.mat')
 
+%load('Workspace_4orbit_optim.mat')
+
 clear sum;
-
-t1=SK_points(7,4);
-t2=t1+1;
-[~,prop_arc_0,t_0_init,x0_Sk2,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,4),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-
+SK_points_old = SK_points;
 
 % Backpropagate to find the initial pericenter
-t1=SK_points(7,1);
+t1=SK_points_old(7,1);
 t2=t1-1;
-[~,~,t_0_init,new_peri0,~] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,1),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
-
-
-%%
-
-% Define the options for the integration
-% options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-%     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
-%     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
-%     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); % così per 10 gg tiene, 0.8 m/s per day
+[~,~,t_0_init,new_peri0,~] = ode113(@SCR3BP_dyn,[t1 t2],SK_points_old(1:6,1),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
 
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
@@ -36,27 +25,23 @@ options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',.
     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
 
 
-% Redefine the number of orbits per day (FIXED)
-N_orbits = 2;
+% Define the number of orbits per day 
+N_orbits = 4;
+n_var = 7*N_orbits*2;
 
 % Define the number of days of propagation
-N_days = 7; 
+N_days = 3; 
 
 %%% Create bounds for SK position and velocity
-    % norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
-    % norm_r2 = norm(states_SK0(1:3,2) - [1-mu_tbp;0;0]);
-    % norm_v1 = norm(states_SK0(4:6,1));
-    % norm_v2 = norm(states_SK0(4:6,2));
+    norm_r = sqrt((SK_points_old(1,:) - (1-mu_tbp)).^2 + (SK_points_old(2,:)).^2 +...
+        (SK_points_old(3,:)).^2);
+    norm_v = sqrt((SK_points_old(4,:)).^2 + (SK_points_old(5,:)).^2 +...
+        (SK_points_old(6,:)).^2);
     
-    norm_r = sqrt((SK_points(1,:) - (1-mu_tbp)).^2 + (SK_points(2,:)).^2 +...
-        (SK_points(3,:)).^2);
-    norm_v = sqrt((SK_points(4,:)).^2 + (SK_points(5,:)).^2 +...
-        (SK_points(6,:)).^2);
-    
-    r_max = max(norm_r)*1.05;
-    r_min = min(norm_r)*0.95;
-    v_max = max(norm_v)*1.05;
-    v_min = min(norm_v)*0.95;
+    r_max = max(norm_r)*1.2;
+    r_min = min(norm_r)*0.8;
+    v_max = max(norm_v)*1.2;
+    v_min = min(norm_v)*0.8;
 
     lb_peri = (R_Enceladus+19)/DU;
     ub_peri = (R_Enceladus+60)/DU;
@@ -70,22 +55,21 @@ N_days = 7;
     Beq = [];
     ub = 1e+10*ones(n_var,1);
     lb = -1e+10*ones(n_var,1);
+    t_ref = 0;
     for ii = 1:2*N_orbits
         
         if rem(ii,2) ~= 0
     
             % SK1 ( peri --> apo )
-            ub(7*ii) = ((ii-1)/2 * t_orb + tf_SK)*1.1;
-            lb(7*ii) = ((ii-1)/2 * t_orb + tf_CI)*0.9;
-            lb(7*ii - 5) = 0;
+            ub(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_SK)*1.2;
+            lb(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_CI)*0.8;
     
         else
     
             % SK2 ( apo --> peri )
-            ub(7*ii) = (ii/2 * t_orb - tf_CI)*1.1;
-            lb(7*ii) = (ii/2 * t_orb - tf_SK)*0.9;
-            ub(7*ii - 5) = 0;
-    
+            ub(7*ii) = t_ref + (ii/2 * t_orb - tf_CI)*1.2;
+            lb(7*ii) = t_ref + (ii/2 * t_orb - tf_SK)*0.8;
+            
         end
     
     end
@@ -95,10 +79,23 @@ N_days = 7;
             % initial_guess_opt = old_initial_guess;
     
     % 2) the one coming from the 30 days run with decent results
-    initial_guess_opt = [SK_points(:,1);
-                        SK_points(:,2);
-                        SK_points(:,3);
-                        SK_points(:,4)];
+    initial_guess_opt = zeros(n_var,1);
+    for i = 1:N_orbits
+    initial_guess_opt(14*i-13:14*i) = [SK_points_old(:,2*i-1);
+                         SK_points_old(:,2*i)];
+    end
+
+% Check on boundaries
+
+lb_check = initial_guess_opt - lb;
+list = 1:length(lb_check);
+ind_lb = list(lb_check<0)
+ub_check = - initial_guess_opt + ub;
+ind_ub = list(ub_check<0)
+
+
+
+%%
 
 %%% Define the initial pericenter state as:
 
@@ -114,7 +111,7 @@ N_days = 7;
 
 %%% Initialize storage variables
     DV_days = zeros(1,N_days);
-    SK_points = zeros(7,N_days*4);
+    SK_points = zeros(7,N_days*2*N_orbits);
 
 for ii = 1:N_days
 
@@ -125,21 +122,21 @@ for ii = 1:N_days
     
     % Save outputs
     DV_days(ii) = DV_ii;
-    for jj = 1 : 4
+    for jj = 1 : 2*N_orbits
         SK_points(1:6,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
         SK_points(7,4*(ii-1) + jj) = t_update + XX_ii(7*jj);
     end
 
     % Update initial pericenter position and initial guess
     
-    t1 = SK_points(7,4*ii);
+    t1 = SK_points(7,2*N_orbits*ii);
     t2 = t1 + 1;
-    [~,prop_arc_0,t_0_init_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,4*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_arc_0,t_0_init_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,2*N_orbits*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
     prop_arc_0=prop_arc_0';
     pericenter_0 = new_pericenter_0';
     initial_guess_opt = XX_ii;
     t_update = t_0_init_new;
-
+    t_0 = t_0_init_new;
 end
     
 %% post processing - optimized
@@ -156,7 +153,7 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k = 1 : 4*N_days-1
+for k = 1 : 2*N_orbits*N_days-1
 %for k = 1 : 4*4
 
     % Propagation

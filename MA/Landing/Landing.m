@@ -561,7 +561,6 @@ end
 p = 0.997;
 Enceladus_3D(1, [0 0 0])
 % figure;
-% e1 = error_ellipse(P_ut(1:2,1:2), mean_ut(1:2), p, '#EDB120', 1.2);
 % e1 = plot_gaussian_ellipsoid(mean_ut(1:3), P_ut(1:3,1:3), 3);
 hold on
 e2 = plot_gaussian_ellipsoid(mean_mc(1:3), P_mc(1:3,1:3), 3);

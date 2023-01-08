@@ -331,9 +331,11 @@ end
 vv_fin = x_final(end-9:end-7)*VU;
 v_fin = norm(vv_fin)*1e3;                    %[m/s]
 vel = zeros(N,3);
+vel_dim = zeros(N,3);
 vel_norm = zeros(N,1);
 for k =1:N
     vel(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6);
+    vel_dim(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6)*VU;
     vel_norm(k) = norm(vel(k,:)); 
 end
 figure; hold on; grid on; grid minor
@@ -412,24 +414,27 @@ fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropell
 % % landing_site = Re*exp(1i*circ_admissible);
 % % plot(landing_site,'-g','LineWidth',10)
 % 
-% 
-% s0 = x_final(1:6);
+s0 = x_final(1:6);
 % view(3);
 % 
 % tspan = linspace(t1,tN,N);
 % u_plot = x_final(step_st+1);
 % x_plot = []; y_plot = []; z_plot = [];
-% for k = 1:N-1
-%     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
-%     u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-%     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
-% %     x_plot = [x_plot;output(:,1)];
-% %     y_plot = [y_plot;output(:,2)];
-% %     z_plot = [z_plot;output(:,3)];
-%     y_plot = [y_plot;-output(:,3)];
-%     z_plot = [z_plot;output(:,2)];
+%%
+v_vector = [];
+v_norm = [];
+for k = 1:N-1
+    s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
+    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
 %     x_plot = [x_plot;output(:,1)];
-% end
+%     y_plot = [y_plot;output(:,2)];
+%     z_plot = [z_plot;output(:,3)];
+    v_vector_k = output(:,4:6)*VU;
+    v_norm = [v_norm; norm(v_vector_k)];
+    v_vector = [v_vector; v_vector_k];
+end
+%%
 % plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 % 
 % for k = 1:N

@@ -70,7 +70,7 @@ Q_4ant = 0;
 Q_4rad = R.R_rad4*(T4^4 - Trad^4)  + C.C_4rad*(T4 - Trad); 
 Q_4int4ext = R.R_4int4ext*(T4^4 - T4ext^4);
 if Clamped ==1
-    Q_40 = 0;
+    Q_40 = R.R_40_clamped*(T4ext^4 - 0);
 else
     if Clamped == 0
     Q_40 = R.R_40*(T4ext^4 - 0);

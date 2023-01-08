@@ -1,4 +1,4 @@
-function [track_length,Nptot,Data_tot,rev,Nporb,Data_Orb,left_swath,right_swath] = GroundImaging(t_vec,pos_Enc,R_Enc,theta0_g,w_p,FoV,data_pic,Overlap,Max_Pics)
+function [track_length,Nptot,Data_tot,rev,Nporb,Data_Orb,left_swath,right_swath,print] = GroundImaging(t_vec,pos_Enc,R_Enc,theta0_g,w_p,FoV,data_pic,Overlap,Max_Pics)
 %% PROTOTYPE
 % [N_pics,Data_Orb] = GroundImaging(t_vec,pos_Enc,R_Enc,theta0_g, w_p,Cam,R_Enc)
 
@@ -33,7 +33,7 @@ function [track_length,Nptot,Data_tot,rev,Nporb,Data_Orb,left_swath,right_swath]
 % latitude and longitude computation
 [~,~, lat_deg, lon_deg] = groundTrack(t_vec, pos_Enc',theta0_g,w_p);
 lat=deg2rad(lat_deg);
-lon=deg2rad(lon_deg);
+lon=deg2rad(lon_deg)+wrapToPi(deg2rad(theta0_g));
 
 % track length and steps initialization
 track_length=0;
@@ -109,7 +109,9 @@ else
     Nporb=Nptot;
     rev=1;
 end
-
+% plot lat e lon di track array too
+[~,~, ta_lat, ta_lon] = groundTrack(t_vec,track_array',theta0_g,w_p);
+print=[ta_lon;ta_lat];
 [~,~, left_lat, left_lon] = groundTrack(t_vec(1:end-1),left_pos',theta0_g,w_p);
 
 left_swath=[left_lon;left_lat];

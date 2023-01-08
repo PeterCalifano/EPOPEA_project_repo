@@ -70,9 +70,9 @@ Max_Pics=1000000000;
 w_Enc=0; %rad/s, in the CRTBP rotating frame
 FoV_WAC=40; %deg
 data_WAC=0.0042; %Gb
-Overlap_WAC=30; % % of overlap  
+Overlap_WAC=50; % % of overlap  
 
-[track_length_CI,Nptot_CI,Data_tot_CI,rev_CI,Nporb_CI,Data_Orb_CI,left_swath_CI,right_swath_CI] = GroundImaging(t_vec_RS*TU,r_RS_Enc,R_enc*DU,270,w_Enc,FoV_WAC,data_WAC,Overlap_WAC,Max_Pics)
+[track_length_CI,Nptot_CI,Data_tot_CI,rev_CI,Nporb_CI,Data_Orb_CI,left_swath_CI,right_swath_CI,print] = GroundImaging(t_vec_RS*TU,r_RS_Enc,R_enc*DU,270,w_Enc,FoV_WAC,data_WAC,Overlap_WAC,Max_Pics);
 
 
 
@@ -94,6 +94,7 @@ hold on
 P2=scatter(lon_RS,lat_RS,'.')
 P3=plot(left_swath_CI(1,:),left_swath_CI(2,:),'k','linewidth',1.25)
 plot(right_swath_CI(1,:),right_swath_CI(2,:),'k','linewidth',1.25)
+plot(print(1,:),print(2,:),'linewidth',3); 
 xlabel('Longitude');
 ylabel('Latitude');
 axis equal

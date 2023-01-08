@@ -67,7 +67,7 @@ for k=1:length(t_vec)-1
                    sin(lat(k+1))];
                
     path_angle=abs(acos(dot(track_old/norm(track_old),track_k1/norm(track_k1)))); %spherical arc covered in an integration step
-    step=2*R_Enc*path_angle; %[km] - distance covered between two consecutive time instants 
+    step=R_Enc*path_angle; %[km] - distance covered between two consecutive time instants 
     %data collection
     steps_array(k)=step;
     track_length=track_length+step;%total distance
@@ -84,7 +84,7 @@ for k=1:length(t_vec)-1
 
     %chicchina plot - cit non funge
     step_dir=(track_k1-track_old)/norm(track_k1-track_old);
-    dir_swath=cross(step_dir,pos_Enc(:,k)); %perpendicular direction to the step    
+    dir_swath=cross(step_dir,track_old); %perpendicular direction to the step    
     dir_swath=dir_swath/norm(dir_swath);
     
     left_pos(:,k)=track_old+dir_swath*l/2;

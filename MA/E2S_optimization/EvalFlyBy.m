@@ -1,4 +1,4 @@
-function [fb_ToF, timegrid, xstate, Sb, SAA] = EvalFlyBy(vinf_SOI, rSOI, rp, mu, X_p)
+function [fb_ToF, timegrid, xstate, Sb, SAA, RelPos] = EvalFlyBy(vinf_SOI, rSOI, rp, mu, X_p)
 %% PROTOTYPE
 % -------------------------------------------------------------------------------------------------------------
 %% DESCRIPTION
@@ -9,6 +9,7 @@ function [fb_ToF, timegrid, xstate, Sb, SAA] = EvalFlyBy(vinf_SOI, rSOI, rp, mu,
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
 % out1 [dim] description
+% RelPos [1x4] Angles in deg between the Sun direction and zenith, tangential, and tranversal direction
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % Date, User, brief summary of the modification
@@ -106,10 +107,10 @@ fb_ToF = 2*exit_time/3600; % [hours]
 
 % Define r-theta-h frame at each epoch
 r_state = xstate(:, 1:3);
-% v_state = xstate(:, 4:6);
+v_state = xstate(:, 4:6);
 
 r_dir = r_state./vecnorm(r_state, 2, 2);
-% v_dir = v_state./vecnorm(v_state, 2, 2);
+v_dir = v_state./vecnorm(v_state, 2, 2);
 
 % H_dir = cross(r_dir, v_dir);
 H_dir = H_dir.*ones(length(r_dir), 3);
@@ -119,7 +120,7 @@ theta_dir = cross(H_dir, r_dir);
 R_SC = R_p' + r_state;
 
 % Define Sb vector by projection at each epoch
-S = R_SC./vecnorm(R_SC, 2, 2); % Position vector of the planet assumed equal to Sun rays incoming direction
+S = -R_SC./vecnorm(R_SC, 2, 2); % Position vector of the planet assumed equal to Sun rays incoming direction
 
 Sb_r = dot(S, r_dir, 2);
 Sb_theta = dot(S, theta_dir, 2);
@@ -129,6 +130,13 @@ Sb = [Sb_r, Sb_theta, Sb_h];
 % Compute Solar Aspect Angle in deg from component normal to trajectory plane
 SAA = mean(asind(Sb_h)); 
 
+% compute angles in deg of relative trajectory sc-planet wrt zenith, tangential, and tranversal direction
+SunDir = S;
+i_tan = rad2deg(acos(dot(SunDir, v_dir,2)));
+i_tran = rad2deg(acos(dot(SunDir, theta_dir,2)));
+i_out = rad2deg(acos(dot(SunDir, H_dir,2)));
+i_zen = rad2deg(acos(dot(SunDir, r_dir,2)));
+RelPos = [i_zen, i_tan, i_tran, i_out];
 
 %% Local functions
     function [value, isterminal, direction] = SOIexit(~, x, rSOI)

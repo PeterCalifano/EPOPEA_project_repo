@@ -17,6 +17,24 @@ end
 %% DATA
 clear; close all; clc;
 
+options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
+
+% General data
+R_Enceladus = mean(cspice_bodvrd('602','RADII',3));
+R_Saturn = mean(cspice_bodvrd('699','RADII',3));
+mu_Saturn = cspice_bodvrd('699','GM',1);
+mu_Enceladus = cspice_bodvrd('602','GM',1);
+mu_tbp = 1.90095713928102*1e-7;
+J2_Saturn = 1.629061510215236e-2; 
+J2_Enceladus = 5435.2e-6; 
+DU=238411468.296/1000;
+TU=118760.57/(2*pi);  
+VU = DU/TU;
+t_half = 1.142397328535602;
+R_v = [R_Saturn, R_Enceladus]/DU;
+mu_v = [mu_Saturn,mu_Enceladus] * TU^2 / DU^3;
+J2_v = [J2_Saturn,J2_Enceladus];
+
 % Initial Halo State
 x0_Halo=1.000062853735440;
 y0_Halo=0;
@@ -24,26 +42,72 @@ z0_Halo=-0.00117884381145460;
 vx0_Halo=0;
 vy0_Halo=0.0168877463349484;
 vz0_Halo=0;
-x0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
+state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
+t0 = 0;
 
 % Design variables
 % var = [x_1, t_1, t_f];
+n_var = 8;
 
 % Set the bounds
 A = [];
 B = [];
 Aeq = [];
 Beq = [];
-ub = [];
-lb = [];
+ub = 1e+10*ones(n_var,1);
+lb = -1e+10*ones(n_var,1);
+lb(7) = 0;
 
 
+% Create Initial Guess
+[~,prop_state] = ode113(@CR3BP_dyn,[t0 t_half],state0_Halo,options_ode,mu_tbp);
+x_guess = prop_state(end,:)';
 
+a = (R_Saturn + 4*R_Saturn)/2;
+T = 2*pi*sqrt(a^3/mu_Saturn);
+tf_guess = T / TU;
 
+initial_guess = [x_guess; t_half;tf_guess];
 
+R_final = R_Saturn/DU;
+%% Optimization
+options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
+    'OptimalityTolerance', 1e-11, 'StepTolerance', 1e-11, 'ConstraintTolerance', 1e-11,...
+    'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
+    'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-11); 
 
+[XX_eol, DV_eol] = fmincon(@(var) objfun_EOL(var,mu_tbp,t0,state0_Halo,mu_v,R_v,J2_v),initial_guess,A,B,...
+    Aeq,Beq,lb,ub,@(var) nlcon_EOL(var,mu_tbp,t0,state0_Halo,R_final,mu_v,R_v,J2_v), options);
 
+%% Post-Processing
+x0_opt = XX_eol(1:6);
+t1_opt = XX_eol(7);
+tf_opt = XX_eol(8);
 
+DV_eol_dim = DV_eol*VU
+
+[t_prop,prop_state] = ode113(@SCR3BP_dyn,[t1_opt tf_opt],x0_opt,options_ode,mu_tbp,mu_v,R_v,J2_v);
+prop_state = prop_state';
+
+prop_state_in = zeros(3,length(t_prop));
+for k=1:length(t_prop)
+    prop_state_in(1,k)=(prop_state(1,k)+mu_tbp)*cos(t_prop(k) -t_prop(1))-prop_state(2,k)*sin(t_prop(k) -t_prop(1));
+    prop_state_in(2,k)=(prop_state(1,k)+mu_tbp)*sin(t_prop(k) -t_prop(1))+prop_state(2,k)*cos(t_prop(k) -t_prop(1));
+    prop_state_in(3,k)=prop_state(3,k);
+end
+
+Enceladus_3D(R_Saturn,[0,0,0]);
+P1 = plot3(prop_state_in(1,:)*DU,prop_state_in(2,:)*DU,prop_state_in(3,:)*DU,...
+    'b','linewidth',2);
+%scatter3((1-mu_tbp)*DU,0,0,50,'k','filled','DisplayName','Enceladus')
+
+%Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
+% Enceladus_3D(R_Saturn,[-mu_tbp*DU,0,0]);
+% P1 = plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
+%     'b','linewidth',2);
+% scatter3((1-mu_tbp)*DU,0,0,50,'k','filled','DisplayName','Enceladus')
+
+%%
 
 
 

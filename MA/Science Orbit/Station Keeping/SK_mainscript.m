@@ -19,8 +19,8 @@ clear; close all; clc;
 % Constants
 G = astroConstants(1);
 mu_tbp = 1.90095713928102*1e-7;
-DU=238411468.296/1000; %km
-TU=118760.57/(2*pi); 
+DU = 238411468.296/1000; %km
+TU = 118760.57/(2*pi); 
 
 %mu_tbp = M_E/(M_E+M_S);
 
@@ -55,7 +55,7 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=5; %days of prapagation
+FlightDays=12; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
 options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
@@ -68,10 +68,25 @@ state_vec_Halo=state_vec_Halo';
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 
+% Perturbed Halo
+[~,state_fullHalo]=ode113(@SCR3BP_dyn,[t0, tf],state0_Halo, options_ode...
+    ,mu_tbp,mu_v,R_v,J2_v);
+state_fullHalo(:,1:3) = state_fullHalo(:,1:3)*DU;
+state_fullHalo(:,4:6) = state_fullHalo(:,4:6)*DU/TU;
+
+[~,state_fullHalo2]=ode113(@SCR3BP2_dyn,[t0, tf],state0_Halo, options_ode...
+    ,mu_tbp,mu_v,R_v,J2_v);
+state_fullHalo2(:,1:3) = state_fullHalo2(:,1:3)*DU;
+state_fullHalo2(:,4:6) = state_fullHalo2(:,4:6)*DU/TU;
+
 
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0])
 P2=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
-    'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
+    'k','linewidth',1.25,'DisplayName','Nominal Halo Orbit');
+P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
+    'b--','linewidth',1,'DisplayName','Perturbed Halo Orbit');
+P4=plot3(state_fullHalo2(:,1),state_fullHalo2(:,2),state_fullHalo2(:,3),...
+    'r--','linewidth',1,'DisplayName','Perturbed Halo Orbit 2');
 %S = scatter3(-mu_tbp*DU,0,0,100,'filled','DisplayName','Saturn');
 %P1=plot3(x_L2(1)*DU,x_L2(2)*DU,x_L2(3)*DU,'ob','markersize',5,'linewidth',1.25);
 grid minor
@@ -382,7 +397,7 @@ options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',.
     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-11); %così costa un casino
 
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-    'OptimalityTolerance', 1e-3, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
 
@@ -392,7 +407,7 @@ options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',.
 N_orbits = 2;
 
 % Define the number of days of propagation
-N_days = 10; 
+N_days = 30; 
 
 % Create bounds for SK position and velocity
 norm_r1 = norm(states_SK0(1:3,1) - [1-mu_tbp;0;0]);
@@ -405,6 +420,32 @@ r_min = min(norm_r1,norm_r2)*0.8;
 v_max = max(norm_v1,norm_v2)*1.2;
 v_min = min(norm_v1,norm_v2)*0.8;
 
+% % Create linear constraints and boundaries
+A = [];
+B = [];
+Aeq = [];
+Beq = [];
+ub = 1e+10*ones(n_var,1);
+lb = -1e+10*ones(n_var,1);
+for ii = 1:2*N_orbits
+    
+    if rem(ii,2) ~= 0
+
+        % SK1 ( peri --> apo )
+        ub(7*ii) = ((ii-1)/2 * t_orb + tf_SK)*1.1;
+        lb(7*ii) = ((ii-1)/2 * t_orb + tf_CI)*0.9;
+        lb(7*ii - 5) = 0;
+
+    else
+
+        % SK2 ( apo --> peri )
+        ub(7*ii) = (ii/2 * t_orb - tf_CI)*1.1;
+        lb(7*ii) = (ii/2 * t_orb - tf_SK)*0.9;
+        ub(7*ii - 5) = 0;
+
+    end
+
+end
 % Create initial guess as the output of the previous optimization
 initial_guess_opt = XX_ii;
 
@@ -465,7 +506,7 @@ for k = 1 : 4*N_days-1
     t1 = SK_points(7,k);
     t2 = SK_points(7,k+1);
 
-    plot3(SK_points(1,k)*DU,SK_points(2,k)*DU,SK_points(3,k)*DU,'o','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(k)]);
+    plot3(SK_points(1,k)*DU,SK_points(2,k)*DU,SK_points(3,k)*DU,'o','markersize',5,'linewidth',2);%,'DisplayName',['SK n ', num2str(k)]);
     
     [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,k),options_ode,mu_tbp,mu_v,R_v,J2_v);
     prop_state=[prop_state,prop_arc'];
@@ -475,7 +516,7 @@ end
 
 t1 = SK_points(7,end);
 t2 = t1 + 1;
-P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2,'DisplayName',['SK n ', num2str(4*N_days)]);   
+P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2);%,'DisplayName',['SK n ', num2str(4*N_days)]);   
 %[~,prop_arc_fin,te,xe,ie] = ode113(@(t,x) SCR3BP_dyn(t,x,mu_tbp,mu_v,R_v,J2_v),[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
 [~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
 
@@ -493,7 +534,7 @@ P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
 % P4=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),...
 %     'k','linewidth',1.25,'DisplayName','Southern Halo Orbit');
 grid minor
-legend()
-%legend([P1,P2,P3,P4],'SK points','trajectory','free dynamics crash','CR3BP')
+%legend()
+legend([P1,P2,P3],'SK points','trajectory','free dynamics crash','CR3BP')
 
 

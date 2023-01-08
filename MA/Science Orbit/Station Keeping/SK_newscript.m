@@ -53,22 +53,22 @@ N_days = 3;
     B = [];
     Aeq = [];
     Beq = [];
-    ub = 1e+10*ones(n_var,1);
-    lb = -1e+10*ones(n_var,1);
+    ub0 = 1e+10*ones(n_var,1);
+    lb0 = -1e+10*ones(n_var,1);
     t_ref = 0;
     for ii = 1:2*N_orbits
         
         if rem(ii,2) ~= 0
     
             % SK1 ( peri --> apo )
-            ub(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_SK)*1.2;
-            lb(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_CI)*0.8;
+            ub0(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_SK)*1.2;
+            lb0(7*ii) = t_ref + ((ii-1)/2 * t_orb + tf_CI)*0.8;
     
         else
     
             % SK2 ( apo --> peri )
-            ub(7*ii) = t_ref + (ii/2 * t_orb - tf_CI)*1.2;
-            lb(7*ii) = t_ref + (ii/2 * t_orb - tf_SK)*0.8;
+            ub0(7*ii) = t_ref + (ii/2 * t_orb - tf_CI)*1.2;
+            lb0(7*ii) = t_ref + (ii/2 * t_orb - tf_SK)*0.8;
             
         end
     
@@ -87,10 +87,10 @@ N_days = 3;
 
 % Check on boundaries
 
-lb_check = initial_guess_opt - lb;
+lb_check = initial_guess_opt - lb0;
 list = 1:length(lb_check);
 ind_lb = list(lb_check<0)
-ub_check = - initial_guess_opt + ub;
+ub_check = - initial_guess_opt + ub0;
 ind_ub = list(ub_check<0)
 
 
@@ -107,11 +107,13 @@ ind_ub = list(ub_check<0)
 
 %%% Initialize the times
     t_0=0;
-    t_update = 0;
 
 %%% Initialize storage variables
     DV_days = zeros(1,N_days);
     SK_points = zeros(7,N_days*2*N_orbits);
+
+ub = ub0;
+lb = lb0;
 
 for ii = 1:N_days
 
@@ -123,22 +125,37 @@ for ii = 1:N_days
     % Save outputs
     DV_days(ii) = DV_ii;
     for jj = 1 : 2*N_orbits
-        SK_points(1:6,4*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
-        SK_points(7,4*(ii-1) + jj) = t_update + XX_ii(7*jj);
+        SK_points(1:6,2*N_orbits*(ii-1) + jj) = XX_ii(7*jj - 6 : 7*jj-1);
+        SK_points(7,2*N_orbits*(ii-1) + jj) = XX_ii(7*jj);
     end
 
     % Update initial pericenter position and initial guess
     
     t1 = SK_points(7,2*N_orbits*ii);
     t2 = t1 + 1;
-    [~,prop_arc_0,t_0_init_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,2*N_orbits*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_arc_0,t_0_new,new_pericenter_0,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,2*N_orbits*ii),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
     prop_arc_0=prop_arc_0';
     pericenter_0 = new_pericenter_0';
+    t_0 = t_0_new;
+
     initial_guess_opt = XX_ii;
-    t_update = t_0_init_new;
-    t_0 = t_0_init_new;
-end
+
+    for kk = 1:2*N_orbits*7
+        if rem(kk,7) == 0
+            initial_guess_opt(kk) = initial_guess_opt(kk) + t_0_new;
+        end
+    end
+
+    % Update the bounds
+    lb = lb + t_0;
+    ub = ub + t_0;
+
+    a = 1;
     
+end
+   
+
+
 %% post processing - optimized
 close all
 % Initialize DV of each SK fire
@@ -154,7 +171,7 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
 for k = 1 : 2*N_orbits*N_days-1
-%for k = 1 : 4*4
+%for k = 1 : 16
 
     % Propagation
     t1 = SK_points(7,k);

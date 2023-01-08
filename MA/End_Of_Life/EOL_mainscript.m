@@ -51,10 +51,11 @@ t0 = 0;
 n_var = 15;
 
 % Set the bounds
-A = zeros(2,n_var);
+A = zeros(3,n_var);
 A(1,[7,14]) = [1,-1];
 A(2,[14,15]) = [1, -1];
-B = zeros(2,1);
+A(3,7) = -1;
+B = [-0.1,-0.1,-t0-0.1];
 Aeq = [];
 Beq = [];
 ub = 1e+10*ones(n_var,1);
@@ -63,10 +64,10 @@ lb(7) = 0;
 
 
 % Create Initial Guess
-[~,prop_state] = ode113(@CR3BP_dyn,[t0 t_half],state0_Halo,options_ode,mu_tbp);
+[~,prop_state] = ode113(@CR3BP_dyn,[t0 t_half-0.2],state0_Halo,options_ode,mu_tbp);
 x1_guess = prop_state(end,:)';
 
-max_biell = 7;
+max_biell = 2.6;
 x2_in = [-max_biell*R_Saturn,0,0,0,-sqrt(mu_Saturn/(max_biell*R_Saturn)),0];
 a = (max_biell*R_Saturn + 4*R_Saturn)/2;
 t2 = 2*pi*sqrt(a^3/mu_Saturn) / 2 / TU;
@@ -80,28 +81,33 @@ x2_guess(6) = x2_in(6);
 x2_guess(1:3) = x2_guess(1:3)/DU;
 x2_guess(4:6) = x2_guess(4:6)*TU/DU;
 
-% 
-% state0_2 = x1_guess .* [1;1;1;1;500;1];
-% [~,prop_state,t2_guess,x2_guess,~] = ode113(@CR3BP_dyn,[t0 5*t_half],state0_2,options_ode_event,mu_tbp);
-% 
-% dist_x2 = norm(x2_guess(1:3))*DU / R_Saturn
+%x2_guess = [1.00195813111270, 0.000330552288712704 0.00484092359130717, ...
+%    -0.00124257763903574, -0.110815788777326, -0.000139707519341356];
+%x2_guess = [0.999961968882375,-5.61855695907048e-05, -6.22774331811784e-05...
+%    -0.00980074719104070, -0.122875589208661, -0.00140440124794177];
 
 a = (R_Saturn + 4*R_Saturn)/2;
 T = 2*pi*sqrt(a^3/mu_Saturn);
 tf_guess = T / TU;
 
-initial_guess = [x1_guess; t_half; x2_guess'; tf_guess; 2.5 * tf_guess];
+initial_guess = [x1_guess; t_half - 0.3; x2_guess'; 2*t_half; 4 * t_half];
 
-R_final = R_Saturn/DU;
-r_max = 20*R_Saturn/DU;
+load('InitialGuess_EOL_DV1.34.mat','XX_eol')
+initial_guess = XX_eol;
+R_final = 2.7*R_Saturn/DU;
+r_max = 300*R_Saturn/DU;
+
 %% Optimization
 options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',...
-    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8,...
+    'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-11,...
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
 
-[XX_eol, DV_eol] = fmincon(@(var) objfun_EOL(var,mu_tbp,t0,state0_Halo,mu_v,R_v,J2_v),initial_guess,A,B,...
+[XX_eol, DV_eol] = fmincon(@(var) objfun_EOL(var,mu_tbp,t0,state0_Halo,mu_v,R_v,J2_v,DU/TU),initial_guess,A,B,...
     Aeq,Beq,lb,ub,@(var) nlcon_EOL(var,mu_tbp,t0,state0_Halo,R_final,r_max,mu_v,R_v,J2_v), options);
+
+
+DV_opt = objfun_EOL(XX_eol,mu_tbp,t0,state0_Halo,mu_v,R_v,J2_v,DU/TU)
 
 %% Post-Processing
 x1_opt = XX_eol(1:6);
@@ -110,13 +116,15 @@ x2_opt = XX_eol(8:13);
 t2_opt = XX_eol(14);
 tf_opt = XX_eol(15);
 
-DV_eol_dim = DV_eol*VU
-
+[t_prop0,zero_arc] = ode113(@CR3BP_dyn,[t0, t1_opt],state0_Halo,options_ode,mu_tbp);
 [t_prop1,first_arc] = ode113(@SCR3BP_dyn,[t1_opt t2_opt],x1_opt,options_ode,mu_tbp,mu_v,R_v,J2_v);
 [t_prop2,second_arc] = ode113(@SCR3BP_dyn,[t2_opt tf_opt],x2_opt,options_ode,mu_tbp,mu_v,R_v,J2_v);
+[t_propf,final_arc] = ode113(@SCR3BP_dyn,[tf_opt, 2*tf_opt],second_arc(end,:)',options_ode,mu_tbp,mu_v,R_v,J2_v);
+prop_state = [zero_arc',first_arc',second_arc',final_arc'];
+t_prop = [t_prop0; t_prop1;t_prop2;t_propf];
 
-prop_state = [first_arc',second_arc'];
-t_prop = [t_prop1;t_prop2];
+fa = length(zero_arc(:,1)) + length(first_arc(:,1));
+fa2 = length(zero_arc(:,1)) + length(first_arc(:,1)) + length(first_arc(:,2));
 
 prop_state_in = zeros(3,length(t_prop));
 for k=1:length(t_prop)
@@ -126,18 +134,33 @@ for k=1:length(t_prop)
 end
 
 Enceladus_3D(R_Saturn,[0,0,0]);
-P1 = plot3(prop_state_in(1,:)*DU,prop_state_in(2,:)*DU,prop_state_in(3,:)*DU,...
+P1 = plot3(prop_state_in(1,1:fa)*DU,prop_state_in(2,1:fa)*DU,prop_state_in(3,1:fa)*DU,...
     'b','linewidth',2);
+P2 = plot3(prop_state_in(1,fa:fa2)*DU,prop_state_in(2,fa:fa2)*DU,prop_state_in(3,fa:fa2)*DU,...
+    'r','linewidth',2);
+P3 = plot3(prop_state_in(1,fa2:end)*DU,prop_state_in(2,fa2:end)*DU,prop_state_in(3,fa2:end)*DU,...
+    'g--','linewidth',2);
 %scatter3((1-mu_tbp)*DU,0,0,50,'k','filled','DisplayName','Enceladus')
 
-%Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-% Enceladus_3D(R_Saturn,[-mu_tbp*DU,0,0]);
-% P1 = plot3(prop_state(1,:)*DU,prop_state(2,:)*DU,prop_state(3,:)*DU,...
-%     'b','linewidth',2);
-% scatter3((1-mu_tbp)*DU,0,0,50,'k','filled','DisplayName','Enceladus')
+ind0 = length(zero_arc(:,1));
+ind1 = length(zero_arc(:,1)) + 50;
 
-%%
+Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
+P3 = plot3(prop_state(1,1:ind0)*DU,prop_state(2,1:ind0)*DU,prop_state(3,1:ind0)*DU,...
+    'b','linewidth',2);
+P4 = plot3(prop_state(1,ind0:ind1)*DU,prop_state(2,ind0:ind1)*DU,prop_state(3,ind0:ind1)*DU,...
+    'r','linewidth',2);
 
+%% 
+N_targ = 3.5;
 
+A2 = [];
+B2 = [];
+lb2 = 2;
+ub2 = 200;
+[N_opt, DV_opt] = fmincon(@(N) biell_cost(N,N_targ,mu_v,R_v,DU/TU),20, A2,B2,...
+    Aeq,Beq,lb2,ub2,[], options);
+
+DV_opt
 
 

@@ -17,7 +17,7 @@ options_ode=odeset('RelTol',1e-13,'AbsTol',1e-13);
 % First Propagation
 x_sk1=var(1:6);
 t_sk1=var(7);
-[~,prop_state] = ode113(@SCR3BP_dyn,[t_0 t_0+t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@SCR3BP_dyn,[t_0 t_sk1],x_0,options_ode,mu_tbp,mu_v,R_v,J2_v);
 v_prop = prop_state(end,4:6)';
 
 % Initialize DV
@@ -28,7 +28,7 @@ for k=1:2*N_orbits-1
     % Propagation
     t1=var(7*k);
     t2=var(7*(k+1));
-    [~,prop_state] = ode113(@SCR3BP_dyn,[t_0+t1, t_0+t2],var(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_state] = ode113(@SCR3BP_dyn,[t1, t2],var(7*k-6:7*k-1),options_ode,mu_tbp,mu_v,R_v,J2_v);
     v_prop = prop_state(end,4:6)';
 
     % DV Computation

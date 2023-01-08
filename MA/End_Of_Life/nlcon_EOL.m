@@ -24,7 +24,7 @@ t2 = var(14);
 tf = var(15);
 
 % Propagate the Halo until t1
-[~,prop_state] = ode113(@SCR3BP_dyn,[t_0 t1],state0_Halo,options_ode,mu_tbp,mu_v,R_v,J2_v);
+[~,prop_state] = ode113(@CR3BP_dyn,[t_0 t1],state0_Halo,options_ode,mu_tbp);%,mu_v,R_v,J2_v);
 state_Halo_t1 = prop_state(end,:)';
 
 ceq(1:3) = state_Halo_t1(1:3) - x1(1:3);

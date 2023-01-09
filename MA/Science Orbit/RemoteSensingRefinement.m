@@ -45,7 +45,6 @@ state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
 pos_Halo_Enc=pos_Halo_Enc*DU;
 
-
 % science arc recovery
 h_RS=2; %[h] - duration of the whole science arc
 tf_RS=h_RS/2*3600/TU; 

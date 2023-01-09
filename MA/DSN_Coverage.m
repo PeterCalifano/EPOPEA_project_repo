@@ -29,8 +29,8 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 % Create vector with the times of interest
 
 %%%%%%%%% SET AT NEED OF THE USER %%%%%%%%%%%%%%%
-et0 = cspice_str2et('2047 AUG 27 21:19:55 UTC');
-etf = cspice_str2et('2047 SEP 29 21:19:55 UTC');
+et0 = cspice_str2et('2052 JAN 01 00:00:00 UTC');
+etf = cspice_str2et('2052 FEB 01 00:00:00 UTC');
 delta_et = 3600; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

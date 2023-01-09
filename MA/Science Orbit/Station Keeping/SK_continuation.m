@@ -1,8 +1,8 @@
 %% SK continuation
 clear;clc;close all
 
-
-load('DV0.27_6days_4orb.mat')
+load('DV0.57_30days.mat')
+% load('DV0.27_6days_4orb.mat')
 
 clear sum;
 SK_points_old = SK_points;
@@ -21,7 +21,7 @@ N_orbits = 4;
 n_var = 7*N_orbits*2;
 
 % Define the number of days of propagation
-N_days_prev = ii;
+N_days_prev = 3;
 N_days_new = 12; 
 
 check_lb = initial_guess_opt - lb;

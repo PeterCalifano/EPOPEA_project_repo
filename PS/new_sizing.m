@@ -136,7 +136,7 @@ lander.Isp_main = 234 ; % [s] - Specific impulse of main thrusters for landing
 lander.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters for landing
 
 % Orbiter
-dV_sk = 370 * MAR_020 ; % [m/s] - Cumulative delta v for station keeping
+dV_sk = 2 * 212 * MAR_010 ; % [m/s] - Cumulative delta v for station keeping
 %dV_att = 30 * MAR_030 ; % [m/s] - Cumulative delta v for attitude control
 
 orbiter.dV_disp = 250 * MAR_020 ; % [m/s] - Delta v for disposal of the orbiter

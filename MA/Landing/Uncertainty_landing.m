@@ -1,9 +1,9 @@
-%% Uncertainties propagation
+%%%% Uncertainties propagation %%%%
 clearvars; close all; clc
 
 % 1- 50 points
 % 2 - 100 points
-points = 1; 
+points = 2; 
 switch points
     case 1
         load 'optimal50.mat'
@@ -60,17 +60,26 @@ par(7) = we;
 step_var = 11;
 step_st = 7;
 
-% Uncertainties: spring + sensors
+%% Uncertainties definition: spring + sensors
 x_hat0 = x_final(1:6);
 % Covariance: adimensionalize with [km^2, km^2/s, km^2/s^2]
 % For now: 10m and 1cm/s
-P0 = [1e-4/DU^2   0            0           0               0               0 
-      0           1e-4/DU^2    0           0               0               0 
-      0           0            1e-4/DU^2   0               0               0 
-      0           0            0           1e-10/(DU/TU)^2 0               0 
-      0           0            0           0               1e-10/(DU/TU)^2 0
-      0           0            0           0               0               1e-10/(DU/TU)^2];
-% P0 = zeros(6,6);
+
+% P0 = [1e-4/DU^2   0            0           0               0               0 
+%       0           1e-4/DU^2    0           0               0               0 
+%       0           0            1e-4/DU^2   0               0               0 
+%       0           0            0           1e-10/(DU/TU)^2 0               0 
+%       0           0            0           0               1e-10/(DU/TU)^2 0
+%       0           0            0           0               0               1e-10/(DU/TU)^2];
+
+P0 = [1/DU^2  0        0       0               0               0 
+      0       1/DU^2   0       0               0               0 
+      0       0        1/DU^2  0               0               0 
+      0       0        0       1e-8/(DU/TU)^2  0               0 
+      0       0        0       0               1e-8/(DU/TU)^2  0
+      0       0        0       0               0               1e-8/(DU/TU)^2];
+
+
 t1 = x_final(end-1);
 tN = x_final(end);
 tspan_new = linspace(t1, tN, N);
@@ -155,7 +164,7 @@ for k = 1:index_alt-1
 
 end
 
-% Plot ellipse 
+%% Plot ellipse 
 p = 0.997;
 Enceladus_3D(1, [0 0 0])
 % figure;
@@ -170,6 +179,23 @@ uistack(e2, 'bottom');
 xlabel('X [-]')
 ylabel('Y [-]')
 axis equal
+s = legend([p1 e2 m2 s_mc], 'Landing Site', '$3\sigma - MC$', '$MC - \hat{r}_{xy}$', '$MC samples$');
+s.FontSize = 12;
+grid on; grid minor;
+
+% Zoom
+Enceladus_3D(1, [0 0 0]);
+hold on
+e2 = plot_gaussian_ellipsoid(mean_mc(1:3), P_mc(1:3,1:3), 3);
+m2 = plot3(mean_mc(1), mean_mc(2), mean_mc(3), 's', 'MarkerFaceColor', 'b', 'MarkerEdgeColor', 'b', 'MarkerSize', 10);
+p1 = plot3(x_final((index_alt-1)*step_var+1), x_final((index_alt-1)*step_var+2), x_final((index_alt-1)*step_var+3), 'd', 'MarkerFaceColor', 'g', 'MarkerEdgeColor', 'g', 'MarkerSize', 10);
+s_mc = plot3(state_mc(:,1), state_mc(:,2), state_mc(:,3), '.', 'color', '#D95319');
+xlabel('X [-]')
+ylabel('Y [-]')
+axis equal
+xlim([-0.06 0])
+ylim([-1.03 -0.98])
+zlim([-0.06 0.02])
 s = legend([p1 e2 m2 s_mc], 'Landing Site', '$3\sigma - MC$', '$MC - \hat{r}_{xy}$', '$MC samples$');
 s.FontSize = 12;
 grid on; grid minor;

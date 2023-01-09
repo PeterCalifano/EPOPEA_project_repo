@@ -48,8 +48,9 @@ dxdt= [x(4);
 dxdt(4:6) = dxdt(4:6) + aJ2_E + aJ2_S;
 
 % Stochastic component
-% acc_rnd = mvnrnd(zeros(3,1),diag([0.0001*dxdt(4:6)']));
-% dxdt(4:6) = dxdt(4:6) + acc_rnd';
+%acc_rnd = mvnrnd(zeros(3,1),diag([1e-8*abs(dxdt(4:6))']));
+% acc_rnd = 0.0001*dxdt(4:6) .* randn(3,1);
+% dxdt(4:6) = dxdt(4:6) + acc_rnd;
 
 
 

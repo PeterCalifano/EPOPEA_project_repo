@@ -63,7 +63,7 @@ mu_S = astroConstants(4);
 R_Saturn = astroConstants(26);
 
 DU = astroConstants(2);
-TU = 365.5;
+TU = 365.25;
 TU2 = TU*3600*24;
 VU = DU/TU2;
 

@@ -278,14 +278,16 @@ for j = 1:length(tt)
     
     % Check if Saturn is in the way
     theta_lim_Sat=asin(R_Sat/norm(Sat2Earth(:,j)));
-    theta_Sat=acos( dot(Earth2Sc,x_EclipSC(:,j))/( norm(Earth2Sc)*norm(x_EclipSC(:,j)) ) );
+    theta_Sat=acos( dot(Earth2Sc,-Sat2Earth(:,j))/( norm(Earth2Sc)*norm(Sat2Earth(:,j)) ) );
+    % theta_Sat=acos( dot(Earth2Sc,x_EclipSC(:,j))/( norm(Earth2Sc)*norm(x_EclipSC(:,j)) ) );
     if abs(theta_Sat)<abs(theta_lim_Sat) && abs(acos( dot( Sat2Earth(:,j),x_EclipSC(:,j) )/(norm(Sat2Earth(:,j))*norm(x_EclipSC(:,j))) ))>pi/2
        check_Earth(j)=check_Earth(j)+1; 
     end
     
     %Check if Enceladus is in the way
     theta_lim_Enc=asin(R_Enc/norm(Earth2Enc));
-    theta_Enc=acos( dot(Earth2Sc,-Sc2Enc)/( norm(Earth2Sc)*norm(Sc2Enc) ) );
+    theta_Enc=acos( dot(Earth2Sc,Earth2Enc)/( norm(Earth2Sc)*norm(Earth2Enc) ) );
+    % theta_Enc=acos( dot(Earth2Sc,-Sc2Enc)/( norm(Earth2Sc)*norm(Sc2Enc) ) );
     if abs(theta_Enc)<abs(theta_lim_Enc) && abs(acos( dot( -Earth2Enc,-Sc2Enc )/(norm(Earth2Enc)*norm(Sc2Enc))))>pi/2
        check_Earth(j)=check_Earth(j)+2; 
     end

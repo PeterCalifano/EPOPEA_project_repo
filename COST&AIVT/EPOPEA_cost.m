@@ -4,7 +4,7 @@ clear; clc; close all;
 
 
 %% Hardware cost - CER relationships - New SMAD (pag 311)
-% MASSES UPDATED ATV 03/01
+% MASSES UPDATED ATV 08/01
 
 % PAYLOAD & ROBOTICS
 nac = 26000; wac = 26000;
@@ -15,7 +15,7 @@ sample = 78000; seism = 12000;
 context = 11600; active_sample = 78000;
 
 PL_cost = nac+wac+tes+radar+altimeter+micro+es+hrms+msla+sample+seism+...
-    context+active_sample; % [$], FY 2025
+    context+active_sample + eif; % [$], FY 2025
 
 % If we consider two different units where also the payload are integrated
 % and tested (eg: qualification unit and flight model)
@@ -26,18 +26,18 @@ PL_cost = PL_cost*2;       % [$], FY 2025
 % Sampling orbiter
 MO_stm = 1331.4 + 114.4; % Structure + thermal control mass [kg]
 MO_adcs = 51.9; % ADCS mass [kg]
-MO_eps = 139.7; % EPS mass [kg]
-MO_rcs = 1578400; % Volume of the tank only for secondary prop. [cm3]
-MO_me = 4.9; t_me_O = 50299; % Main engine mass and firing time [kg],[s]
+MO_eps = 153.2; % EPS mass [kg]
+MO_rcs = 1202000+400700; % Volume of the tank only for secondary prop. [cm3]
+MO_me = 4.9; t_me_O = 38530; % Main engine mass and firing time [kg],[s]
 MO_tmtc = 145.1; % Communication system mass [kg]
 % Sampling lander
 ML_stm = 81+51.2; % Structure + thermal control mass [kg]
 ML_adcs = 20; % ADCS mass [kg]
-ML_eps = 116.2; % EPS mass [kg]
-ML_rcs = 8100; % Volume of the tank only for secondary prop. [cm3]
+ML_eps = 121.1; % EPS mass [kg]
+ML_rcs = 8400; % Volume of the tank only for secondary prop. [cm3]
 ML_tmtc = 32.3; % Communication system mass [kg]
 ML_me = 4.48;  % Main engine mass and firing time [kg],[s]
-t_me_L = 1763.9;
+t_me_L = 1776.5;
 
 % Non recurring (development + one qualification unit)
 NR_O_stm = 646*MO_stm^0.684;
@@ -138,3 +138,4 @@ SEE_iat = sqrt(SEE_NR_iat^2+SEE_R_iat^2);
 SEE_NR_prog = 0.5; SEE_R_prog = 0.40;
 SEE_prog = sqrt(SEE_NR_prog^2+SEE_R_prog^2);
 
+SEE_tot = sqrt(SEE_NR_HW^2+SEE_R_HW^2+SEE_iat^2+SEE_prog^2);

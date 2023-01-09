@@ -30,7 +30,6 @@ state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 t0=0;
 FlightDays=0.5; %days of prapagation
 tf=FlightDays*24*3600/TU; %final time of propagation
- 
 
 t_span = t0:(1/TU):tf;
 %propagation - Halo

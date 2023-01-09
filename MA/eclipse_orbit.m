@@ -19,6 +19,7 @@ cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
 cd('MA')
 
+
 %% DATA
 mu=1.90095713928102*1e-7; % Saturn-Enceladus 3BP constant
 DU=238411468.296/1000; %km
@@ -36,8 +37,8 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 % that instant and simplify the rotations between reference frames.
 
 % Select the initial time to look for the instant of intersection
-% t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
-t0_try = cspice_str2et('2052 DEC 25 12:00:00.00')/TU;
+t0_try = cspice_str2et('2051 JUL 03 15:00:00.00')/TU;
+%t0_try = cspice_str2et('2052 DEC 25 12:00:00.00')/TU;
 
 tf_try = t0_try + 2 * 24 * 3600 / TU; % Final time is set 2 days later
 tt_try = linspace(t0_try,tf_try,500000);
@@ -117,12 +118,14 @@ fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 n_hours = 60*24; 
 
 % DEFINE the number of points
-n_points = 20000;
+%n_points = 20000;
 
 % Time Grid
-tf = t0 + n_hours*3600/TU;
-tt=linspace(t0,tf,n_points);
+%tf = t_start + 2*24*3600/TU;
+tf = cspice_str2et('2054 MAR 31 15:00:00.00')/TU;
+tt= t0:10*60/TU:tf;
 
+%%
 % Initial state for the Halo orbit
 x0_Halo=1.000062853735440;
 y0_Halo=0;
@@ -170,7 +173,7 @@ for j = 1:length(tt)
     Sun_dir(:,j) = Sat2Sun(:,j)/norm(Sat2Sun(:,j));
     
     Sat2Earth(:,j) = cspice_spkpos('EARTH', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
-    
+    Earth2Sun = cspice_spkpos('SUN', time_j*TU, 'ECLIPJ2000', 'NONE', 'EARTH');
     %saturn orbital parameters recovery
     Sun2Sat_state=cspice_spkezr('SATURN', time_j*TU, 'ECLIPJ2000', 'NONE', 'SUN');
     r_Sat=Sun2Sat_state(1:3);
@@ -292,6 +295,13 @@ for j = 1:length(tt)
        check_Earth(j)=check_Earth(j)+2; 
     end
    
+    %Check if the Sun is in the way
+    theta_lim_Sun=asin(R_Sun/norm(Earth2Sun));
+    theta_Sun=acos( dot(Earth2Sc,Earth2Sun)/( norm(Earth2Sc)*norm(Earth2Sun) ) );
+    if abs(theta_Sun)<abs(theta_lim_Sun) && abs(acos( dot( -Earth2Sun,-Sc2Sun )/(norm(Earth2Sun)*norm(Sc2Sun))))>pi/2
+       check_Earth(j)=check_Earth(j)+5; 
+    end
+    
 end
 
 %% Post processing

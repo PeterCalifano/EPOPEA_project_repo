@@ -130,7 +130,7 @@ MAR_hazard = 80;         % [kg] Sum to LANDING propellant mass
 %% DATA - NEW CONFIGURATION (both orbiter and lander)
 
 % Lander
-lander.dV_des = 243.4 * MAR_050 ; % [m/s] - Delta v for descending phase
+lander.dV_des = 235.718 * MAR_050 ; % [m/s] - Delta v for descending phase
 lander.dV_att = 10 * MAR_030 ; % [m/s] - Delta v for attitude control during landing phase
 lander.Isp_main = 234 ; % [s] - Specific impulse of main thrusters for landing
 lander.Isp_att = 224 ; % [s] - Specific impulse of attitude thrusters for landing

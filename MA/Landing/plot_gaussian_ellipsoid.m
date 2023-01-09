@@ -104,3 +104,4 @@ xp = reshape(bp(1,:), size(x));
 yp = reshape(bp(2,:), size(y));
 zp = reshape(bp(3,:), size(z));
 h = surf(axh, xp,yp,zp);
+h.FaceAlpha = 0.1;

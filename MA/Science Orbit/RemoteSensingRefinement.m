@@ -65,36 +65,36 @@ Enceladus_3D(R_enc*DU,[0,0,0])
 plot3(pos_Halo_Enc(1,:),pos_Halo_Enc(2,:),pos_Halo_Enc(3,:),'k');
 plot3(r_RS_Enc(1,:),r_RS_Enc(2,:),r_RS_Enc(3,:),'r');
 
-%% Coarse Imaging mode
-Max_Pics=1000000000;
+%% Coarse Imaging mode - WAC
+Max_Pics_WAC=1000000000;
 w_Enc=0; %rad/s, in the CRTBP rotating frame
 FoV_WAC=40; %deg
 data_WAC=0.0042; %Gb
-Overlap_WAC=50; % % of overlap  
+Overlap_WAC=30; % %, of overlap  
 
-[track_length_CI,Nptot_CI,Data_tot_CI,rev_CI,Nporb_CI,Data_Orb_CI,left_swath_CI,right_swath_CI,print] = GroundImaging(t_vec_RS*TU,r_RS_Enc,R_enc*DU,270,w_Enc,FoV_WAC,data_WAC,Overlap_WAC,Max_Pics);
+[track_length_WAC,Nptot_WAC,Data_tot_WAC,rev_WAC,Nporb_WAC,Data_Orb_WAC,left_swath_WAC,right_swath_WAC,print_WAC] = GroundImaging(t_vec_RS*TU,r_RS_Enc,R_enc*DU,270,w_Enc,FoV_WAC,data_WAC,Overlap_WAC,Max_Pics_WAC);
 
+%% TES - all modes
+Max_Pics_TES=1000000000;
+FoV_TES=2; %deg
+data_TES=0.00031; %Gb
+Overlap_TES=30; % % of overlap  
 
-
-
-
+[track_length_TES,Nptot_TES,Data_tot_TES,rev_TES,Nporb_TES,Data_Orb_TES,left_swath_TES,right_swath_TES,print_TES] = GroundImaging(t_vec_RS*TU,r_RS_Enc,R_enc*DU,270,w_Enc,FoV_TES,data_TES,Overlap_TES,Max_Pics_TES);
 
 %% Ground Track
-
 %Ground tracks taking the state in the rotating frame
-
 [alpha, delta, lat_Halo, lon_Halo] = groundTrack(t_vec_Halo*TU, pos_Halo_Enc',270, w_Enc);
-
 [alpha_RS, delta_RS, lat_RS, lon_RS] = groundTrack(t_vec_RS*TU, r_RS_Enc',270, w_Enc);
 
 %plot
 figure
-P1=scatter(lon_Halo,lat_Halo,'.')
+P1=scatter(lon_Halo,lat_Halo,'.');
 hold on
-P2=scatter(lon_RS,lat_RS,'.')
-P3=plot(left_swath_CI(1,:),left_swath_CI(2,:),'k','linewidth',1.25)
-plot(right_swath_CI(1,:),right_swath_CI(2,:),'k','linewidth',1.25)
-plot(print(1,:),print(2,:),'linewidth',3); 
+P2=scatter(lon_RS,lat_RS,'.');
+P3=plot(left_swath_WAC(1,:),left_swath_WAC(2,:),'k','linewidth',1.25);
+plot(right_swath_WAC(1,:),right_swath_WAC(2,:),'k','linewidth',1.25);
+plot(print_WAC(1,:),print_WAC(2,:),'linewidth',3); 
 xlabel('Longitude');
 ylabel('Latitude');
 axis equal

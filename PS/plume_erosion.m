@@ -14,11 +14,11 @@ m_lander = m_dry + m_prop ; % [ kg ] - Lander total mass (from architecture_sizi
 g = 0.1 ; % [ m/s^2 ] - Enceladus gravitational acceleration
 T = m_lander * g ; % [ N ] - Thrust needed during landing (assumed to be equal to lander weight)
 
-Isp = 234 ; % [ s ] - Specific impulse of MR107T thruster
+Isp = 229 ; % [ s ] - Specific impulse of MR107T thruster
 g0 = 9.81 ; % [ m/s ] - Gravitational acceleration on Earth at sea level
 mdot = T / ( Isp * g0 ) ; % [ kg/s ] - Mass flow raterequired to generate thrust T
 
-alpha = 45 ; % [ deg ] - Half-cone angle representing exhaust plume expansion -> height and ardius of the cone are equal
+alpha = deg2rad( 45 ) ; % [ rad ] - Half-cone angle representing exhaust plume expansion -> height and ardius of the cone are equal
 
 % v = 0.75 ; % [ m / s ] - Velocity at landing (assumed from literature)
 
@@ -238,15 +238,21 @@ end
 
 v = mean( v_norm ) ;
 
+
+
 %% Plot if we consider mean landing velocity and different cut-off altituted
 for k = 1 : length( h_vect )
     h = h_vect(k);
     m_fluence(k) = T / ( Isp * g0 * pi * h * v ) ; % [ kg / m^2 ] - Derivative of mass flux within the cone over time
 
+    r = h * tan( deg2rad( 30 ) ) ; % radius of the cone
+
+    m_fluence_prova(k) = 220 / ( Isp * g0 * pi * h * v * tan( 30 ) ^ 2 ) ; % mass fluence for each thruster
+
 end
 
 m_fluence = m_fluence * 1e6 ; % [ mg/ m ^ 2 ]
-
+m_fluence_prova = m_fluence_prova * 1e6 ;
 scale = 0.1 ; % Scaling factor (account for percentage of ammonia in thruster plume) - from literature (Phoenix lander)
 
 % Plot the mass fluence as function of cutoff height
@@ -260,10 +266,11 @@ legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
 figure()
 plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
-grid on
+hold on, grid on
+plot( h_vect, 4 * m_fluence_prova * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
 xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 title( 'Exhaust plume deposition' )
-legend( '$NH_3$ deposition', 'location', 'best' )
+legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
 
 % %% Plot if we consider the actual variation of the velocity during landing phase and fixed cut-off altitude
 % h = 20 ;
@@ -312,3 +319,6 @@ legend( '$NH_3$ deposition', 'location', 'best' )
 % xlabel( 'Descent velocity [m/s]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 % title( '$NH_3$ deposition' )
 % legend( '$h=50 \ m$', '$h=30 \ m$', '$h=15 \ m$', '$h=2 \ m$', 'location', 'best' )
+
+%% Compute contaminated area - assume to be a circle around the sc
+

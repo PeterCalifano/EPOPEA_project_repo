@@ -70,7 +70,7 @@ xstate_cell = cell(1, howmanyfb);
 Sb_cell = cell(1, howmanyfb);
 SAA_cell = cell(1, howmanyfb);
 RelPos = cell(1, howmanyfb);
-
+Eclipse_index = cell(1, howmanyfb);
 for idfb = 1:howmanyfb
     % Determine Planet properties
     switch fbplanets(idfb)
@@ -94,7 +94,7 @@ for idfb = 1:howmanyfb
 
     rp = Xsol(6 + 2*howmanyfb + idfb).*MeanR_planets(idfb); 
 
-    [fb_ToF(idfb), timegrids{idfb}, xstate_cell{idfb}, Sb_cell{idfb}, SAA_cell{idfb}, RelPos{idfb}] = EvalFlyBy(vinf_minunsplus(idfb, :), R_SOI(idfb), rp, GM_planets(idfb), Xplanets(:, idfb));
+    [fb_ToF(idfb), timegrids{idfb}, xstate_cell{idfb}, Sb_cell{idfb}, SAA_cell{idfb}, RelPos{idfb}, Eclipse_index{idfb}] = EvalFlyBy(vinf_minunsplus(idfb, :), R_SOI(idfb), rp, GM_planets(idfb), Xplanets(:, idfb), bodynm);
 
     figure('WindowState', 'maximized');
     hold on;
@@ -120,8 +120,8 @@ for idfb = 1:howmanyfb
     V_HelioMinus = V_HelioMinus./norm(V_HelioMinus);
 
     % Plot Sun direction and planet velocity
-    quiver3(0, 0, 0, 1e3*Vpdir(1), 1e3*Vpdir(2), 1e3*Vpdir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#8ae222', 'LineWidth', 1.05, 'MaxHeadSize', 2);
-    quiver3(0, 0, 0, 1e3*SunDir(1), 1e3*SunDir(2), 1e3*SunDir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#e27722', 'LineWidth', 1.05, 'MaxHeadSize', 2);
+    quiver3(0, 0, 0, Vpdir(1), Vpdir(2), Vpdir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#8ae222', 'LineWidth', 1.05, 'MaxHeadSize', 2);
+    quiver3(0, 0, 0, SunDir(1), SunDir(2),SunDir(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', '#e27722', 'LineWidth', 1.05, 'MaxHeadSize', 2);
 
     % Plot trajectory
     idmid = (length(R_traj(:, 1))-1)/2;
@@ -133,7 +133,9 @@ for idfb = 1:howmanyfb
     % Outbound and Exit Helio Velocity
     plot3(R_traj(idmid+1:end, 1), R_traj(idmid+1:end, 2), R_traj(idmid+1:end, 3), 'Color', [0.6, 0.05, 0.01], 'LineWidth', 1.05)
     quiver3(R_traj(end, 1), R_traj(end, 2), R_traj(end, 3), V_HelioPlus(1), V_HelioPlus(2), V_HelioPlus(3), 0.3*max(vecnorm(R_traj, 2, 2)), 'Color', [0.6, 0.05, 0.01], 'LineWidth', 1.05, 'MaxHeadSize', 2);
-
+    
+    % Part of trajectory in Eclipse
+    plot3(R_traj(Eclipse_index{idfb}, 1), R_traj(Eclipse_index{idfb}, 2), R_traj(Eclipse_index{idfb}, 3),'LineWidth', 1.05)
 
     grid minor;
     axis auto;
@@ -145,8 +147,10 @@ for idfb = 1:howmanyfb
     zlabel('$Z_{planet}$ [km]')
 
     ax.LineWidth = 1.08;
-    legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', '$V_{SC}^-$', 'Outbound leg', '$V_{SC}^+$');
+    legend(bodynm, '$V_{planet}$', 'Sun direction', 'Inbound leg', '$V_{SC}^-$', 'Outbound leg', '$V_{SC}^+$','Eclipse');
     title("Flyby " + num2str(idfb) + " at " + bodynm )
+    
+    % Compute Eclipse 
 
     % Plot angles
     i_zen = RelPos{idfb}(:,1);
@@ -157,37 +161,47 @@ for idfb = 1:howmanyfb
     time = [timegrids{idfb}(1:end); timegrids{idfb}(1:end-1) + timegrids{idfb}(end)];
     time = time/3600; % hours
     figure;
+    subplot(2,2,1)
     plot(time, i_zen, 'b', 'Linewidth', 1.2)
+    hold on
+    plot(time(Eclipse_index{idfb}), i_zen(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    legend('$\theta_{Sun/Zenith}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Zenith}\ [deg]$')
     xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + "Angle between Sun and Zenith")
     grid on; grid minor
 
-    figure;
+    subplot(2,2,2)
     plot(time, i_out, 'g', 'Linewidth', 1.2)
+    hold on
+    plot(time(Eclipse_index{idfb}), i_out(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    legend('$\theta_{Sun/Out-of-plane}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Out-of-plane}\ [deg]$')
     xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + "Angle out of plane")
     grid on; grid minor
 
-    figure;
+    subplot(2,2,3)
     plot(time, i_tan, 'g', 'Linewidth', 1.2)
+     hold on
+    plot(time(Eclipse_index{idfb}), i_tan(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    legend('$\theta_{Sun/Tan}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Tan}\ [deg]$')
     xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + "Angle between Sun and Tangential direction")
     grid on; grid minor
 
-    figure;
+    subplot(2,2,4)
     plot(time, i_tran, 'g', 'Linewidth', 1.2)
+     hold on
+    plot(time(Eclipse_index{idfb}), i_tran(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    legend('$\theta_{Sun/Transv}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Transv}\ [deg]$')
     xlabel('$t\ [hours]$')
     title("Flyby " + num2str(idfb) + " at " + bodynm + "Angle between Sun and Transversal direction")
     grid on; grid minor
 
-
-
-
-
+end
 
 
 

@@ -331,11 +331,9 @@ end
 vv_fin = x_final(end-9:end-7)*VU;
 v_fin = norm(vv_fin)*1e3;                    %[m/s]
 vel = zeros(N,3);
-vel_dim = zeros(N,3);
 vel_norm = zeros(N,1);
 for k =1:N
     vel(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6);
-    vel_dim(k,:) = x_final((k-1)*step_var+4:(k-1)*step_var+6)*VU;
     vel_norm(k) = norm(vel(k,:)); 
 end
 figure; hold on; grid on; grid minor
@@ -414,27 +412,24 @@ fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropell
 % % landing_site = Re*exp(1i*circ_admissible);
 % % plot(landing_site,'-g','LineWidth',10)
 % 
-s0 = x_final(1:6);
+% 
+% s0 = x_final(1:6);
 % view(3);
 % 
 % tspan = linspace(t1,tN,N);
 % u_plot = x_final(step_st+1);
 % x_plot = []; y_plot = []; z_plot = [];
-%%
-v_vector = [];
-v_norm = [];
-for k = 1:N-1
-    s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
-    u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-    [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
+% for k = 1:N-1
+%     s0 = x_final((k-1)*step_var+1:(k-1)*step_var+step_st);
+%     u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
+%     [~, output] = ode113(@landing_dyn, [tspan_l(k) tspan_l(k+1)], s0, options_ode, u_plot, par);
+% %     x_plot = [x_plot;output(:,1)];
+% %     y_plot = [y_plot;output(:,2)];
+% %     z_plot = [z_plot;output(:,3)];
+%     y_plot = [y_plot;-output(:,3)];
+%     z_plot = [z_plot;output(:,2)];
 %     x_plot = [x_plot;output(:,1)];
-%     y_plot = [y_plot;output(:,2)];
-%     z_plot = [z_plot;output(:,3)];
-    v_vector_k = output(:,4:6)*VU;
-    v_norm = [v_norm; norm(v_vector_k)];
-    v_vector = [v_vector; v_vector_k];
-end
-%%
+% end
 % plot3(x_plot,y_plot,z_plot,'LineWidth',2,'color','r')
 % 
 % for k = 1:N
@@ -450,138 +445,7 @@ end
 % zlabel('$z\ [DU]$')
 % legend('Enceladus','Initial science orbit','Target Landing Site','Landing trajectory','NLP points')
 
-%% Uncertainties propagation - UT
-% Uncertainties: spring + sensors
-x_hat0 = x_final(1:6);
-% Covariance: adimensionalize with [km^2, km^2/s, km^2/s^2]
-P0 = [1e-4/DU^2          1e-4/(DU^2/TU)   1e-4/(DU^2/TU)   0               0               0 
-      1e-4/(DU^2/TU)     1e-4/DU^2        1e-4/(DU^2/TU)   0               0               0 
-      1e-4/(DU^2/TU)     1e-4/(DU^2/TU)   1e-4/DU^2        0               0               0 
-      0                  0                0                1e-10/(DU/TU)^2 0               0 
-      0                  0                0                0               1e-10/(DU/TU)^2 0
-      0                  0                0                0               0               1e-10/(DU/TU)^2];
-% P0 = zeros(6,6);
-tspan_new = linspace(t1, tN, N);
-options_ode = odeset('RelTol', 1e-13, 'AbsTol', 1e-13);
 
-% Find 2km altitude position
-for k = 1:N-1
-    x_des = x_final((k-1)*step_var+1:(k-1)*step_var+3);
-    alt = norm(x_des - Re.*x_des/norm(x_des));
-    if alt <= 2/DU
-        index_alt = k;
-        break
-    end
-end
-
-alpha = 1e-3;
-beta = 2;
-n = 6;
-lambda = alpha^2*(n)-n;
-M = (n+lambda)*P0;
-R = sqrtm(M);
-
-chi = zeros(6,2*n+1);  %each column is a sigma point
-Wm = zeros(1,2*n+1);
-Wc = zeros(1,2*n+1);
-for i = 1:(2*n+1)
-    if i <= n
-        chi(:,i) = x_hat0 + R(:,i);
-        Wm(i) = 1/(2*(n+lambda));
-        Wc(i) = 1/(2*(n+lambda));
-    elseif i == n+1
-        chi(:,i) = x_hat0;
-        Wm(i) = lambda/(n+lambda);
-        Wc(i) = lambda/(n+lambda) + (1-alpha^2 + beta);
-    else
-        chi(:,i) = x_hat0 - R(:,i-(n+1));
-        Wm(i) = 1/(2*(n+lambda));
-        Wc(i) = 1/(2*(n+lambda));
-    end
-end
-chi(end+1,:) = m0;
-
-mean_ut = x_hat0;
-P_ut = P0;
-y = zeros(6,2*n+1);
-for j = 1:(2*n+1)
-    state0 = chi(:,j);
-    for k = 1:index_alt-1
-        u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-        [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
-        state0 = output(end,1:7)';
-    end
-    y(:,j) = state0(1:6,1);
-    mean_ut = Wm(j).*y(:,j) + mean_ut;
-end  
-for j = 1:(2*n+1)
-    col = y(:,j) - mean_ut;
-    row = col';
-    P_ut = (Wc(j) .* (col*row)) + P_ut;
-end
-
-% % Montecarlo
-% N_mc = 500;
-% samples = mvnrnd(x_hat0, P0, N_mc);
-% state_mc = zeros(N_mc,6);
-% state0 = zeros(1,7);
-% for i=1:N_mc
-%     state0(1:6) = samples(i,:);
-%     state0(end) = m0;
-%     state0 = state0';
-%     for k = 1:N-1
-%         u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-%         [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
-%         state0 = output(end,1:7)';
-%         check(k,:) = state0(1:6);
-%     end
-%     state_mc(i,:) = state0(1:6);
-% end
-% mean_mc = mean(state_mc, 1);
-% P_mc = cov(state_mc);
-
-% Montecarlo 2
-N_mc = 500;
-P_mc = P0;
-for k = 1:index_alt-1 
-    x_hat = x_final((k-1)*step_var+1:(k-1)*step_var+6);
-    samples = mvnrnd(x_hat, P_mc, N_mc);
-    state_mc = zeros(N_mc,6);
-    state0 = zeros(1,7);
-    for i=1:N_mc
-        state0(1:6) = samples(i,:);
-        state0(end) = x_final((k-1)*step_var+7);
-        state0 = state0';
-        u_plot = x_final((k-1)*step_var+step_st+1:(k-1)*step_var+step_st+4);
-        [~, output] = ode113(@landing_dyn, [tspan_new(k) tspan_new(k+1)], state0, options_ode, u_plot, par);
-        state0 = output(end,1:7)';
-        state_mc(i,:) = state0(1:6);
-    end
-    mean_mc = mean(state_mc, 1);
-    P_mc = cov(state_mc);
-
-end
-
-% Plot ellipse 
-p = 0.997;
-Enceladus_3D(1, [0 0 0])
-% figure;
-% e1 = plot_gaussian_ellipsoid(mean_ut(1:3), P_ut(1:3,1:3), 3);
-hold on
-e2 = plot_gaussian_ellipsoid(mean_mc(1:3), P_mc(1:3,1:3), 3);
-% m1 = plot3(mean_ut(1), mean_ut(2), mean_ut(3), 's', 'MarkerFaceColor', '#EDB120', 'MarkerEdgeColor', '#EDB120', 'MarkerSize', 10);
-m2 = plot3(mean_mc(1), mean_mc(2), mean_mc(3), 's', 'MarkerFaceColor', 'r', 'MarkerEdgeColor', 'r', 'MarkerSize', 10);
-p1 = plot3(x_final((index_alt-1)*step_var+1), x_final((index_alt-1)*step_var+2), x_final((index_alt-1)*step_var+3), 'o', 'MarkerSize', 10);
-s_mc = plot3(state_mc(:,1), state_mc(:,2), state_mc(:,3), '.', 'color', '#D95319');
-uistack(e2, 'bottom');
-xlabel('X [-]')
-ylabel('Y [-]')
-axis equal
-s = legend([p1 e2 m2 s_mc], 'Landing Site', '$3\sigma - MC$', '$MC - \hat{r}_{xy}$', '$MC samples$');
-s.FontSize = 12;
-grid on; grid minor;
-
-return
 %%
 % TO DO:
 % Change initial guess (?)

@@ -27,8 +27,8 @@ PL_cost = PL_cost*2;       % [$], FY 2025
 MO_stm = 1331.4 + 114.4; % Structure + thermal control mass [kg]
 MO_adcs = 51.9; % ADCS mass [kg]
 MO_eps = 153.2; % EPS mass [kg]
-MO_rcs = 1202000+400700; % Volume of the tank only for secondary prop. [cm3]
-MO_me = 4.9; t_me_O = 38530; % Main engine mass and firing time [kg],[s]
+MO_rcs = 765600+255200; % Volume of the tank only for secondary prop. [cm3]
+MO_me = 4.9; t_me_O = 35782; % Main engine mass and firing time [kg],[s]
 MO_tmtc = 145.1; % Communication system mass [kg]
 % Sampling lander
 ML_stm = 81+51.2; % Structure + thermal control mass [kg]

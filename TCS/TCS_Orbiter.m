@@ -46,9 +46,17 @@ q_Earth = F_earth * sigma_SB * T_earth^4 * epsilon_Earth;
 %%% Spacecraft %%%
 
 % Area
-L1 = 3.6;
-L2 = 3.6;
-L3 = 2.5;
+% L1 = 3.8;
+% L2 = 4.51;
+% L3 = 2.7;
+
+% OLD = 
+L1 = 3.8;
+L2 = 4.51;
+L3 = 2.7;
+
+
+
 A1 = L1*L2;
 A6_tot = A1;
 A6_int = A6_tot;
@@ -72,7 +80,7 @@ l_str = 0.002; % HYP : skin thickness of 5 mm
 % epsilon_int = 0.874; % black paint to maximize exchange (you can change it)
 % epsilon_int = 0.034; 
 epsilon_5 =  0.874; % black paint to maximize exchange
-% epsilon_6 = 0.874; % black paint to maximize exchange
+epsilon_6 = 0.874; % black paint to maximize exchange
 epsilon_1 = 0.874; 
 epsilon_2 = 0.874; 
 epsilon_3 = 0.874; 
@@ -111,10 +119,10 @@ eps_rad = eps_louv_open; % if open louvers
 % eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
-A_rad_one = 1 * 0.2; % area one radiator.
+A_rad_one = 1 *536*397e-6; % area one radiator.
 % SENER LOUVER: 0.2128 m^2. consider also the structure... ok 0.2m^2
-n_rad_5 = 14; %% can be changed
-n_rad_6 = 6;
+n_rad_5 = 15; %% can be changed
+n_rad_6 = 10;
 A_rad_tot_5 = A_rad_one*n_rad_5;% total area of radiators
 A_rad_tot_6 = A_rad_one*n_rad_6;
 A5_ext = A5_tot-A_rad_tot_5; % area on surface 5 not covered by radiators
@@ -417,7 +425,7 @@ C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
 % sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
 C.C_5rad = 500;
 C.C_6rad = 40;
-C.C_3rad = 40;
+C.C_3rad = 100;
 
 % to tune:
 % heat pipes from Celsia heat pipes calculator
@@ -552,14 +560,15 @@ P_VRHU_3 = 0; % for internal PL
 theta_3Enc = 0;
 theta_6Sat = 0; % CHANGE!
 Q_ext_cold = zeros(11,1);
-Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) + P_VRHU_3;
-Q_ext_cold(6) = q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) + P_VRHU_6;
+Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) ;
+Q_ext_cold(6) = q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) ;
 Q_ext_cold(8) = q_Sat * A_rad_tot_6 * eps_rad*cos(theta_6Sat);
 
 %%% SOLVE THE SYSTEM 
-Clamped = 0;
+Clamped = 1;
 if Clamped == 0
-P_added_6 = 60 + 40; % from RTG (look Cassini Reference)
+% P_added_6 = 150; % from RTG (look Cassini Reference)
+P_added_6 = 230;
 P_VRHU_6 = 0; % for batteries
 P_VRHU_3 = 0; % for internal PL
 perc = 0.7;
@@ -569,7 +578,7 @@ Q_diss_cold(3) = P_VRHU_3;
 Q_diss_cold(5) = We_av*(1-perc);
 else 
     if Clamped == 1
-        P_added_6 = 70; % from RTG (look Cassini Reference)
+        P_added_6 = 225; % from RTG (look Cassini Reference)
         P_VRHU_6 = 0; % for batteries
         P_VRHU_3 = 0; % for internal PL
         perc = 0.7;

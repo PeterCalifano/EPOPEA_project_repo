@@ -43,7 +43,7 @@ T_Sat = 97;
 %%% Structure properties (Al-5056-O)
 k_str = 117;
 % l_str = 0.02;
-l_str = 0.002;
+l_str = 0.003;
 
 % Structure
 % epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
@@ -85,20 +85,20 @@ eps_rad = eps_louv_open; % if open louvers
 % eps_rad = 0.8;  % if ideal radiators and not louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
-A_rad_one = 1 * 0.2; % area one radiator
-n_rad = 6; %% can be changed
+A_rad_one = 1 *530*390e-6; % area one radiator
+n_rad = 4; %% can be changed
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 k_rad = 1;
 
 % Areas
-L = 1.5; L1 = L; L2 = L; L3 = L;
-A1 = L^2;
-A2 = L^2;
-A3 = L^2;
-A4 = L^2;
-A5_tot = L^2;
+L1 = 1.5; L3 = 1.5; L2 = 1.8;
+A1 = L1*L2;
+A2 = L1*L3;
+A3 = L2*L3;
+A4 = A2;
+A5_tot = A3;
 A5_int = A5_tot;
-A6 = L^2;
+A6 = A1;
 A8 = 912319e-6; % from CAD: base of pl
 A5_ext = A5_tot - A_rad_tot;
 
@@ -131,20 +131,20 @@ P_shunt = - Q_hot + We; % check power can be dissipated though a shunt
 % Surface 1
 H8 = 830e-3; 
 L = L1;
-A8 = L^2;
-F12_a = VF_PerpRec(L,H8,L);
-F13_a = VF_PerpRec(L,L,H8);
+A8 = L1*L3;
+F12_a = VF_PerpRec(L3,H8,L1);
+F13_a = VF_PerpRec(L3,L1,H8);
 F15_a = F13_a;
-F16_a = VF_ParallelEqualRec(L,L,H8);
-F18_a = VF_PerpRec(L,H8,L)*H8/L;
-F12 = (F12_a + F13_a + F15_a + F16_a)*H8/L;
-F13 = VF_PerpRec(L,L,L-H8)*(L-H8)/L;
-F14 = VF_PerpRec(L,L-H8,L)*(L-H8)/L;
-F15 = F13*(L-H8)/L;
-F16 = VF_ParallelEqualRec(L,L,L-H8)*(L-H8)/L;
-F18_b = VF_PerpRec(L,L-H8,L)*(L-H8)/L;
+F16_a = VF_ParallelEqualRec(L3,L1,H8);
+F18_a = VF_PerpRec(L3,H8,L1)*H8/L2;
+F12 = (F12_a + F13_a + F15_a + F16_a)*H8/L2;
+F13 = VF_PerpRec(L3,L1,L2-H8)*(L2-H8)/L2;
+F14 = VF_PerpRec(L3,L2-H8,L1)*(L2-H8)/L2;
+F15 = F13*(L2-H8)/L2;
+F16 = VF_ParallelEqualRec(L3,L1,L2-H8)*(L2-H8)/L2;
+F18_b = VF_PerpRec(L3,L2-H8,L1)*(L2-H8)/L2;
 F18 = F18_a + F18_b;
-F21 = F12_a*H8/L;
+F21 = F12_a*H8/L2;
 F31 = F13;
 F41 = F14;
 F51 = F15;
@@ -160,7 +160,7 @@ F25 = F21;
 F52 = F12;
 F26 = F21;
 F62 = F12;
-F28 = VF_ParallelEqualRec(H8,L,L);
+F28 = VF_ParallelEqualRec(H8,L3,L1);
 F82 = F28;
 
 % Surface 3
@@ -178,7 +178,7 @@ F45 = F43;
 F54 = F34;
 F46 = F45;
 F64 = F54;
-F48 = VF_ParallelEqualRec(L-H8,L,L);
+F48 = VF_ParallelEqualRec(L2-H8,L3,L1);
 F84 = F48;
 
 % Surface 5
@@ -323,7 +323,7 @@ switch hot_case
         theta_S2 = deg2rad(70);
         theta_S3 = deg2rad(25);
         Q_ext_hot(1) = q_Sun * A1 * alpha_MLI* cos(theta_S1);
-        Q_ext_hot(2) = q_Sun * A2 * alpha_MLI* cos(theta_S2);
+        Q_ext_hot(2) = 0;
         Q_ext_hot(3) = q_Earth * epsilon_MLI * A3 + q_alb * A3 * alpha_MLI + q_Sun * A3 * alpha_MLI* cos(theta_S3);
        case 5
         % first fly by: point HGA towards Earth
@@ -387,8 +387,8 @@ theta_3Enc = 0;
 theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
-% cold_case = 1; % orbit / during landing
-cold_case = 2; % on ground
+cold_case = 1; % orbit / during landing
+% cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 C.C_8rad = 0;
 C.C_2rad = 0*C_TS;
@@ -397,11 +397,11 @@ switch cold_case
     theta_6Sat = 0; % CHANGE!
     Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI * cos(theta_3Enc);
     Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat); 
-    Clamped = 1;
+    Clamped = 0;
     switch Clamped
         case 0
             % close louvers and compute again thermal couplings
-            perc_open_rad = 4/n_rad; % percentage of open radiators
+            perc_open_rad = 3/n_rad; % percentage of open radiators
             eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
             % eps_rad = eps_louv_closed;
             % radiative coupling
@@ -413,7 +413,8 @@ switch cold_case
             % eps_rad = eps_louv_closed;
             % radiative coupling
             R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-            Q_diss_cold(5) = 144; % SAFE --> to change
+            Q_shunt = 20;
+            Q_diss_cold(5) = 144 + Q_shunt; % SAFE --> to change
     end
     case 2
         perc_open_rad = 1/n_rad; % percentage of open radiators
@@ -467,4 +468,6 @@ fprintf(['8 ',num2str(T_land_cold(8)-273),' Celsius\n'])
 % sensitivity analysis, check properties
 % T of RTG
 
-
+% 1) update surfaces and power budget
+% 2) compute power in other modes
+% 3) give constraint to attitude, think about flybys

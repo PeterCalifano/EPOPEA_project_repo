@@ -46,5 +46,12 @@ dxdt= [x(4);
     -(1-mu_tbp)/(r1_norm).^3*x(3)-mu_tbp/(r2_norm.^3)*x(3)];  %CRTBP dynamics
 
 dxdt(4:6) = dxdt(4:6) + aJ2_E + aJ2_S;
-a = 1;
+
+% Stochastic component
+%acc_rnd = mvnrnd(zeros(3,1),diag([1e-8*abs(dxdt(4:6))']));
+% acc_rnd = 0.0001*dxdt(4:6) .* randn(3,1);
+% dxdt(4:6) = dxdt(4:6) + acc_rnd;
+
+
+
 end

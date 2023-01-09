@@ -27,6 +27,7 @@ TU=118760.57/(2*pi);
 % Define useful constants
 R_Enc = mean(cspice_bodvrd('602','RADII',3));
 R_Sat = mean(cspice_bodvrd('699','RADII',3));
+R_Sun = mean(cspice_bodvrd('SUN','RADII',3));
 mu_Sun=cspice_bodvrd('SUN','GM',1);
 
 %% FIND INITIAL TIME OF PROPAGATION
@@ -164,8 +165,6 @@ for j = 1:length(tt)
     v_Sat=Sun2Sat_state(4:6);
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     
-
-
     %state rotation   
     %z-Rotation, om+theta
     R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0
@@ -213,27 +212,51 @@ for j = 1:length(tt)
     %%% Check on Sun %%%
     
     % Check if Saturn is in the way
+    alpha_Sat=asin((R_Sun-R_Sat)/norm(Sat2Sun(:,j))); %alpha umbra
+    a_Sat=R_Sat/sin(alpha_Sat); %umbra's length
+    beta_Sat=acos(dot( -Sat2Sun(:,j),x_EclipSC(:,j) )/( norm(Sat2Sun(:,j))*norm(x_EclipSC(:,j)) ) );
+    
+    Sat2Sc_lim= a_Sat*tan(alpha_Sat)/(sin(beta_Sat)+cos(beta_Sat)*tan(alpha_Sat));
+    
+    if abs(beta_Sat)<pi/2 && Sat2Sc_lim>norm(x_EclipSC(:,j)) 
+       check_Sun(j) = check_Sun(j) + 1;
+    end
+    
+    %check if Enceladus is in the way
+    
+    alpha_Enc=asin((R_Sun-R_Enc)/norm(Enc2Sun)); %alpha umbra
+    a_Enc=R_Enc/sin(alpha_Enc); %umbra's length
+    beta_Enc=acos(dot( -Enc2Sun,-Sc2Enc)/( norm(Enc2Sun)*norm(Sc2Enc) ) );
+    
+    Enc2Sc_lim= a_Enc*tan(alpha_Enc)/(sin(beta_Enc)+cos(beta_Enc)*tan(alpha_Enc));
+    
+    if abs(beta_Enc)<pi/2 && Enc2Sc_lim>norm(Sc2Enc) 
+       check_Sun(j) = check_Sun(j) + 2;
+    end
+    
+  
     
    % max_ang_Sat = atan(R_Sat/norm(Sc2Sat));
-   max_ang_Sat=atan(R_Sat/norm(Sat2Sun(:,j)));
-   
-   %ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
-    ang_Sat=acos(dot(-Sat2Sun(:,j),-Sc2Sun)/(norm(Sat2Sun(:,j))*norm(Sc2Sun)));
-    if ang_Sat < max_ang_Sat
-        check_Sun(j) = check_Sun(j) + 1;
-    end
+%    max_ang_Sat=asin(R_Sat/norm(Sat2Sun(:,j)));
+%    
+%    %ang_Sat = acos(dot(Sc2Sat,Sc2Sun)/(norm(Sc2Sat)*norm(Sc2Sun)));
+%     ang_Sat=acos(dot(-Sat2Sun(:,j),-Sc2Sun)/(norm(Sat2Sun(:,j))*norm(Sc2Sun)));
+%     
+%     if ang_Sat < max_ang_Sat && acos(dot(Sat2Sun(:,j),x_EclipSC(:,j))/(norm(Sat2Sun(:,j)*norm(x_EclipSC(:,j)))))<0
+%         check_Sun(j) = check_Sun(j) + 1;
+%     end
 
     % Check if Enceladus is in the way
     % max_ang_Enc = atan(R_Enc/norm(Sc2Sat));
-    max_ang_Enc=atan(R_Enc/norm(Sat2Sun));
+    %max_ang_Enc=asin(R_Enc/norm(Sat2Sun));
     
     %ang_Enc = acos(dot(Sc2Enc,Sc2Sun)/(norm(Sc2Enc)*norm(Sc2Sun)));
-    ang_Enc=acos(dot(-Enc2Sun,-Sc2Sun)/(norm(Enc2Sun)*norm(Sc2Sun)));
-    
-    if ang_Enc < max_ang_Enc
-        check_Sun(j) = check_Sun(j) + 2;
-    end
-    
+%     ang_Enc=acos(dot(-Enc2Sun,-Sc2Sun)/(norm(Enc2Sun)*norm(Sc2Sun)));
+%     
+%     if ang_Enc < max_ang_Enc && acos(dot( Enc2Sun, -Sc2Enc )/( norm(Enc2Sun)*norm(Sc2Enc) ) )<0
+%         check_Sun(j) = check_Sun(j) + 2;
+%     end
+%     
     % Save the relative position sc/Sun
     Sc2Sun_v(:,j) = Sc2Sun;
 
@@ -295,7 +318,7 @@ title('CHECK_2')
 %%%%%%CHECK%%%%%%%
 
 figure;
-plot(tt,check_Sun)
+plot(tt*TU/3600-t0*TU/3600,check_Sun)
 xlabel('t')
 title('Eclipse')
 grid on; grid minor

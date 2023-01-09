@@ -1,8 +1,8 @@
 %% SK continuation
 clear;clc;close all
 
-
-load('DV0.27_6days_4orb.mat')
+load('DV0.57_30days.mat')
+% load('DV0.27_6days_4orb.mat')
 
 clear sum;
 SK_points_old = SK_points;
@@ -12,13 +12,16 @@ options = optimoptions('fmincon', 'Algorithm', 'active-set', 'Display', 'iter',.
     'SpecifyObjectiveGradient', false, 'SpecifyConstraintGradient', false, ...
     'MaxFunctionEvaluations',5000000,'MaxIterations',500000,'FunctionTolerance',1e-8); 
 
+options_ode_stop = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13,'Events',@FirstZeroCrossing);
+options_ode_event = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13,'Events',@ApseLineCrossing);
+options_ode = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-13);
 
 % Define the number of orbits per day 
 N_orbits = 4;
 n_var = 7*N_orbits*2;
 
 % Define the number of days of propagation
-N_days_prev = ii;
+N_days_prev = 3;
 N_days_new = 12; 
 
 check_lb = initial_guess_opt - lb;
@@ -83,7 +86,10 @@ end
 %% post processing - optimized
 close all
 % Initialize DV of each SK fire
-DV_array = zeros(1,2*N_orbits*N_days_new);
+DV_array = zeros(1,2*N_orbits*(N_days_prev+N_days_new));
+times_peri = zeros(1,2*N_orbits*(N_days_prev+N_days_new));
+states_peri = zeros(6,2*N_orbits*(N_days_prev+N_days_new));
+states_peri(:,1) = new_peri0';
 
 % First propagation
 x_sk1=SK_points(1:6,1);
@@ -94,25 +100,27 @@ DV_array(1) = norm(prop_state(4:6,end) - SK_points(4:6,1));
 
 % Plot
 Enceladus_3D(R_Enceladus,[(1-mu_tbp)*DU,0,0]);
-for k = 1 : 2*N_orbits*N_days_new-1
+for k = 1 : 2*N_orbits*(N_days_prev+N_days_new)-1
 %for k = 1 : 16
 
     % Propagation
     t1 = SK_points(7,k);
     t2 = SK_points(7,k+1);
 
-    plot3(SK_points(1,k)*DU,SK_points(2,k)*DU,SK_points(3,k)*DU,'o','markersize',5,'linewidth',2);%,'DisplayName',['SK n ', num2str(k)]);
+    plot3(SK_points(1,k)*DU,SK_points(2,k)*DU,SK_points(3,k)*DU,'o','markersize',5,'linewidth',2);
     
-    [~,prop_arc] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,k),options_ode,mu_tbp,mu_v,R_v,J2_v);
+    [~,prop_arc,t_peri_ii,peri_ii,~] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,k),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
     prop_state=[prop_state,prop_arc'];
+    times_peri(k+1) = t_peri_ii;
+    states_peri(:,k+1) = peri_ii';
     DV_array(k+1)=norm(prop_state(4:6,end)-SK_points(4:6,k+1));
-
+    
 end
 
 t1 = SK_points(7,end);
 t2 = t1 + 1;
-P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2);%,'DisplayName',['SK n ', num2str(4*N_days)]);   
-[~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_event,mu_tbp,mu_v,R_v,J2_v);
+P1=plot3(SK_points(1,end)*DU,SK_points(2,end)*DU,SK_points(3,end)*DU,'ob','markersize',5,'linewidth',2);  
+[~,prop_arc_fin,t_e,x_e,i_e] = ode113(@SCR3BP_dyn,[t1 t2],SK_points(1:6,end),options_ode_stop,mu_tbp,mu_v,R_v,J2_v);
 
 prop_state=[prop_state,prop_arc_fin'];
 
@@ -128,6 +136,15 @@ P3=plot3(state_fullHalo(:,1),state_fullHalo(:,2),state_fullHalo(:,3),...
 grid minor
 %legend()
 legend([P1,P2,P3],'SK points','trajectory','free dynamics crash','CR3BP')
+
+%% Visualize the points
+index = SK_points(7,:) * TU / (3600*24);
+figure
+scatter(index,DV_array_dim,20,'filled')
+xlabel('Time Elapsed [days]')
+ylabel('$\Delta v\;[m/s]$')
+grid minor
+hold on
 
 %% Find apocenter and pericenter
 

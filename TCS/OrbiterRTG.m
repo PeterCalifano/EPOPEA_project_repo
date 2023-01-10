@@ -545,6 +545,16 @@ switch hot_case
         Q_ext_hot(5) = q_Sun * A5_ext * alpha_MLI* cos(theta_S5);
         Q_ext_hot(8) = q_Sun * A_rad_tot_5 * alpha_louv_open* cos(theta_S5);
 end
+%% RTG
+T_RTG = 250 + 273.15;
+A_rtg_radiation = 580800e-6;
+epsilon_RTG = 1;
+% R.R_6RTG = sigma_SB * A_rtg_radiation * epsilon_MLI*epsilon_RTG;
+R_6RTG = linspace(0,1e-8,40);
+C_6RTG = linspace(0,5,50);
+
+
+%%
 
 % Initial condition
 T0 = 293;
@@ -557,21 +567,26 @@ Q_diss_hot(6) = Q_hot/2;
 %%% SOLVE THE SYSTEM 
 Clamped = 1;
 T_guess = 273*ones(15,1);
-options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
-
-fprintf(['1 ',num2str(T_orb_hot(1)-273),' Celsius\n'])
-fprintf(['2 ',num2str(T_orb_hot(2)-273),' Celsius\n'])
-fprintf(['3 ',num2str(T_orb_hot(3)-273),' Celsius\n'])
-fprintf(['4 ',num2str(T_orb_hot(4)-273),' Celsius\n'])
-fprintf(['5 ',num2str(T_orb_hot(5)-273),' Celsius\n'])
-fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
-fprintf(['ant ',num2str(T_orb_hot(7)-273),' Celsius\n'])
-fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
-fprintf(['15',num2str(T_orb_hot(15)-273),' Celsius\n'])
+T_orb_hot_RTG = zeros(length(R_6RTG),length(C_6RTG),15);
+for i = 1:length(R_6RTG)
+    R.R_6RTG = R_6RTG(i);
+    for k =1:length(C_6RTG)
+        C.C_6RTG = C_6RTG(k);
+options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+T_orb_hot_RTG(i,k,:) = fsolve(@(T) HeatBalance_OrbiterRTG(T, R, C, Q_ext_hot , Q_diss_hot, Clamped, T_RTG), T_guess, options);
+    end
+end
 
 % add mass and specific heat for transient
+figure
+surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,3)'-273.15)
 
+% add mass and specific heat for transient
+figure
+surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,15)'-273.15)
+
+figure
+surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,2)'-273.15)
 
 %% Cold case
 % Power
@@ -661,396 +676,3 @@ fprintf(['6 ',num2str(T_orb_cold(6)-273),' Celsius\n'])
 fprintf(['ant ',num2str(T_orb_cold(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
 fprintf(['15 ',num2str(T_orb_cold(15)-273),' Celsius\n'])
-
-% Conduction between surfaces
-% To do:
-% 2) change internal power
-% 3) surface in contact with lander
-% 4) External p/l ?
-% sensitivity analysis, check properties
-% T of RTG
-
-%% Sensitivity analysis:
-
-%% k honeycomb
-
-
-k_honeycomb_vec = linspace(0.054,2.036,20);
-T_orb_cold_vec2 = zeros(20,15);
-T_orb_hot_vec2 = zeros(20,15);
-for m = 1:20
-    k_honeycomb = k_honeycomb_vec(m);
-C_1ant_max = k_honeycomb* l_str_tot/(A1 - A1_ext);
-% Conduction normal to honeycomb panel
-C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
-C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
-C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
-C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
-C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
-C.C_6int6ext = k_honeycomb*(A6_ext/(l_str_tot));
-T_guess = 273*ones(15,1);
-options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-C.C_6rad = 1.5; % ? sensitivity analysis
-C.C_5rad = 0; % ? sensitivity analysis
-% C.C_13 = C.C_13 + 30;
-C.C_3rad = 5;
-C.C_15rad = 2;
-eps_rad = eps_louv_closed;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-T_orb_cold_vec2(m,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
-C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
-C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
-C.C_15rad = 20;
-% sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
-C.C_5rad = 500;
-C.C_6rad = 40;
-C.C_3rad = 100;
-eps_rad = eps_louv_open;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-T_orb_hot_vec2(m,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
-
-end
-figure
-plot(k_honeycomb_vec,T_orb_cold_vec2(:,3)-273.15)
-figure
-plot(k_honeycomb_vec,T_orb_hot_vec2(:,3)-273.15)
-
-
-figure
-plot(k_honeycomb_vec,T_orb_cold_vec2(:,15)-273.15)
-figure
-plot(k_honeycomb_vec,T_orb_hot_vec2(:,15)-273.15)
-%%
-% conduction
-k_honeycomb = 2.036;
-C_1ant_max = k_honeycomb* l_str_tot/(A1 - A1_ext);
-% Conduction normal to honeycomb panel
-C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
-C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
-C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
-C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
-C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
-C.C_6int6ext = k_honeycomb*(A6_ext/(l_str_tot));
-
-k_str_vec = linspace(88,229,20);
-l_str_vec = linspace(0.005,0.004,20);
-T_orb_cold_vec = zeros(20,20,15);
-T_orb_hot_vec = zeros(20,20,15);
-for k = 1:length(k_str_vec)
-    for j = 1:length(l_str_vec)
-        k_str =k_str_vec(k);
-        l_str = l_str_vec(j);
-        C.C_115 =( 1/(k_str*l_str*L1*(+1/(L3/2))) + 1/(nc*l_str*L1))^(-1);
-        C.C_215 = 0;
-        C.C_315 = (1/(k_str*l_str*L3*(+1/(L1/2)))+ 1/(nc*l_str*L3))^(-1);
-        nc = 100;
-C1 = k_str*l_str*L1/(L2/2);
-C2 = k_str*l_str*L1/(L3/2);
-C_cont = nc*l_str*L1;
-C.C_12 = (1/C1 + 1/C2 + 1/C_cont)^(-1);
-C1 = k_str*l_str*L2/(L1/2);
-C3 = k_str*l_str*L2/(L3/2);
-C_cont = nc*l_str*L2;
-C.C_13 = (1/C1 + 1/C3 + 1/C_cont)^(-1);
-C1 = k_str*l_str*L1/(L2/2);
-C4 = k_str*l_str*L1/(L3/2);
-C_cont = nc*l_str*L1;
-C.C_14 = (1/C1 + 1/C4 + 1/C_cont)^(-1);
-C1 = k_str*l_str*L2/(L1/2);
-C5 = k_str*l_str*L2/(L3/2);
-C_cont = nc*l_str*L2;
-C.C_15 = (1/C1 + 1/C5 + 1/C_cont)^(-1);
-C.C_16 = 0;
-C2 = k_str*l_str*L3/(L1/2);
-C3 = k_str*l_str*L3/(L2/2);
-C_cont = nc*l_str*L3;
-C.C_23 = (1/C2 + 1/C3 + 1/C_cont)^(-1);
-C2 = k_str*l_str*L3/(L1/2);
-C5 = k_str*l_str*L3/(L2/2);
-C_cont = nc*l_str*L3;
-C.C_25 = (1/C2 + 1/C5 + 1/C_cont)^(-1);
-C.C_24 = 0;
-C.C_26 = C.C_12;
-C.C_34 = C.C_23;
-C.C_35 = 0;
-C.C_36 = C.C_13;
-C.C_36 = 0; %%%%%%%%%%%%%%%%%%%%
-C.C_45 = C.C_34;
-C.C_46 = C.C_14;
-C.C_56 = C.C_13;
-T_guess = 273*ones(15,1);
-options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-C.C_6rad = 1.5; % ? sensitivity analysis
-C.C_5rad = 0; % ? sensitivity analysis
-% C.C_13 = C.C_13 + 30;
-C.C_3rad = 5;
-C.C_15rad = 2;
-eps_rad = eps_louv_closed;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-T_orb_cold_vec(k,j,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
-C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
-C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
-C.C_15rad = 20;
-% sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
-C.C_5rad = 500;
-C.C_6rad = 40;
-C.C_3rad = 100;
-eps_rad = eps_louv_open;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-T_orb_hot_vec(k,j,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
-    end
-end
-
-figure
-surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,1)-273.15)
-figure
-surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,1)-273.15)
-figure
-surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,2)-273.15)
-figure
-surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,2)-273.15)
-
-figure
-surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,3)-273.15)
-figure
-surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,3)-273.15)
-
-
-figure
-surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,15)-273.15)
-figure
-surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,15)-273.15)
-
-%%
-% sensitivity analysis on alpha MLI and epsilon MLI --> find area radiators
-theta_S1 = deg2rad(65.63);
-theta_S2 = deg2rad(70);
-theta_S3 = deg2rad(25);
-
-% solve
-%%% Internal dissipation power
-Q_diss_hot = zeros(15,1);
-Q_diss_hot(15) =  Q_hot/2;
-Q_diss_hot(6) = Q_hot/2;
-%%% SOLVE THE SYSTEM 
-Clamped = 1;
-y_guess = [273*ones(2,1);C.C_3rad;273*ones(12,1); A_rad_tot];
-epsilon_MLI_vec =  linspace(0.005,0.05,20);
-% epsilon_MLI_vec =  ones(3,1)*epsilon_MLI;
-alpha_MLI_vec =  linspace(0.06,0.13,20);
-Arad = zeros(length(epsilon_MLI_vec),length(alpha_MLI_vec),1);
-T3 = zeros(length(epsilon_MLI_vec),length(alpha_MLI_vec),1);
-% for k = 1:length(epsilon_MLI_vec)
-%     eps_MLI = epsilon_MLI_vec(k);
-%     R.R_rad6 = sigma_SB * A_rad_tot_6 * eps_MLI; % ?
-%     R.R_rad5 = sigma_SB * A_rad_tot_5 * eps_MLI;
-%     R.R_1ant = sigma_SB * (A1-A1_ext) * eps_MLI; % ????? not sure about this. also conduction. and not only MLI
-%     R.R_10 = sigma_SB * A1_ext * eps_MLI;
-%     R.R_20 = sigma_SB * A2 * eps_MLI;
-%     R.R_30 = sigma_SB * A3 * eps_MLI;
-%     R.R_40 = sigma_SB * A4 * eps_MLI;
-%     A4_clamped = A4 - 1.5*1.5;
-%     R.R_40_clamped = sigma_SB * A4_clamped * eps_MLI;
-%     R.R_50 = sigma_SB * A5_ext * eps_MLI;
-%     R.R_60 = sigma_SB * A6_ext * eps_MLI;
-%     % Add MLI on surface 3, 2, 6 
-%     R.R_6int6ext = sigma_SB * A6_ext * eps_MLI;
-%     R.R_3int3ext = sigma_SB * A3 * eps_MLI;
-%     R.R_2int2ext = sigma_SB * A2 * eps_MLI;
-%     R.R_1int1ext = sigma_SB * A1 * eps_MLI;
-%     R.R_4int4ext = sigma_SB * A4 * eps_MLI;
-%     R.R_5int5ext = sigma_SB * A5_ext * eps_MLI;
-%     for j = 1:20
-%         alp_MLI = alpha_MLI_vec(j);
-%         Q_ext_hot(1) = q_Sun * A1_ext * alp_MLI* cos(theta_S1);
-%         Q_ext_hot(2) = q_Sun * A2 * alp_MLI* cos(theta_S2);
-%         Q_ext_hot(3) = q_Earth * eps_MLI * A3 + q_alb * A3 * alp_MLI + q_Sun * A3 * alp_MLI* cos(theta_S3);
-%         Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_S1);
-% 
-%         options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-%         y_orb_hot = fsolve(@(y) OrbiterAreaRad(y, R, C, Q_ext_hot , Q_diss_hot, Clamped, A6_tot, sigma_SB, eps_MLI, eps_rad), T_guess, options);
-%         Arad(j,k) = y_orb_hot(15);
-%         T3(j,k) = y_orb_hot(3);
-%     end
-% end
-
-% figure
-% surf(epsilon_MLI_vec,alpha_MLI_vec, Arad)
-% xlabel('epsilon')
-% ylabel('alpha')
-% zlabel('Arad')
-% figure
-% surf(epsilon_MLI_vec,alpha_MLI_vec,T3-273.15)
-% xlabel('epsilon')
-% ylabel('alpha')
-% zlabel('T3')
-
-% epsilon
-Arad = zeros(length(epsilon_MLI_vec),1);
-C3rad = zeros(length(epsilon_MLI_vec),1);
-eps_rad = eps_louv_open;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-for k = 1:length(epsilon_MLI_vec)
-    eps_MLI = epsilon_MLI_vec(k);
-    R.R_rad6 = sigma_SB * A_rad_tot_6 * eps_MLI; % ?
-    R.R_rad5 = sigma_SB * A_rad_tot_5 * eps_MLI;
-    R.R_1ant = sigma_SB * (A1-A1_ext) * eps_MLI; % ????? not sure about this. also conduction. and not only MLI
-    R.R_10 = sigma_SB * A1_ext * eps_MLI;
-    R.R_20 = sigma_SB * A2 * eps_MLI;
-    R.R_30 = sigma_SB * A3 * eps_MLI;
-    R.R_40 = sigma_SB * A4 * eps_MLI;
-    A4_clamped = A4 - 1.5*1.5;
-    R.R_40_clamped = sigma_SB * A4_clamped * eps_MLI;
-    R.R_50 = sigma_SB * A5_ext * eps_MLI;
-    R.R_60 = sigma_SB * A6_ext * eps_MLI;
-    % Add MLI on surface 3, 2, 6 
-    R.R_6int6ext = sigma_SB * A6_ext * eps_MLI;
-    R.R_3int3ext = sigma_SB * A3 * eps_MLI;
-    R.R_2int2ext = sigma_SB * A2 * eps_MLI;
-    R.R_1int1ext = sigma_SB * A1 * eps_MLI;
-    R.R_4int4ext = sigma_SB * A4 * eps_MLI;
-    R.R_5int5ext = sigma_SB * A5_ext * eps_MLI;
-   
-        alp_MLI = alpha_MLI;
-        Q_ext_hot(1) = q_Sun * A1_ext * alp_MLI* cos(theta_S1);
-        Q_ext_hot(2) = q_Sun * A2 * alp_MLI* cos(theta_S2);
-        Q_ext_hot(3) = q_Earth * eps_MLI * A3 + q_alb * A3 * alp_MLI + q_Sun * A3 * alp_MLI* cos(theta_S3);
-        Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_S1);
-
-        options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-        y_orb_hot = fsolve(@(y) OrbiterAreaRad(y, R, C, Q_ext_hot , Q_diss_hot, Clamped, A6_tot, sigma_SB, eps_MLI, eps_rad), y_guess, options);
-        Arad(k) = y_orb_hot(15);
-        C3rad(k) = y_orb_hot(3);
-end
-
-figure
-plot(epsilon_MLI_vec, Arad)
-xlabel('epsilon')
-ylabel('Arad')
-figure
-plot(epsilon_MLI_vec,C3rad)
-xlabel('epsilon')
-ylabel('C3rad')
-
-%% alpha
-Arad = zeros(length(epsilon_MLI_vec),1);
-C3rad = zeros(length(epsilon_MLI_vec),1);
-eps_MLI = epsilon_MLI;
-eps_rad = eps_louv_open;
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-    for j = 1:20
-        alp_MLI = alpha_MLI_vec(j);
-        Q_ext_hot(1) = q_Sun * A1_ext * alp_MLI* cos(theta_S1);
-        Q_ext_hot(2) = q_Sun * A2 * alp_MLI* cos(theta_S2);
-        Q_ext_hot(3) = q_Earth * eps_MLI * A3 + q_alb * A3 * alp_MLI + q_Sun * A3 * alp_MLI* cos(theta_S3);
-        Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_S1);
-
-        options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-        y_orb_hot = fsolve(@(y) OrbiterAreaRad(y, R, C, Q_ext_hot , Q_diss_hot, Clamped, A6_tot, sigma_SB, eps_MLI, eps_rad), y_guess, options);
-        Arad(j) = y_orb_hot(15);
-        C3rad(j) = y_orb_hot(3);
-    end
-
-
-figure
-plot(alpha_MLI_vec,Arad)
-xlabel('alpha')
-ylabel('Arad')
-figure
-plot(alpha_MLI_vec,C3rad)
-
-xlabel('alpha')
-ylabel('C3rad')
-
-
-%% Cold case --> change epsilon and see how much heat you need
-y_guess = [273*ones(2,1);C.C_3rad;273*ones(12,1); P_added_6];
-% epsilon
-Wadded = zeros(length(epsilon_MLI_vec),1);
-C3rad = zeros(length(epsilon_MLI_vec),1);
-Q_ext_cold = zeros(11,1);
-for k = 1:length(epsilon_MLI_vec)
-    eps_MLI = epsilon_MLI_vec(k);
-    R.R_rad6 = sigma_SB * A_rad_tot_6 * eps_MLI; % ?
-    R.R_rad5 = sigma_SB * A_rad_tot_5 * eps_MLI;
-    R.R_1ant = sigma_SB * (A1-A1_ext) * eps_MLI; % ????? not sure about this. also conduction. and not only MLI
-    R.R_10 = sigma_SB * A1_ext * eps_MLI;
-    R.R_20 = sigma_SB * A2 * eps_MLI;
-    R.R_30 = sigma_SB * A3 * eps_MLI;
-    R.R_40 = sigma_SB * A4 * eps_MLI;
-    A4_clamped = A4 - 1.5*1.5;
-    R.R_40_clamped = sigma_SB * A4_clamped * eps_MLI;
-    R.R_50 = sigma_SB * A5_ext * eps_MLI;
-    R.R_60 = sigma_SB * A6_ext * eps_MLI;
-    % Add MLI on surface 3, 2, 6 
-    R.R_6int6ext = sigma_SB * A6_ext * eps_MLI;
-    R.R_3int3ext = sigma_SB * A3 * eps_MLI;
-    R.R_2int2ext = sigma_SB * A2 * eps_MLI;
-    R.R_1int1ext = sigma_SB * A1 * eps_MLI;
-    R.R_4int4ext = sigma_SB * A4 * eps_MLI;
-    R.R_5int5ext = sigma_SB * A5_ext * eps_MLI;
-   % close louvers and compute again thermal couplings
-eps_rad = eps_louv_closed;
-
-% radiative coupling
-
-R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-C.C_6rad = 1.5; % ? sensitivity analysis
-C.C_5rad = 0; % ? sensitivity analysis
-% C.C_13 = C.C_13 + 30;
-C.C_3rad = 5;
-C.C_15rad = 2;
-
-
-Q_ext_cold(3) = q_Enc * A3 * eps_MLI*cos(theta_3Enc) ;
-Q_ext_cold(6) = q_Sat * A6_ext * eps_MLI*cos(theta_6Sat) ;
-Q_ext_cold(8) = q_Sat * A_rad_tot_6 * eps_rad*cos(theta_6Sat);
-
-%%% SOLVE THE SYSTEM 
-Clamped = 1;
-if Clamped == 0
-
-P_added_6 = 0;
-P_VRHU_6 = 0; % for batteries
-P_VRHU_3 = 0; % for internal PL
-perc = 0.7;
-Q_diss_cold = zeros(15,1);
-Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
-Q_diss_cold(3) = P_VRHU_3;
-Q_diss_cold(15) = We_av*(1-perc);
-else 
-    if Clamped == 1
-        P_added_6 = 0; % to size !
-
-        perc = 0;
-        Q_diss_cold = zeros(15,1);
-        Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
-
-        Q_diss_cold(15) = We_av*(1-perc);
-    end
-end
-       options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-        y_orb_hot = fsolve(@(y) OrbiterHeaters(y, R,C, Q_ext_cold , Q_diss_cold, Clamped, sigma_SB, epsilon_MLI, eps_rad, A6_ext), y_guess, options);
-        Wadded(k) = y_orb_hot(15);
-        C3rad(k) = y_orb_hot(3);
-end
-
-figure
-plot(epsilon_MLI_vec, Wadded)
-xlabel('epsilon')
-ylabel('Wadded')
-figure
-plot(epsilon_MLI_vec,C3rad)
-xlabel('epsilon')
-ylabel('C3rad')
-
-%%
-
-% fallo anche per il lander
-% sistema k_honeycomb
-% alpha MLI
-% epsilon MLI
-% --> trova radiatori e calore da aggiungere
-
-
-% RTG

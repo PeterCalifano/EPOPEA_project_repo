@@ -423,7 +423,7 @@ theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
 cold_case = 1; % orbit / during landing
-cold_case = 2; % on ground
+%cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 C.C_8rad = 0;
 C.C_2rad = 0*C_TS;
@@ -448,8 +448,8 @@ switch cold_case
             % eps_rad = eps_louv_closed;
             % radiative coupling
             R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-            Q_shunt = 20;
-            Q_diss_cold(5) = 144 + Q_shunt; % SAFE --> to change
+            Q_shunt = 0;
+            Q_diss_cold(5) = 120 + Q_shunt; % SAFE --> to change
     end
     case 2
         perc_open_rad = 2.1/n_rad; % percentage of open radiators

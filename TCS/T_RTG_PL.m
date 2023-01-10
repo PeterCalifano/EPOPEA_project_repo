@@ -8,7 +8,7 @@ clearvars; clc; close all
 
 % Data
 % BOL Thermal power dissipated by RTG on orbiter and lander [W]
-Wt_orb = 2647;
+Wt_orb = 3040;
 Wt_land = 1860;
 sigma_SB = 5.67e-8;
 % Area of the box to radiate
@@ -94,4 +94,4 @@ Q_RS = A_RS*sigma_SB*T_RS^4*eps_RS;
 % compute radiators area for p/l
 
 
-% compute conductive coupling with the internal node
+%% compute conductive coupling with the internal node

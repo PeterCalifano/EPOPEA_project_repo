@@ -403,7 +403,7 @@ C.C_615 = C.C_115;
 
 
 R.R_1ant = sigma_SB * (A1-A1_ext) * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
-C_1ant_max = k_str * l_str/(A1 - A1_ext);
+C_1ant_max = k_honeycomb* l_str_tot/(A1 - A1_ext);
 C.C_1ant = C_1ant_max/10;  % hyp: diameter of contact antenna - structure is 1/10 of D antenna 
 % C.C_1ant = 0;
 R.R_10 = sigma_SB * A1_ext * epsilon_MLI;
@@ -667,3 +667,153 @@ fprintf(['15 ',num2str(T_orb_cold(15)-273),' Celsius\n'])
 % 4) External p/l ?
 % sensitivity analysis, check properties
 % T of RTG
+
+%% Sensitivity analysis:
+% conduction
+k_str_vec = linspace(88,229,20);
+l_str_vec = linspace(0.005,0.004,20);
+T_orb_cold_vec = zeros(20,20,15);
+T_orb_hot_vec = zeros(20,20,15);
+for k = 1:length(k_str_vec)
+    for j = 1:length(l_str_vec)
+        k_str =k_str_vec(k);
+        l_str = l_str_vec(j);
+        C.C_115 =( 1/(k_str*l_str*L1*(+1/(L3/2))) + 1/(nc*l_str*L1))^(-1);
+        C.C_215 = 0;
+        C.C_315 = (1/(k_str*l_str*L3*(+1/(L1/2)))+ 1/(nc*l_str*L3))^(-1);
+        nc = 100;
+C1 = k_str*l_str*L1/(L2/2);
+C2 = k_str*l_str*L1/(L3/2);
+C_cont = nc*l_str*L1;
+C.C_12 = (1/C1 + 1/C2 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C3 = k_str*l_str*L2/(L3/2);
+C_cont = nc*l_str*L2;
+C.C_13 = (1/C1 + 1/C3 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L1/(L2/2);
+C4 = k_str*l_str*L1/(L3/2);
+C_cont = nc*l_str*L1;
+C.C_14 = (1/C1 + 1/C4 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C5 = k_str*l_str*L2/(L3/2);
+C_cont = nc*l_str*L2;
+C.C_15 = (1/C1 + 1/C5 + 1/C_cont)^(-1);
+C.C_16 = 0;
+C2 = k_str*l_str*L3/(L1/2);
+C3 = k_str*l_str*L3/(L2/2);
+C_cont = nc*l_str*L3;
+C.C_23 = (1/C2 + 1/C3 + 1/C_cont)^(-1);
+C2 = k_str*l_str*L3/(L1/2);
+C5 = k_str*l_str*L3/(L2/2);
+C_cont = nc*l_str*L3;
+C.C_25 = (1/C2 + 1/C5 + 1/C_cont)^(-1);
+C.C_24 = 0;
+C.C_26 = C.C_12;
+C.C_34 = C.C_23;
+C.C_35 = 0;
+C.C_36 = C.C_13;
+C.C_36 = 0; %%%%%%%%%%%%%%%%%%%%
+C.C_45 = C.C_34;
+C.C_46 = C.C_14;
+C.C_56 = C.C_13;
+T_guess = 273*ones(15,1);
+options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+C.C_6rad = 1.5; % ? sensitivity analysis
+C.C_5rad = 0; % ? sensitivity analysis
+% C.C_13 = C.C_13 + 30;
+C.C_3rad = 5;
+C.C_15rad = 2;
+eps_rad = eps_louv_closed;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+T_orb_cold_vec(k,j,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
+C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
+C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
+C.C_15rad = 20;
+% sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
+C.C_5rad = 500;
+C.C_6rad = 40;
+C.C_3rad = 100;
+eps_rad = eps_louv_open;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+T_orb_hot_vec(k,j,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
+    end
+end
+
+figure
+surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,1)-273.15)
+figure
+surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,1)-273.15)
+figure
+surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,2)-273.15)
+figure
+surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,2)-273.15)
+
+figure
+surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,3)-273.15)
+figure
+surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,3)-273.15)
+
+
+figure
+surf(k_str_vec,l_str_vec,T_orb_cold_vec(:,:,15)-273.15)
+figure
+surf(k_str_vec,l_str_vec,T_orb_hot_vec(:,:,15)-273.15)
+
+%% k honeycomb
+k_str = 117;
+% l_str = 0.02; %%%%%%%%%??
+% l_str = 0.002; 
+l_str = 0.002; % HYP : skin thickness of 5 mm
+k_honeycomb_vec = linspace(0.054,2.036,20);
+T_orb_cold_vec2 = zeros(20,15);
+T_orb_hot_vec2 = zeros(20,15);
+for m = 1:20
+    k_honeycomb = k_honeycomb_vec(m);
+C_1ant_max = k_honeycomb* l_str_tot/(A1 - A1_ext);
+% Conduction normal to honeycomb panel
+C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
+C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
+C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
+C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
+C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
+C.C_6int6ext = k_honeycomb*(A6_ext/(l_str_tot));
+T_guess = 273*ones(15,1);
+options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+C.C_6rad = 1.5; % ? sensitivity analysis
+C.C_5rad = 0; % ? sensitivity analysis
+% C.C_13 = C.C_13 + 30;
+C.C_3rad = 5;
+C.C_15rad = 2;
+eps_rad = eps_louv_closed;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+T_orb_cold_vec2(m,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
+C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
+C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
+C.C_15rad = 20;
+% sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
+C.C_5rad = 500;
+C.C_6rad = 40;
+C.C_3rad = 100;
+eps_rad = eps_louv_open;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+T_orb_hot_vec2(m,:) = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
+
+end
+figure
+plot(k_honeycomb_vec,T_orb_cold_vec(:,3)-273.15)
+figure
+plot(k_honeycomb_vec,T_orb_hot_vec(:,3)-273.15)
+
+
+figure
+plot(k_honeycomb_vec,T_orb_cold_vec(:,15)-273.15)
+figure
+plot(k_honeycomb_vec,T_orb_hot_vec(:,15)-273.15)
+
+% fallo anche per il lander
+% sistema k_honeycomb
+% alpha MLI
+% epsilon MLI
+% --> trova radiatori e calore da aggiungere
+
+% RTG

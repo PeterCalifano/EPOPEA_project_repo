@@ -241,5 +241,5 @@ mdot_main_orb = 180e-3 ; % [kg/s] - Maximum flow rate
 t_firing_main_orb = m_prop_main_orb / mdot_main_orb  % [s] - Total firing time of primary propulsion
 
 % LANDER
-mdot_main_lan = 98e-3 ; % [kg/s] - Maximum flow rate
+mdot_main_lan = 63.5e-3 ; % [kg/s] - Maximum flow rate
 t_firing_main_lan = m_prop_main_lan / mdot_main_lan  % [s] - Total firing time of primary propulsion

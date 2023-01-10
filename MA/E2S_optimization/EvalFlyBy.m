@@ -1,4 +1,4 @@
-function [fb_ToF, timegrid, xstate, Sb, SAA, RelPos] = EvalFlyBy(vinf_SOI, rSOI, rp, mu, X_p)
+function [fb_ToF, timegrid, xstate, Sb, SAA, RelPos, index] = EvalFlyBy(vinf_SOI, rSOI, rp, mu, X_p, bodynm)
 %% PROTOTYPE
 % -------------------------------------------------------------------------------------------------------------
 %% DESCRIPTION
@@ -10,6 +10,7 @@ function [fb_ToF, timegrid, xstate, Sb, SAA, RelPos] = EvalFlyBy(vinf_SOI, rSOI,
 %% OUTPUT
 % out1 [dim] description
 % RelPos [1x4] Angles in deg between the Sun direction and zenith, tangential, and tranversal direction
+% Eclipse_index: indeces when SC is in Eclipse
 % -------------------------------------------------------------------------------------------------------------
 %% CHANGELOG
 % Date, User, brief summary of the modification
@@ -137,6 +138,22 @@ i_tran = rad2deg(acos(dot(SunDir, theta_dir,2)));
 i_out = rad2deg(acos(dot(SunDir, H_dir,2)));
 i_zen = rad2deg(acos(dot(SunDir, r_dir,2)));
 RelPos = [i_zen, i_tan, i_tran, i_out];
+
+% Compute eclipse
+index = [];
+R_Sun = mean(cspice_bodvrd('SUN','RADII',3));
+R_Planet = mean(cspice_bodvrd(bodynm,'RADII',3));
+alpha_planet = asin((R_Sun-R_Planet)/norm(R_p)); %alpha umbra
+a_Planet = R_Planet/sin(alpha_planet); %umbra's length
+for k = 1: length(xstate)
+    beta_Planet = acos(dot(R_p,r_state(k,:))/( norm(R_p)*norm(r_state(k,:)) ) );
+        
+    Pl2Sc_lim = a_Planet*tan(alpha_planet)/(sin(beta_Planet)+cos(beta_Planet)*tan(alpha_planet));
+        
+    if abs(beta_Planet)<pi/2 && Pl2Sc_lim>norm(r_state(k,:)) 
+         index = [index, k];
+    end
+end
 
 %% Local functions
     function [value, isterminal, direction] = SOIexit(~, x, rSOI)

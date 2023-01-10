@@ -1,4 +1,4 @@
-function [R_PROP,TIMES,FLAGS, r_DSM, r_planets] = plot_trajectory(flag)
+function [R_PROP, V_PROP, TIMES,FLAGS, r_DSM, r_planets] = plot_trajectory(flag)
 %% PROTOTYPE
 % DV = objfun_EarthSaturntransfer(var, N, planets_id, Ra_target, Rp_target, TU)
 % -------------------------------------------------------------------------------------------------------------
@@ -12,6 +12,7 @@ function [R_PROP,TIMES,FLAGS, r_DSM, r_planets] = plot_trajectory(flag)
 % -------------------------------------------------------------------------------------------------------------
 %% OUTPUT
 % R_PROP [3 x n] - Positions of the trjectory of the s/c [AU]
+% V_PROP [3 x n] - Velocity of the trjectory of the s/c 
 % TIMES [1 x n] - Times corresponding to each position
 % FLAGS [1 x n] - A vector of zeros with 1 at the beginning and at the end
 %               of every arc
@@ -283,6 +284,7 @@ if flag == 2
     end
 end
 
+
 %% PLOT TRAJECTORY
 
 col = {'b','r','g','m','c','k'};
@@ -292,15 +294,17 @@ if flag == 1
 end
 
 R_PROP = [];
+V_PROP = [];
 FLAGS = [];
 TIMES = [];
 leg2 = zeros(1,N+1);
 leg3 = zeros(1,N+1);
 
 for i = 1:N+1
-    [r_prop1, ~, times1] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
-    [r_prop2, ~, times2] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);  
+    [r_prop1, v_prop1, times1] = PropagatorHelio_2BP([r_planets(:,i);VV_FB(:,i)], alpha_DSM(i) * tof(i), mu_S);
+    [r_prop2, v_prop2, times2] = PropagatorHelio_2BP([r_DSM(:,i);squeeze(v_DSM(:,i,2))], (1 - alpha_DSM(i)) * tof(i), mu_S);  
     R_PROP = [R_PROP,r_prop1,r_prop2];
+    V_PROP = [V_PROP,v_prop1,v_prop2];
     FLAGS = [FLAGS,1,zeros(1,length(r_prop1(1,:))-2),1,1,zeros(1,length(r_prop2(1,:))-2),1]; 
     
     if i == 1

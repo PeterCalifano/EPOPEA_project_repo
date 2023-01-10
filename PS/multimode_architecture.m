@@ -1,4 +1,4 @@
-function [ tank_ox, tank_fu, tank_gas, V_gas_sec, V_prop_sec ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, pressurant )
+function [ tank_ox, tank_fu, tank_gas, V_gas_sec, V_prop_sec ] = multimode_architecture( main_thruster, sk_thruster, att_thruster, orbiter_data, tank, rho_f, rho_ox, pressurant )
 
 % main_thruster, sk_thruster, att_thruster structures:
 % .Pc_mean  [Pa] - Mean combustion chamber pressure
@@ -61,11 +61,13 @@ m_fu_main = m_prop_main / ( 1 + OF_main ) * 1.01 ; % [kg] - Fuel mass + ullage m
 m_ox_main = ( m_prop_main - m_fu_main ) * 1.01 ; % [kg] - Oxidizer mass + ullage margin (1%)
 V_fu_main = m_fu_main / rho_f ; % [m3] - Volume of the fuel
 V_ox_main = V_fu_main ; % [m3] - Volume of the oxidizer (imposed to be equal)
+%V_ox_main = m_ox_main / rho_ox ;
 
 m_fu_sk = m_prop_sk / ( 1 + OF_sk ) * 1.01 ; % [kg] - Fuel mass + ullage margin (1%)
 m_ox_sk = ( m_prop_sk - m_fu_sk ) * 1.01 ; % [kg] - Oxidizer mass + ullage margin (1%)
 V_fu_sk = m_fu_sk / rho_f ; % [m3] - Volume of the fuel
 V_ox_sk = V_fu_sk ; % [m3] - Volume of the oxidizer (imposed to be equal)
+%V_ox_sk = m_ox_sk / rho_ox ;
 
 V_prop_att = m_prop_att / rho_f ; % [m3] - Volume of the propellant 
 
@@ -140,17 +142,17 @@ tank_ox.ox_volume = V_ox ;
 tank_ox.ox_tank_radius = r_tank_ox ;
 tank_ox.ox_tank_height = h_tank_ox ;
 tank_ox.ox_tank_thickness = t_tank_ox * 1e3 ; % [mm]
-tank_ox.ox_tank_mass = m_tank_ox ;
+tank_ox.ox_tank_mass = m_tank_ox * 1.2 ; % 20% margin to account for mounting hw and pmd (smad book)
 
 tank_fu.fu_mass = m_fu ;
 tank_fu.fu_volume = V_fu ;
 tank_fu.fu_tank_radius = r_tank_fu ;
 tank_fu.fu_tank_height = h_tank_fu ;
 tank_fu.fu_tank_thickness = t_tank_fu * 1e3 ; % [mm]
-tank_fu.fu_tank_mass = m_tank_fu ;
+tank_fu.fu_tank_mass = m_tank_fu * 1.2 ; % 20% margin to account for mounting hw and pmd (smad book)
 
 tank_gas.gas_mass = m_gas ;
 tank_gas.gas_volume = V_gas ;
 tank_gas.gas_tank_radius = r_tank_gas ;
 tank_gas.gas_tank_thickness = t_tank_gas * 1e3 ; % [mm]
-tank_gas.gas_tank_mass = m_tank_gas ;
+tank_gas.gas_tank_mass = m_tank_gas * 1.2 ; % 20% margin to account for mounting hw and pmd (smad book)

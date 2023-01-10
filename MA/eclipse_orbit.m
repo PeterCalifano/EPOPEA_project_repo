@@ -1,5 +1,5 @@
 %% ECLIPSE
-clearvars; clc; cspice_kclear();
+clearvars; clc; cspice_kclear();close all
 
 % kernelpool = fullfile('EPOPEA_metakernel.tm'); % for Windows
 % cspice_furnsh(kernelpool);
@@ -19,6 +19,7 @@ cspice_furnsh ('spice_kernels\LATs.bsp');
 cspice_furnsh ('spice_kernels\LATs.tf');
 cd('MA')
 
+
 %% DATA
 mu=1.90095713928102*1e-7; % Saturn-Enceladus 3BP constant
 DU=238411468.296/1000; %km
@@ -36,8 +37,9 @@ mu_Sun=cspice_bodvrd('SUN','GM',1);
 % that instant and simplify the rotations between reference frames.
 
 % Select the initial time to look for the instant of intersection
-% t0_try = cspice_str2et('2051 JAN 01 15:00:00.00')/TU;
-t0_try = cspice_str2et('2052 DEC 25 12:00:00.00')/TU;
+t0_try = cspice_str2et('2051 JUL 03 15:00:00.00')/TU;
+%t0_try = cspice_str2et('2052 DEC 25 12:00:00.00')/TU;
+
 tf_try = t0_try + 2 * 24 * 3600 / TU; % Final time is set 2 days later
 tt_try = linspace(t0_try,tf_try,500000);
 
@@ -101,7 +103,7 @@ for i = 1:length(tt_try)
 
 end
 
-%% Eclipse computation (cit)
+%% Eclipse and Earth visibility computation 
 
 %%% CREATE THE ACTUAL TIME GRID
 
@@ -111,15 +113,19 @@ t0 = t_start;
 fprintf('\nInitial propagation date:\n%s', cspice_et2utc(t_start*TU, 'C', 0));
 
 % DEFINE the n of hours to propagate
-n_hours = 33*6;
+%n_hours = 33*6; %6 Enceladus revolutions
+%n_hours = 24; % 1 day
+n_hours = 60*24; 
 
 % DEFINE the number of points
-n_points = 2000;
+%n_points = 20000;
 
 % Time Grid
-tf = t0 + n_hours*3600/TU;
-tt=linspace(t0,tf,n_points);
+%tf = t_start + 2*24*3600/TU;
+tf = cspice_str2et('2054 MAR 31 15:00:00.00')/TU;
+tt= t0:10*60/TU:tf;
 
+%%
 % Initial state for the Halo orbit
 x0_Halo=1.000062853735440;
 y0_Halo=0;
@@ -141,9 +147,16 @@ state_vec_Halo=state_vec_Halo';
 x_CR3BP=state_vec_Halo(1:3,:);
 x_inEnc=zeros(3,length(tt));
 x_EclipSC=zeros(3,length(tt));
+
 Sat2Enc_Fake=zeros(3,length(tt));
 Sat2Enc_real=zeros(3,length(tt));
+
+Sat2Sun=zeros(3,length(tt));
+Sat2Earth=zeros(3,length(tt));
+
 check_Sun = zeros(size(tt));
+check_Earth = zeros(size(tt));
+
 Sc2Sun_v = zeros(3,length(tt));
 Sun_dir = zeros(3,length(tt));
 
@@ -158,14 +171,16 @@ for j = 1:length(tt)
     % Compute all the relative positions between bodies
     Sat2Sun(:,j) = cspice_spkpos('SUN', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
     Sun_dir(:,j) = Sat2Sun(:,j)/norm(Sat2Sun(:,j));
-
+    
+    Sat2Earth(:,j) = cspice_spkpos('EARTH', time_j*TU, 'ECLIPJ2000', 'NONE', '699');
+    Earth2Sun = cspice_spkpos('SUN', time_j*TU, 'ECLIPJ2000', 'NONE', 'EARTH');
     %saturn orbital parameters recovery
     Sun2Sat_state=cspice_spkezr('SATURN', time_j*TU, 'ECLIPJ2000', 'NONE', 'SUN');
     r_Sat=Sun2Sat_state(1:3);
     v_Sat=Sun2Sat_state(4:6);
     [a_Sat,e_Sat,i_Sat,OM_Sat,om_Sat,theta_Sat] = car2kep(r_Sat,v_Sat,mu_Sun);
     
-    %state rotation   
+    %state rotation
     %z-Rotation, om+theta
     R_an_Sat=[cos(om_Sat+theta_Sat) sin(om_Sat+theta_Sat) 0
              -sin(om_Sat+theta_Sat) cos(om_Sat+theta_Sat) 0
@@ -209,6 +224,8 @@ for j = 1:length(tt)
     Sc2Sun  = Sc2Sat + Sat2Sun(:,j);
     Sc2Enc  = Sc2Sat + Sat2Enc_Fake(:,j);
     
+    Earth2Sc=-Sat2Earth(:,j)+x_EclipSC(:,j);
+    Earth2Enc=Sat2Enc_Fake(:,j)-Sat2Earth(:,j);
     %%% Check on Sun %%%
     
     % Check if Saturn is in the way
@@ -259,26 +276,74 @@ for j = 1:length(tt)
 %     
     % Save the relative position sc/Sun
     Sc2Sun_v(:,j) = Sc2Sun;
-
+    
+    %%% Check on Earth %%%
+    
+    % Check if Saturn is in the way
+    theta_lim_Sat=asin(R_Sat/norm(Sat2Earth(:,j)));
+    theta_Sat=acos( dot(Earth2Sc,-Sat2Earth(:,j))/( norm(Earth2Sc)*norm(Sat2Earth(:,j)) ) );
+    % theta_Sat=acos( dot(Earth2Sc,x_EclipSC(:,j))/( norm(Earth2Sc)*norm(x_EclipSC(:,j)) ) );
+    if abs(theta_Sat)<abs(theta_lim_Sat) && abs(acos( dot( Sat2Earth(:,j),x_EclipSC(:,j) )/(norm(Sat2Earth(:,j))*norm(x_EclipSC(:,j))) ))>pi/2
+       check_Earth(j)=check_Earth(j)+1; 
+    end
+    
+    %Check if Enceladus is in the way
+    theta_lim_Enc=asin(R_Enc/norm(Earth2Enc));
+    theta_Enc=acos( dot(Earth2Sc,Earth2Enc)/( norm(Earth2Sc)*norm(Earth2Enc) ) );
+    % theta_Enc=acos( dot(Earth2Sc,-Sc2Enc)/( norm(Earth2Sc)*norm(Sc2Enc) ) );
+    if abs(theta_Enc)<abs(theta_lim_Enc) && abs(acos( dot( -Earth2Enc,-Sc2Enc )/(norm(Earth2Enc)*norm(Sc2Enc))))>pi/2
+       check_Earth(j)=check_Earth(j)+2; 
+    end
+   
+    %Check if the Sun is in the way
+    theta_lim_Sun=asin(R_Sun/norm(Earth2Sun));
+    theta_Sun=acos( dot(Earth2Sc,Earth2Sun)/( norm(Earth2Sc)*norm(Earth2Sun) ) );
+    if abs(theta_Sun)<abs(theta_lim_Sun) && abs(acos( dot( -Earth2Sun,-Sc2Sun )/(norm(Earth2Sun)*norm(Sc2Sun))))>pi/2
+       check_Earth(j)=check_Earth(j)+5; 
+    end
+    
 end
 
 %% Post processing
 
+%for the eclipse
 % Save the eclipse times and the relative indexes in the vector tt
 tt_eclipse=zeros(1,length(check_Sun(check_Sun>0)));
 tt_eclipse_str=[];
 k=0;
 index = zeros(1,length(check_Sun(check_Sun>0)));
+state_Halo_dark=zeros(6,length(check_Sun(check_Sun>0)));
 for j=1:length(tt)
     if check_Sun(j)>0
         k=k+1;
         tt_eclipse(k)=(tt(j)-tt(1))*TU/(3600*24);
         index(k)=j;
+        state_Halo_dark(:,k)=state_vec_Halo(:,j);
     end
 end
 
 %%% FOR ELENA: the relative position is saved into Sc2Sun_v which is the
 %%%     relative position from SC to Sun in ECLIPJ2000.
+
+%for the visibility check
+% Save no visibility times and the relative indexes in the vector tt
+tt_novis=zeros(1,length(check_Earth(check_Earth>0)));
+tt_novis_str=[];
+k=0;
+index = zeros(1,length(check_Earth(check_Earth>0)));
+state_Halo_novis=zeros(6,length(check_Earth(check_Earth>0)));
+for j=1:length(tt)
+    if check_Earth(j)>0
+        k=k+1;
+        tt_novis(k)=(tt(j)-tt(1))*TU/(3600*24);
+        index(k)=j;
+        state_Halo_novis(:,k)=state_vec_Halo(:,j);
+    end
+end
+
+
+
+
 
 %%
 figure
@@ -322,6 +387,26 @@ plot(tt*TU/3600-t0*TU/3600,check_Sun)
 xlabel('t')
 title('Eclipse')
 grid on; grid minor
+
+figure;
+plot(tt*TU/3600-t0*TU/3600,check_Earth)
+xlabel('t')
+title('No visibility')
+grid on; grid minor
+
+Enceladus_3D(R_Enc/DU,[(1-mu),0,0])
+P1=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'g','linewidth',1.25);
+P2=plot3(state_Halo_dark(1,:),state_Halo_dark(2,:),state_Halo_dark(3,:),'.k','linewidth',1.25);
+grid minor
+legend([P1 P2],'Science orbit','Eclipse part (they happen in different orbits do not panic)')
+
+Enceladus_3D(R_Enc/DU,[(1-mu),0,0])
+P1=plot3(state_vec_Halo(1,:),state_vec_Halo(2,:),state_vec_Halo(3,:),'g','linewidth',1.25);
+P2=plot3(state_Halo_novis(1,:),state_Halo_novis(2,:),state_Halo_novis(3,:),'.k','linewidth',1.25);
+grid minor
+legend([P1 P2],'Science orbit','No Earth in the sky part (they happen in different orbits do not panic)')
+
+
 
 
 % figure

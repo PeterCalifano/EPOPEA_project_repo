@@ -94,10 +94,10 @@ tank_prop.prop_volume = V_prop ;
 tank_prop.prop_tank_radius = r_tank_prop ;
 tank_prop.prop_tank_height = h_tank_prop ;
 tank_prop.prop_tank_thickness = t_tank_prop * 1e3 ; % [mm]
-tank_prop.prop_tank_mass = m_tank_prop ;
+tank_prop.prop_tank_mass = m_tank_prop * 1.2 ; % 20% margin to account for mounting hw and pmd (smad book)
 
 tank_gas.gas_mass = m_gas ;
 tank_gas.gas_volume = V_gas ;
 tank_gas.gas_tank_radius = r_tank_gas ;
 tank_gas.gas_tank_thickness = t_tank_gas * 1e3 ; % [mm]
-tank_gas.gas_tank_mass = m_tank_gas ;
+tank_gas.gas_tank_mass = m_tank_gas * 1.2 ; % 20% margin to account for mounting hw and pmd (smad book)

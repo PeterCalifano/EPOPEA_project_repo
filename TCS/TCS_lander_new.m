@@ -44,7 +44,8 @@ T_Sat = 97;
 k_str = 117;
 % l_str = 0.02;
 l_str = 0.003;
-
+l_str_tot = 10e-3;
+k_honeycomb = 2.036; % sensitivity analysis: 0.852
 % Structure
 % epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
 % epsilon_int = 0.874; % black paint to maximize exchange (you can change it)
@@ -237,30 +238,63 @@ R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
 % Add MLI on surface 3
 R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
 R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
+R.R_2int2ext = sigma_SB * A2 * epsilon_MLI;
+R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
+R.R_5int5ext = sigma_SB * A5_int * epsilon_MLI;
+R.R_6int6ext = sigma_SB * A6 * epsilon_MLI;
+
+
+C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
+C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
+C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
+C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
+C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
+C.C_6int6ext = k_honeycomb*(A6/(l_str_tot));
 
 % Conductive Coupling
-C.C_12 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
-C.C_13 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
-C.C_14 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
-C.C_15 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
+% Conductive Coupling
+nc = 100;
+C1 = k_str*l_str*L1/(L2/2);
+C2 = k_str*l_str*L1/(L3/2);
+C_cont = nc*A1;
+C.C_12 = (1/C1 + 1/C2 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C3 = k_str*l_str*L2/(L3/2);
+C_cont = nc*A3;
+C.C_13 = (1/C1 + 1/C3 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L1/(L2/2);
+C4 = k_str*l_str*L1/(L3/2);
+C_cont = nc*A4;
+C.C_14 = (1/C1 + 1/C4 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C5 = k_str*l_str*L2/(L3/2);
+C_cont = nc*A5_int;
+C.C_15 = (1/C1 + 1/C5 + 1/C_cont)^(-1);
 C.C_16 = 0;
-
-C.C_23 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
-C.C_25 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
+C2 = k_str*l_str*L3/(L1/2);
+C3 = k_str*l_str*L3/(L2/2);
+C_cont = nc*A3;
+C.C_23 = (1/C2 + 1/C3 + 1/C_cont)^(-1);
+C2 = k_str*l_str*L3/(L1/2);
+C5 = k_str*l_str*L3/(L2/2);
+C_cont = nc*A5_int;
+C.C_25 = (1/C2 + 1/C5 + 1/C_cont)^(-1);
 C.C_24 = 0;
 C.C_26 = C.C_12;
 C.C_34 = C.C_23;
 C.C_35 = 0;
 C.C_36 = C.C_13;
+C.C_36 = 0; %%%%%%%%%%%%%%%%%%%%
 C.C_45 = C.C_34;
 C.C_46 = C.C_14;
 C.C_56 = C.C_13;
-C.C_18 = k_str*l_str*L2*(+1/(L3/2));
+
+C.C_18 = (1/(k_str*l_str*L1*(+1/(L3/2))) + 1/(nc*l_str*L1))^(-1);
 C.C_28 = 0;
-C.C_38 = k_str*l_str*L2*(+1/(L3/2));
-C.C_48 = k_str*l_str*L2*(+1/(L3/2));
-C.C_58 = k_str*l_str*L2*(+1/(L3/2));
-C.C_68 = k_str*l_str*L2*(+1/(L3/2));
+C.C_38 = (1/(k_str*l_str*L3*(+1/(L1/2))) + 1/(nc*l_str*L3))^(-1);
+C.C_48 = 0;
+C.C_58 = (1/(k_str*l_str*L3*(+1/(L1/2))) + 1/(nc*l_str*L3))^(-1);
+C.C_68 = C.C_18;
 % to tune:
 R_HP_min = 0.04;
 R_HP_max = 0.76;
@@ -276,9 +310,9 @@ C.C_8rad = 0;
 % C.C_5rad = C.C_5rad + 4*C_HP_max;
 C.C_8rad = 1*C_TS;
 C.C_2rad = 1*C_TS;
+C.C_3rad = 1*C_TS;
 
 l_str_tot = 20e-3; % do sensitivity analysis
-k_honeycomb = 1.59; % do sensitivity analysis
 C.C_5rad = k_honeycomb*(A_rad_tot/(l_str_tot));
 % C.C_6rad = 2*C_TS;
 % C.C_5rad = C.C_5rad + 4*C_HP_max;
@@ -345,9 +379,10 @@ Q_diss_hot(5) =  Q_hot/2;
 Q_diss_hot(2) =  Q_hot/2;
 %%% SOLVE THE SYSTEM 
 Clamped = 1;
-T_guess = 273*ones(10,1);
+T_guess = 273*ones(14,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_land_hot = fsolve(@(T) HeatBalance_Lander_new(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
+
 
 fprintf(['1 ',num2str(T_land_hot(1)-273),' Celsius\n'])
 fprintf(['2 ',num2str(T_land_hot(2)-273),' Celsius\n'])
@@ -357,7 +392,7 @@ fprintf(['5 ',num2str(T_land_hot(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_land_hot(6)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_land_hot(7)-273),' Celsius\n'])
 fprintf(['8 ',num2str(T_land_hot(8)-273),' Celsius\n'])
-% add mass and specific heat for transient
+
 
 %% Cold case
 % Power
@@ -388,7 +423,7 @@ theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
 cold_case = 1; % orbit / during landing
-% cold_case = 2; % on ground
+cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 C.C_8rad = 0;
 C.C_2rad = 0*C_TS;
@@ -397,7 +432,7 @@ switch cold_case
     theta_6Sat = 0; % CHANGE!
     Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI * cos(theta_3Enc);
     Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat); 
-    Clamped = 0;
+    Clamped = 1;
     switch Clamped
         case 0
             % close louvers and compute again thermal couplings
@@ -417,7 +452,7 @@ switch cold_case
             Q_diss_cold(5) = 144 + Q_shunt; % SAFE --> to change
     end
     case 2
-        perc_open_rad = 1/n_rad; % percentage of open radiators
+        perc_open_rad = 2.1/n_rad; % percentage of open radiators
         eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
         % eps_rad = eps_louv_closed;
         % radiative coupling
@@ -436,7 +471,7 @@ switch cold_case
 end
 
 %%% SOLVE THE SYSTEM 
-T_guess = 273*ones(10,1);
+T_guess = 273*ones(14,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_land_cold = fsolve(@(T) HeatBalance_Lander_new(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
 

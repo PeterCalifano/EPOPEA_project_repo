@@ -52,6 +52,16 @@ Re = par(5);
 step_st = length(state_i_rot);           % 7: rr,vv,m
 step_var = step_st+4;                % 11: rr,vv,m,u,ax,ay,az
 
+% constraint on control: if between 0 and lower limit --> put 0
+limit = par(9);
+for k=1:N
+    var_k = var(step_var*(k-1)+1:step_var*k);
+    control = var_k(step_st+1);
+    if control > 0 && control < limit
+        var_k(step_st+1) = limit;
+    end
+end
+
 % Non-linear equality constraints
 % Initialization
 vec_def = zeros(step_st*(N-1),1);

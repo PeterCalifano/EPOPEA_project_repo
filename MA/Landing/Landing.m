@@ -6,24 +6,28 @@ set(0,'defaultAxesFontSize', 16)
 
 %%
 clearvars;  
+close all;
 clc 
 
 n_T = 4; % number of thrusters.  try with 3 thrusters
 % step1: vehicle par (TO CHANGE!!!)
-Tmax = n_T*220e-3; %[kN] Maximum Thrust  !!!!! 4* 
-Isp = 229; %[s] Specific Impulse
+% Tmax = n_T*220e-3; %[kN] Maximum Thrust  !!!!! 4* 
+% Isp = 229; %[s] Specific Impulse
+Tmax = n_T*143e-3; %[kN] Maximum Thrust  !!!!! 4* 
+Isp = 228; %[s] Specific Impulse
 g0 = 9.81*1e-3; %[km/s^2] acceleration constant
+minimum = 51;
 
 % NEW MASS:
 m_dry_lander =508; % [kg]
-m_prop_HA = 80; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
+m_prop = 102.2; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
+% m_prop_HA = 0.8*m_prop; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
+m_prop_HA = 30; % [kg] mass of propellant for hazard avoidance. NOTE: HYP
 m_dry = m_dry_lander + m_prop_HA; % NOTE: improper use of name "dry mass": 
 % it is the lower bound for the mass of the lander. 
 % We cannot use the propellant dedicated to hazard avoidance maneouvre to land
-m_prop = 102.2; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
+
 m0 = m_dry+ m_prop; % [kg] WET MASS: initial mass of landing trajectory
-% m_prop = 252; % [kg] NOTE: estimated mass of propellant from PS, can be iterated
-% m0 = m_dry_lander + m_prop; % [kg] WET MASS: initial mass of landing trajectory
 
 % Enceladus par
 Re = 251.1; %[km] mean radius of Enceladus
@@ -48,6 +52,7 @@ m_dry = m_dry/MM;
 Re = Re/DU;
 mu = mu/GM;
 we = we*TU;
+limit = minimum/(Tmax*FU*1e3);
 
 % organize par 
 par(1) = Tmax;
@@ -57,11 +62,12 @@ par(4) = mu;
 par(5) = Re;
 par(6) = mass_ratio;
 par(7) = we;
+par(9) = limit;    %%%%%%%%%%% 9 NOT 8 %%%%%%% PAR(8) DEFINED at 162
 
-N = 50;
+N = 80;
 
 % INITIAL ORBIT : circular, polar (TO CHANGE!!)
-initial = 3;
+initial = 2;
 switch initial
     case 1
         h = 60/DU;
@@ -324,6 +330,7 @@ T_evol = zeros(1,N);
 for k = 1:N
     T_evol(k) = control(k)*(Tmax*FU)*1e3;    %[N]
 end
+Thrust_ill = find(T_evol > 1 & T_evol < minimum);
 
 %%%%% Final Velocity %%%%%
 vv_fin = x_final(end-9:end-7)*VU;
@@ -371,8 +378,12 @@ g0_dim = g0*acc;
 dV = Is_dim*g0_dim*log(m0_dim/m_fin);
 
 %%%%% Print Results %%%%%
-fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, v_fin, m_prop, dV);
-
+fprintf('RESULTS:\n\nMinimum thrust: %.4f [N]\nMaximum thrust: %.4f [N]\nFinal velocity: %e [m/s]\nPropellant mass: %.1f [kg]\nDelta V: %f [km/s]', Thrust_min, Thrust_max, v_fin, m_prop, dV);
+if  isempty(Thrust_ill)
+    fprintf('\nTHRUST IN RANGE')
+else
+    fprintf('\nTHRUST NOT IN RANGE')
+end
 
 %% validation and plot for slided
 % propagate initial orbit from t0 to t1

@@ -10,9 +10,9 @@ MC = [3135.6e+6, 3.9e+9, 4.25e+9, 1.49e+9, 1.16e+9, 420e+6, 199e+6];
 % Launch mass
 LM = [6610, 5863, 6065, 3000, 2110, 670, 385];
 
-M_epo = 10407;
+M_epo = 12407;
 % Plot
-c = polyfit(LM,MC,2); xfit = linspace(380,11000,1000);
+c = polyfit(LM,MC,2); xfit = linspace(380,15000,1000);
 yfit = polyval(c,xfit); cost_epo = polyval(c,M_epo);
 
 C = {'Orbilander','Cassini','Europa Clipper','Rosetta','Osiris-REX',...
@@ -36,6 +36,7 @@ scatter(M_epo,cost_epo/10^9,40,'o','k','LineWidth',1.5,...
 hold on;
 plot(xfit,yfit/10^9,'LineWidth',1.5,'Color',"#D95319",'DisplayName',...
     'Fitting curve'); grid on;
+labelpoints(M_epo,cost_epo/10^9,'EPOPEA','SE',0.2,1)
 xlabel('Launch mass [kg]'); ylabel('Mission cost [B$]');
 title('Fitting curve Mass-Cost for past missions')
 

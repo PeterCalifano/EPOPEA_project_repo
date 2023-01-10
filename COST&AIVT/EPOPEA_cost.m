@@ -24,20 +24,20 @@ PL_cost = PL_cost*2;       % [$], FY 2025
 % SUBSYSTEMS cost [FY 2010]
 
 % Sampling orbiter
-MO_stm = 1331.4 + 114.4; % Structure + thermal control mass [kg]
+MO_stm = 2183.4 + 140.4; % Structure + thermal control mass [kg]
 MO_adcs = 51.9; % ADCS mass [kg]
 MO_eps = 153.2; % EPS mass [kg]
-MO_rcs = 765600+255200; % Volume of the tank only for secondary prop. [cm3]
-MO_me = 4.9; t_me_O = 35782; % Main engine mass and firing time [kg],[s]
+MO_rcs = 779300+259800; % Volume of the tank only for secondary prop. [cm3]
+MO_me = 4.9; t_me_O = 36284; % Main engine mass and firing time [kg],[s]
 MO_tmtc = 145.1; % Communication system mass [kg]
 % Sampling lander
-ML_stm = 81+51.2; % Structure + thermal control mass [kg]
+ML_stm = 106.6+51.0; % Structure + thermal control mass [kg]
 ML_adcs = 20; % ADCS mass [kg]
-ML_eps = 121.1; % EPS mass [kg]
-ML_rcs = 8400; % Volume of the tank only for secondary prop. [cm3]
+ML_eps = 115.6; % EPS mass [kg]
+ML_rcs = 8000; % Volume of the tank only for secondary prop. [cm3]
 ML_tmtc = 32.3; % Communication system mass [kg]
-ML_me = 4.48;  % Main engine mass and firing time [kg],[s]
-t_me_L = 1776.5;
+ML_me = 3.04;  % Main engine mass and firing time [kg],[s]
+t_me_L = 1925;
 
 % Non recurring (development + one qualification unit)
 NR_O_stm = 646*MO_stm^0.684;
@@ -123,6 +123,7 @@ SEE_NR_ps = 0.35;
 SEE_NR_tmtc = 0.38;
 SEE_NR_HW = sqrt(SEE_NR_stm^2+SEE_NR_eps^2+SEE_NR_ps^2+SEE_NR_adcs^2+...
     SEE_NR_tmtc^2);
+SEE_NR_HW = (SEE_NR_stm+SEE_NR_adcs+SEE_NR_eps+SEE_NR_ps+SEE_NR_tmtc)/5;
 
 SEE_R_stm = 0.21;
 SEE_R_adcs = 0.36;
@@ -131,11 +132,15 @@ SEE_R_ps = 0.22;
 SEE_R_tmtc = 0.18;
 SEE_R_HW = sqrt(SEE_R_stm^2+SEE_R_eps^2+SEE_R_ps^2+SEE_R_adcs^2+...
     SEE_R_tmtc^2);
+SEE_R_HW = (SEE_R_stm+SEE_R_adcs+SEE_R_eps+SEE_R_ps+SEE_R_tmtc)/5;
 
 SEE_NR_iat = 0.42; SEE_R_iat = 0.34;
 SEE_iat = sqrt(SEE_NR_iat^2+SEE_R_iat^2);
+SEE_iat = (SEE_NR_iat+SEE_R_iat)/2;
 
 SEE_NR_prog = 0.5; SEE_R_prog = 0.40;
 SEE_prog = sqrt(SEE_NR_prog^2+SEE_R_prog^2);
+SEE_prog = (SEE_NR_prog+SEE_R_prog)/2;
 
 SEE_tot = sqrt(SEE_NR_HW^2+SEE_R_HW^2+SEE_iat^2+SEE_prog^2);
+SEE_tot = (SEE_NR_HW+SEE_R_HW+SEE_iat+SEE_prog)/4;

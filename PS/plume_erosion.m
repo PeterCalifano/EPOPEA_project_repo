@@ -225,7 +225,7 @@ v_profile = [-0.007988147680938865	-0.11986869004426229	-0.07409176854309067;
 -0.0049577738594667	0.010380376398286975	-0.025809423902661093;
 -2.3149662714979196E-4	4.962667798053581E-4	-8.367963236296999E-4]*1e3;
 
-h_vect = linspace( 2, 50, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
+h_vect = linspace( 1, 30, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
 
 t_landing = linspace( 0, 2000, length(v_profile) ) ; 
 
@@ -247,15 +247,15 @@ for k = 1 : length( h_vect )
 
     r = h * tan( deg2rad( 30 ) ) ; % radius of the cone
 
-    m_fluence_prova(k) = 220 / ( Isp * g0 * pi * h * v * tan( 30 ) ^ 2 ) ; % mass fluence for each thruster
+    m_fluence_new(k) = 4 * 220 / ( Isp * g0 * pi * h * v * tan( 30 ) ^ 2 ) ; % mass fluence for each thruster
 
 end
 
 m_fluence = m_fluence * 1e6 ; % [ mg/ m ^ 2 ]
-m_fluence_prova = m_fluence_prova * 1e6 ;
+m_fluence_new = m_fluence_new * 1e6 ;
 scale = 0.1 ; % Scaling factor (account for percentage of ammonia in thruster plume) - from literature (Phoenix lander)
 
-% Plot the mass fluence as function of cutoff height
+% Plot the mass fluence as function of cutoff height (old method)
 figure()
 plot( h_vect, m_fluence, 'Linewidth', 2 )
 hold, grid on
@@ -264,10 +264,20 @@ xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 title( 'Exhaust plume deposition' )
 legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
+% Plot the mass fluence as function of cutoff height (new method)
+figure()
+plot( h_vect, m_fluence_new, 'Linewidth', 2 )
+hold, grid on
+plot( h_vect, m_fluence_new * scale, 'Linewidth', 2 )
+xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
+title( 'Exhaust plume deposition' )
+legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
+
+% Plot - comparison of different methods
 figure()
 plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
 hold on, grid on
-plot( h_vect, 4 * m_fluence_prova * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
+plot( h_vect, m_fluence_new * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
 xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 title( 'Exhaust plume deposition' )
 legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
@@ -319,6 +329,4 @@ legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
 % xlabel( 'Descent velocity [m/s]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 % title( '$NH_3$ deposition' )
 % legend( '$h=50 \ m$', '$h=30 \ m$', '$h=15 \ m$', '$h=2 \ m$', 'location', 'best' )
-
-%% Compute contaminated area - assume to be a circle around the sc
 

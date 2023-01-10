@@ -46,15 +46,15 @@ q_Earth = F_earth * sigma_SB * T_earth^4 * epsilon_Earth;
 %%% Spacecraft %%%
 
 % Area
-% L1 = 3.8;
-% L2 = 4.51;
-% L3 = 2.7;
-
-% OLD = 
 L1 = 3.8;
 L2 = 4.51;
 L3 = 2.7;
 
+% OLD = 
+% L1 = 3.8;
+% L2 = 4.51;
+% L3 = 2.7;
+nc = 100;
 
 
 A1 = L1*L2;
@@ -75,6 +75,8 @@ k_str = 117;
 % l_str = 0.002; 
 l_str = 0.002; % HYP : skin thickness of 5 mm
 
+l_str_tot = 10e-3;
+k_honeycomb = 2.036; % sensitivity analysis: 0.852
 % Structure
 % epsilon_int = 0.23; %%%%%%%%%%????????????????' aluminum ???????? -> to change, sentitivity analysis
 % epsilon_int = 0.874; % black paint to maximize exchange (you can change it)
@@ -85,11 +87,13 @@ epsilon_1 = 0.874;
 epsilon_2 = 0.874; 
 epsilon_3 = 0.874; 
 epsilon_4 = 0.874;
+epsilon_15 = 0.874; 
 % epsilon_5 = 0.034;
-epsilon_6 = 0.034;
+% epsilon_6 = 0.034;
+% epsilon_15 = 0.034;
 % epsilon_1 = 0.034;
 % epsilon_2 = 0.034;
-% epsilon_3 = 0.034;
+epsilon_3 = 0.034;
 % epsilon_4 = 0.034;
 % epsilon_MLI = 0.03;
 epsilon_MLI = 0.02; %%%%%%%%%%%%%%%%%%%%%%
@@ -259,18 +263,19 @@ Q_shunt = We - Q_hot; % check if a shunt can dissipate this power
 % F51 = F15*A1/A5;
 % F16 = VF_ParallelEqualRec(L3,L1,L2);
 % F61 = F16;
+H15 = 2600e-3;
 
-F12 = 1;
-F21 = F12*A1/A2;
-F13 = 0;
-F31 = 0;
-F14 = 0;
-F41 = 0;
-F15 = 0;
-F51 = 0;
-F16 = 0;
-F61 = 0;
-
+F12 = 1*H15/L2;
+F21 = VF_PerpRec(L2,L3,L1);
+F13 = VF_PerpRec(L3,L1,L2-H15);
+F31 = F13*(L2-H15)/L3;
+F14 = VF_PerpRec(L3,L2-H15,L1);
+F41 = F14*(L2-H15)/L3;
+F15 = F13;
+F51 = F31;
+F16 = VF_ParallelEqualRec(L3,L1,L2-H15);
+F61 = F16;
+F115 = VF_PerpRec(L3,L2-H15,L1);
 % Surface 2 
 % F23 = VF_PerpRec(L2,L3,L1);
 % F32 = F23*A2/A3;
@@ -284,15 +289,20 @@ F61 = 0;
 % F52 = F25*A2/A5;
 % F26 = VF_PerpRec(L2,L3,L1);
 % F62 = F26*A2/A6;
-F32 = 1;
-F23 = F32*A3/A2;
-F42 = 1;
-F24 = F42*A4/A2;
-F62 = 1;
-F26 = F62*A6_int/A2;
-F52 = 1;
+F32 = 1*H15/L2;
+F23 = VF_PerpRec(L2,L1,L3);
+F215 = VF_ParallelEqualRec(H15,L1,L3);
+F315 = VF_PerpRec(L1,L2-H15,L3);
+F42 = 0;
+F415 = VF_ParallelEqualRec(L2-H15,L1,L3);
+F515 = F315;
+F615 = F115;
+F24 = 0;
+F62 = F12;
+F26 = F21;
+F52 = F32;
 Frad2 = 0;
-F25 = F52*A5_int/A2;
+F25 = F23;
 F2rad = 0;
 
 % Surface 3
@@ -306,16 +316,16 @@ F2rad = 0;
 % F53 = F35*A3/A5;
 % F36 = F31;
 % F63 = F13;
-F34 = 0;
-F43 = 0;
-F35_tot = 0;
-F53_tot = 0;
+F34 = VF_PerpRec(L1,L2-H15,L3);
+F43 = F34*(L2-H15)/L1;
+F35_tot =  VF_ParallelEqualRec(L1,H15,L3);
+F53_tot = F35_tot;
 F3rad = 0;
 Frad3 = 0; 
-F35 = 0;
-F53 = 0;
-F36 = 0;
-F63 = 0;
+F35 =  VF_ParallelEqualRec(L1,H15,L3);
+F53 = F35_tot;
+F36 = F31;
+F63 = F13;
 
 % Surface 4
 % F45_tot = F43;
@@ -331,10 +341,10 @@ F45_tot = 0;
 F54_tot = 0;
 F4rad = 0;
 Frad4 = 0; 
-F45 = 0;
-F54 = 0;
-F46 = 0; 
-F64 = 0;
+F45 = F43;
+F54 = F34;
+F46 = F41;
+F64 = F14;
 
 % Surface 6
 % F65_tot = F63;
@@ -359,7 +369,8 @@ R.R_14 = sigma_SB * A1 * epsilon_1*epsilon_4 * F14;
 R.R_15 = sigma_SB * A1 * epsilon_1*epsilon_5 * F15;
 R.R_16 = sigma_SB * A1 * epsilon_1*epsilon_6 * F16;
 R.R_23 = sigma_SB * A2 * epsilon_2*epsilon_3 * F23;
-R.R_24 = sigma_SB * A2 * epsilon_2*epsilon_4 * F24;
+% R.R_24 = sigma_SB * A2 * epsilon_2*epsilon_4 * F24;
+R.R_24 = 0;
 R.R_25 = sigma_SB * A2 * epsilon_2*epsilon_5 * F25;
 R.R_26 = sigma_SB * A2 * epsilon_2*epsilon_6 * F26;
 R.R_rad3 = 0; % ?
@@ -373,6 +384,22 @@ R.R_36 = sigma_SB * A3 * epsilon_3*epsilon_6 * F36;
 R.R_45 = sigma_SB * A4 * epsilon_4*epsilon_5 * F45;
 R.R_46 = sigma_SB * A4 * epsilon_4*epsilon_6 * F46;
 R.R_56 = sigma_SB * A5_int * epsilon_5*epsilon_6 * F56;
+
+R.R_115 = sigma_SB * A1 * epsilon_1*epsilon_15 * F115;
+R.R_215 = sigma_SB * A2 * epsilon_2*epsilon_15 * F215;
+R.R_315= sigma_SB * A3 * epsilon_3*epsilon_15 * F315;
+R.R_415= sigma_SB * A4 * epsilon_4*epsilon_15 * F415;
+R.R_515= sigma_SB * A5_int * epsilon_5*epsilon_15 * F515;
+R.R_615= sigma_SB * A6_int * epsilon_6*epsilon_15 * F615;
+
+C.C_115 =( 1/(k_str*l_str*L1*(+1/(L3/2))) + 1/(nc*l_str*L1))^(-1);
+C.C_215 = 0;
+C.C_315 = (1/(k_str*l_str*L3*(+1/(L1/2)))+ 1/(nc*l_str*L3))^(-1);
+
+C.C_315 = 0;
+C.C_415  = 0;
+C.C_515  = C.C_315 ;
+C.C_615 = C.C_115;
 
 
 R.R_1ant = sigma_SB * (A1-A1_ext) * epsilon_MLI; % ????? not sure about this. also conduction. and not only MLI
@@ -390,7 +417,7 @@ R.R_60 = sigma_SB * A6_ext * epsilon_MLI;
 % R.R_60 = sigma_SB * (A6) * epsilon_MLI;
 R.R_ant0 = sigma_SB * A_ant * epsilon_ant;
 R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
-
+R.R_rad15 = 0;
 % Add MLI on surface 3, 2, 6 
 R.R_6int6ext = sigma_SB * A6_ext * epsilon_MLI;
 R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
@@ -399,14 +426,41 @@ R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
 R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
 R.R_5int5ext = sigma_SB * A5_ext * epsilon_MLI;
 
+% Conduction normal to honeycomb panel
+C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
+C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
+C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
+C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
+C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
+C.C_6int6ext = k_honeycomb*(A6_ext/(l_str_tot));
+
 % Conductive Coupling
-C.C_12 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
-C.C_13 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
-C.C_14 = k_str*l_str*L1*(1/(L2/2)+1/(L3/2));
-C.C_15 = k_str*l_str*L2*(1/(L1/2)+1/(L3/2));
+nc = 100;
+C1 = k_str*l_str*L1/(L2/2);
+C2 = k_str*l_str*L1/(L3/2);
+C_cont = nc*l_str*L1;
+C.C_12 = (1/C1 + 1/C2 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C3 = k_str*l_str*L2/(L3/2);
+C_cont = nc*l_str*L2;
+C.C_13 = (1/C1 + 1/C3 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L1/(L2/2);
+C4 = k_str*l_str*L1/(L3/2);
+C_cont = nc*l_str*L1;
+C.C_14 = (1/C1 + 1/C4 + 1/C_cont)^(-1);
+C1 = k_str*l_str*L2/(L1/2);
+C5 = k_str*l_str*L2/(L3/2);
+C_cont = nc*l_str*L2;
+C.C_15 = (1/C1 + 1/C5 + 1/C_cont)^(-1);
 C.C_16 = 0;
-C.C_23 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
-C.C_25 = k_str*l_str*L3*(1/(L1/2)+1/(L2/2));
+C2 = k_str*l_str*L3/(L1/2);
+C3 = k_str*l_str*L3/(L2/2);
+C_cont = nc*l_str*L3;
+C.C_23 = (1/C2 + 1/C3 + 1/C_cont)^(-1);
+C2 = k_str*l_str*L3/(L1/2);
+C5 = k_str*l_str*L3/(L2/2);
+C_cont = nc*l_str*L3;
+C.C_25 = (1/C2 + 1/C5 + 1/C_cont)^(-1);
 C.C_24 = 0;
 C.C_26 = C.C_12;
 C.C_34 = C.C_23;
@@ -418,10 +472,9 @@ C.C_46 = C.C_14;
 C.C_56 = C.C_13;
 
 l_str_tot = 20e-3;
-k_honeycomb = 1.59; % do sensitivity analysis
 C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
 C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
-
+C.C_15rad = 20;
 % sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
 C.C_5rad = 500;
 C.C_6rad = 40;
@@ -497,12 +550,12 @@ T0 = 293;
 
 % solve
 %%% Internal dissipation power
-Q_diss_hot = zeros(8,1);
-Q_diss_hot(5) =  Q_hot/2;
+Q_diss_hot = zeros(15,1);
+Q_diss_hot(15) =  Q_hot/2;
 Q_diss_hot(6) = Q_hot/2;
 %%% SOLVE THE SYSTEM 
 Clamped = 1;
-T_guess = 273*ones(14,1);
+T_guess = 273*ones(15,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_orb_hot = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_hot , Q_diss_hot, Clamped), T_guess, options);
 
@@ -514,6 +567,7 @@ fprintf(['5 ',num2str(T_orb_hot(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_orb_hot(6)-273),' Celsius\n'])
 fprintf(['ant ',num2str(T_orb_hot(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_hot(8)-273),' Celsius\n'])
+fprintf(['15',num2str(T_orb_hot(15)-273),' Celsius\n'])
 
 % add mass and specific heat for transient
 
@@ -536,10 +590,11 @@ eps_rad = eps_louv_closed;
 % radiative coupling
 
 R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-% C.C_6rad = 0; % ? sensitivity analysis
-% C.C_5rad = 0; % ? sensitivity analysis
+C.C_6rad = 1.5; % ? sensitivity analysis
+C.C_5rad = 0; % ? sensitivity analysis
 % C.C_13 = C.C_13 + 30;
-C.C_3rad = 0;
+C.C_3rad = 5;
+C.C_15rad = 2;
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
 q_Sat = F_sat*sigma_SB*T_Sat^4*epsilon_sat;
@@ -572,26 +627,26 @@ P_added_6 = 230;
 P_VRHU_6 = 0; % for batteries
 P_VRHU_3 = 0; % for internal PL
 perc = 0.7;
-Q_diss_cold = zeros(8,1);
+Q_diss_cold = zeros(15,1);
 Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
 Q_diss_cold(3) = P_VRHU_3;
-Q_diss_cold(5) = We_av*(1-perc);
+Q_diss_cold(15) = We_av*(1-perc);
 else 
     if Clamped == 1
         P_added_6 = 225; % from RTG (look Cassini Reference)
         P_VRHU_6 = 0; % for batteries
         P_VRHU_3 = 0; % for internal PL
-        perc = 0.7;
-        Q_diss_cold = zeros(8,1);
+        perc = 0;
+        Q_diss_cold = zeros(15,1);
         Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
         Q_diss_cold(3) = P_VRHU_3;
-        Q_diss_cold(5) = We_av*(1-perc);
+        Q_diss_cold(15) = We_av*(1-perc);
     end
 end
 theta_Sun_enc = deg2rad(1); % Ask Antoine: min angle Sun-Earth during communications
 Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant*cos(theta_Sun_enc);
 
-T_guess = 273*ones(14,1);
+T_guess = 273*ones(15,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
 T_orb_cold = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
 
@@ -603,6 +658,7 @@ fprintf(['5 ',num2str(T_orb_cold(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_orb_cold(6)-273),' Celsius\n'])
 fprintf(['ant ',num2str(T_orb_cold(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
+fprintf(['15 ',num2str(T_orb_cold(15)-273),' Celsius\n'])
 
 % Conduction between surfaces
 % To do:

@@ -225,7 +225,7 @@ v_profile = [-0.007988147680938865	-0.11986869004426229	-0.07409176854309067;
 -0.0049577738594667	0.010380376398286975	-0.025809423902661093;
 -2.3149662714979196E-4	4.962667798053581E-4	-8.367963236296999E-4]*1e3;
 
-h_vect = linspace( 1, 30, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
+h_vect = linspace( 2, 30, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
 
 t_landing = linspace( 0, 2000, length(v_profile) ) ; 
 
@@ -255,14 +255,14 @@ m_fluence = m_fluence * 1e6 ; % [ mg/ m ^ 2 ]
 m_fluence_new = m_fluence_new * 1e6 ;
 scale = 0.1 ; % Scaling factor (account for percentage of ammonia in thruster plume) - from literature (Phoenix lander)
 
-% Plot the mass fluence as function of cutoff height (old method)
-figure()
-plot( h_vect, m_fluence, 'Linewidth', 2 )
-hold, grid on
-plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
-xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
-title( 'Exhaust plume deposition' )
-legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
+% % Plot the mass fluence as function of cutoff height (old method)
+% figure()
+% plot( h_vect, m_fluence, 'Linewidth', 2 )
+% hold, grid on
+% plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
+% xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
+% title( 'Exhaust plume deposition' )
+% legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
 % Plot the mass fluence as function of cutoff height (new method)
 figure()
@@ -273,14 +273,14 @@ xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 title( 'Exhaust plume deposition' )
 legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
-% Plot - comparison of different methods
-figure()
-plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
-hold on, grid on
-plot( h_vect, m_fluence_new * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
-xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
-title( 'Exhaust plume deposition' )
-legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
+% % Plot - comparison of different methods
+% figure()
+% plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
+% hold on, grid on
+% plot( h_vect, m_fluence_new * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
+% xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
+% title( 'Exhaust plume deposition' )
+% legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
 
 % %% Plot if we consider the actual variation of the velocity during landing phase and fixed cut-off altitude
 % h = 20 ;

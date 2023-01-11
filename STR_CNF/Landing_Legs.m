@@ -7,7 +7,7 @@ g_Enc=0.113; %[m/s^2] Enceladus gravitational acceleration
 g_Earth=9.81; %[m/s] earth acceleration
 
 
-M=462.4; %[kg] - lander mass
+M=519.2; %[kg] - lander mass
 E= 71*10^9; %[Pa] - Young Modulus of the chosen material (Al5056)
 rho=2640; %[kg/m^3] - Density of the material
 n=4; %Number of legs

@@ -73,14 +73,14 @@ Q_WAC = A_WAC*sigma_SB*T_WAC^4*eps_WAC;
 % TES
 eps_TES = 0.034; % aluminum (ASMAD)
 l1 = 130e-3; l2 = 180e-3; l3 = 180e-3;
-A_TES = l1*l2 + 2*l2*l3 + 2*l1*l3;
+A_TES = 23400e-6;
 T_TES = 10 + 15 + 273.15;
 Q_e_TES = A_TES*sigma_SB*T_TES^4*eps_TES; % heat needed to warm up TES
 
 % Laser altimeter
 l1 = 600e-3;
 l2 =  400e-3; l3 = 250e-3;
-A_LA = l2*l3 + 2*l1*l3 + 2*l1*l2;
+A_LA = 100000e-6;
 eps_LA = 0.034; % aluminum (ASMAD)
 T_LA = - 20 + 15 + 273.15;
 Q_LA = A_LA*sigma_SB*T_LA^4*eps_LA;
@@ -93,5 +93,55 @@ Q_RS = A_RS*sigma_SB*T_RS^4*eps_RS;
 
 % compute radiators area for p/l
 
-
 %% compute conductive coupling with the internal node
+% COLD
+% temperature of external p/l: face 3
+% NAC
+L2 = 4.51;
+L3 = 2.7; A3 = L3*L2;
+A_NAC_hot = pi*(150e-3/2)^2 ;
+Q_3int3_ext_NAC = 43.4060*A_NAC_hot/A3;
+T3_cold = 281.6041;
+C.C_3int3ext =  2.479237200000000e+03;
+T3_ext_cold = T3_cold - Q_3int3_ext_NAC/ C.C_3int3ext;
+T_NAC_try = (Q_3int3_ext_NAC/eps_NAC/(A_NAC*sigma_SB))^(1/4);
+Q_NAC = Q_NAC - Q_3int3_ext_NAC;
+
+% % WAC
+L2 = 4.51;
+L3 = 2.7; A3 = L3*L2;
+A_WAC_hot = pi*(600e-3/2)^2 ;
+Q_3int3_ext_WAC = 43.4060*A_WAC_hot/A3;
+T3_cold = 281.6041;
+C.C_3int3ext =  2.479237200000000e+03;
+T3_ext_cold = T3_cold - Q_3int3_ext_WAC/ C.C_3int3ext;
+T_WAC_try = (Q_3int3_ext_WAC/eps_WAC/(A_WAC*sigma_SB))^(1/4);
+Q_WAC = Q_WAC - Q_3int3_ext_WAC;
+
+% TES
+L2 = 4.51;
+L3 = 2.7; A3 = L3*L2;
+A_TES_hot = 23400e-6 ;
+Q_3int3_ext_TES = 43.4060*A_TES_hot/A3;
+T3_cold = 281.6041;
+C.C_3int3ext =  2.479237200000000e+03;
+T3_ext_cold = T3_cold - Q_3int3_ext_TES/ C.C_3int3ext;
+T_TES_try = (Q_3int3_ext_TES/eps_TES/(A_TES*sigma_SB))^(1/4);
+Q_TES = Q_e_TES - Q_3int3_ext_TES;
+
+% laser altimeter
+Q_3int3_ext_LA = 43.4060*A_LA/A3;
+T3_cold = 281.6041;
+C.C_3int3ext =  2.479237200000000e+03;
+T3_ext_cold = T3_cold - Q_3int3_ext_LA/ C.C_3int3ext;
+T_LA_try = (Q_3int3_ext_LA/eps_LA/(A_LA*sigma_SB))^(1/4);
+Q_LA = Q_LA - Q_3int3_ext_LA;
+
+Q_pl_tot = Q_NAC + Q_WAC + Q_TES + Q_RS + Q_LA;
+%%
+T3_ext_cold - 273.15
+% hot
+Q_3int3_ext_hot = -232.3214;
+T3_hot =  292.3265 ;
+T3_ext_hot = T3_hot - Q_3int3_ext_hot/ C.C_3int3ext;
+T3_ext_hot - 273.15

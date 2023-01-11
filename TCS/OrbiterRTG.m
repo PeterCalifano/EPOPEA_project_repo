@@ -43,6 +43,8 @@ q_Sun = q_sun_earth;
 q_alb = q_Sun * F_earth * a_earth;
 q_Earth = F_earth * sigma_SB * T_earth^4 * epsilon_Earth;
 
+q_alb_enc = q_sun_enc * F_enc_min * a_enc;
+q_alb_sat = q_sun_enc * F_sat * a_sat;
 %%% Spacecraft %%%
 
 % Area
@@ -125,8 +127,8 @@ alpha_louv_closed = 0.062;
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 *536*397e-6; % area one radiator.
 % SENER LOUVER: 0.2128 m^2. consider also the structure... ok 0.2m^2
-n_rad_5 = 15; %% can be changed
-n_rad_6 = 10;
+n_rad_5 = 0; %% can be changed
+n_rad_6 = 12;
 A_rad_tot_5 = A_rad_one*n_rad_5;% total area of radiators
 A_rad_tot_6 = A_rad_one*n_rad_6;
 A5_ext = A5_tot-A_rad_tot_5; % area on surface 5 not covered by radiators
@@ -235,7 +237,7 @@ Q_pl_budget = Q_NAC + Q_WAC + Q_TES + Q_LA;
 A6_ext = A6_ext - A_rad_pl_tot;
 %%
 % Power
-P_budget_hot = 347.56;
+P_budget_hot = 343.56;
 P_input_TMTC_h = 29.93; % ask Antoine %%%%%%%%%%%%%
 P_diss_TMTC_h = 23.96;  % ask Antoine %%%%%%%%%%%%%
 % add batteries ...
@@ -473,13 +475,14 @@ C.C_46 = C.C_14;
 C.C_56 = C.C_13;
 
 l_str_tot = 20e-3;
-C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
-C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
-C.C_15rad = 20;
-% sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
-C.C_5rad = 500;
-C.C_6rad = 40;
-C.C_3rad = 100;
+% C.C_5rad = k_honeycomb*(A_rad_tot_5/(l_str_tot));
+% C.C_6rad = k_honeycomb*(A_rad_tot_6/(l_str_tot));
+% C.C_15rad = 25;
+% % sensitivity analysis !!!!!!!!!!!!!!!!!!!!!!!!!!!
+% C.C_5rad = 10;
+% % C.C_6rad = 30;
+% % C.C_6rad = 0;
+% C.C_3rad = 10;
 
 % to tune:
 % heat pipes from Celsia heat pipes calculator
@@ -490,11 +493,11 @@ C_HP_min = 1/R_HP_max;
 C_TS = 5; % conductive coupling thermal straps from HiPeR Flexlinks AIRBUS
 C.C_1rad = 0;
 C.C_2rad = 0;
-% C.C_3rad = 0;    % to radiators on surface 6
+C.C_3rad = 40;    % to radiators on surface 6
 C.C_4rad = 0;
-% C.C_6rad = 0;
-% C.C_5rad = 0; % HYP: HP both for electronics TMTC, batteries and OBDH
-
+C.C_6rad = 20;
+C.C_5rad = 0; % HYP: HP both for electronics TMTC, batteries and OBDH
+C.C_15rad = 40;
 % Angles with external fluxes
 theta_6Sun = 24.7 * pi/180;
 theta_3Sun = 90 - theta_6Sun;
@@ -505,7 +508,8 @@ Q_ext_hot = zeros(8,1);
 % HOT CASE 3: HGA (1) towards Earth, RTGs (6) towards Sun
 % HOT CASE 4: FIRST FLYBY, PL towards Earth
 % HOT CASE 5: FIRST FLYBY, HGA towards Earth
-hot_case = 4;
+% HOT CASE 6: second FLYBY  PERICENTER, cameras towards Earth, radiators on face 6
+hot_case = 6;
 
 switch hot_case
     case 1
@@ -544,7 +548,15 @@ switch hot_case
         Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_S1) + q_Earth * epsilon_ant * A_ant + q_alb * A_ant * alpha_ant;
         Q_ext_hot(5) = q_Sun * A5_ext * alpha_MLI* cos(theta_S5);
         Q_ext_hot(8) = q_Sun * A_rad_tot_5 * alpha_louv_open* cos(theta_S5);
+    case 6
+        theta_S5 = deg2rad(9);
+        theta_S1 = deg2rad(83.1);
+        Q_ext_hot(1) = q_Sun * A1_ext * alpha_MLI* cos(theta_S1);
+        Q_ext_hot(7) = q_Sun * A_ant * alpha_ant* cos(theta_S1);
+        Q_ext_hot(5) = q_Sun * A5_ext * alpha_MLI* cos(theta_S5);
+        Q_ext_hot(3) = q_Earth * epsilon_MLI * A3 + q_alb * A3 * alpha_MLI;
 end
+
 %% RTG
 T_RTG = 250 + 273.15;
 A_rtg_radiation = 580800e-6;
@@ -580,14 +592,15 @@ end
 % add mass and specific heat for transient
 figure
 surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,3)'-273.15)
+title('T3')
 
 % add mass and specific heat for transient
 figure
 surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,15)'-273.15)
-
+title('T15')
 figure
 surf(R_6RTG,C_6RTG,T_orb_hot_RTG(:,:,2)'-273.15)
-
+title('T2')
 %% Cold case
 % Power
 P_budget_cold = 258; % RW desaturation
@@ -629,50 +642,82 @@ P_VRHU_3 = 0; % for internal PL
 % Q_diss_cold(5) = We_av*(1-perc);
 
 % External fluxes
-theta_3Enc = 0;
-theta_6Sat = 0; % CHANGE!
-Q_ext_cold = zeros(11,1);
-Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) ;
-Q_ext_cold(6) = q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) ;
-Q_ext_cold(8) = q_Sat * A_rad_tot_6 * eps_rad*cos(theta_6Sat);
 
+Q_ext_cold = zeros(11,1);
+% Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) ;
+% Q_ext_cold(6) = q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) ;
+% Q_ext_cold(8) = q_Sat * A_rad_tot_6 * eps_rad*cos(theta_6Sat);
+eclipse = 1; % IN ECLIPSE
+%eclipse = 0; % no eclipse
+switch eclipse
+    case 1
+    theta_3Enc =deg2rad(50);
+    theta_1Enc =deg2rad(40);
+    theta_1Sat = 0; % CHANGE!
+    Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) ;
+    Q_ext_cold(1) = q_Sat * A1_ext * epsilon_MLI*cos(theta_1Sat) + q_Enc * A1_ext * epsilon_MLI*cos(theta_1Enc) ;
+    Q_ext_cold(7) = q_Sat * A_ant * epsilon_ant*cos(theta_1Sat) + q_Enc * A_ant * epsilon_ant*cos(theta_1Enc);
+    case 0
+    theta_3Enc =deg2rad(10);
+    theta_6Enc =deg2rad(80);
+    theta_6Sat = 0; % CHANGE!
+    theta_1Sun = deg2rad(1);
+    Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) + q_alb_enc * A3 * alpha_MLI*cos(theta_3Enc) ;
+    Q_ext_cold(1) = q_sun_enc * A1_ext * alpha_MLI*cos(theta_1Sun) ;
+    Q_ext_cold(7) = q_sun_enc * A_ant * alpha_ant*cos(theta_1Sun);
+    Q_ext_cold(6) = q_Enc * A6_ext * epsilon_MLI*cos(theta_6Enc) + q_alb_enc * A6_ext * alpha_MLI*cos(theta_6Enc) + ...
+        q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) + q_alb_sat * A6_ext * alpha_MLI*cos(theta_6Sat); 
+Q_ext_cold(8) = q_Enc * A_rad_tot_6 * eps_rad*cos(theta_6Enc) + q_alb_enc * A_rad_tot_6 * alpha_louv_closed*cos(theta_6Enc) + ...
+        q_Sat * A_rad_tot_6 * eps_rad*cos(theta_6Sat) + q_alb_sat * A_rad_tot_6 * alpha_louv_closed*cos(theta_6Sat); 
+end
 %%% SOLVE THE SYSTEM 
-Clamped = 1;
+Clamped = 0;
 if Clamped == 0
 % P_added_6 = 150; % from RTG (look Cassini Reference)
-P_added_6 = 230;
+P_added_6 = 0;
+P_added_15 = 130;
 P_VRHU_6 = 0; % for batteries
 P_VRHU_3 = 0; % for internal PL
-perc = 0.7;
+perc = 0;
 Q_diss_cold = zeros(15,1);
 Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
 Q_diss_cold(3) = P_VRHU_3;
-Q_diss_cold(15) = We_av*(1-perc);
+Q_diss_cold(15) = We_av*(1-perc)+ P_added_15;
 else 
     if Clamped == 1
-        P_added_6 = 225; % from RTG (look Cassini Reference)
+        P_added_6 = 0; % from RTG (look Cassini Reference)
         P_VRHU_6 = 0; % for batteries
         P_VRHU_3 = 0; % for internal PL
+        P_added_15 = 130;
         perc = 0;
         Q_diss_cold = zeros(15,1);
         Q_diss_cold(6) = P_added_6 + We_av*perc + P_VRHU_6;
         Q_diss_cold(3) = P_VRHU_3;
-        Q_diss_cold(15) = We_av*(1-perc);
+        Q_diss_cold(15) = We_av*(1-perc) + P_added_15;
     end
 end
-theta_Sun_enc = deg2rad(1); % Ask Antoine: min angle Sun-Earth during communications
-Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant*cos(theta_Sun_enc);
 
+%% solve
 T_guess = 273*ones(15,1);
-options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);
-T_orb_cold = fsolve(@(T) HeatBalance_Orbiter(T, R, C, Q_ext_cold , Q_diss_cold, Clamped), T_guess, options);
+T_orb_cold_RTG = zeros(length(R_6RTG),length(C_6RTG),15);
+for i = 1:length(R_6RTG)
+    R.R_6RTG = R_6RTG(i);
+    for k =1:length(C_6RTG)
+        C.C_6RTG = C_6RTG(k);
+options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+T_orb_cold_RTG(i,k,:) = fsolve(@(T) HeatBalance_OrbiterRTG(T, R, C, Q_ext_cold , Q_diss_cold, Clamped, T_RTG), T_guess, options);
+    end
+end
 
-fprintf(['1 ',num2str(T_orb_cold(1)-273),' Celsius\n'])
-fprintf(['2 ',num2str(T_orb_cold(2)-273),' Celsius\n'])
-fprintf(['3 ',num2str(T_orb_cold(3)-273),' Celsius\n'])
-fprintf(['4 ',num2str(T_orb_cold(4)-273),' Celsius\n'])
-fprintf(['5 ',num2str(T_orb_cold(5)-273),' Celsius\n'])
-fprintf(['6 ',num2str(T_orb_cold(6)-273),' Celsius\n'])
-fprintf(['ant ',num2str(T_orb_cold(7)-273),' Celsius\n'])
-fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
-fprintf(['15 ',num2str(T_orb_cold(15)-273),' Celsius\n'])
+% add mass and specific heat for transient
+figure
+surf(R_6RTG,C_6RTG,T_orb_cold_RTG(:,:,3)'-273.15)
+title('T3')
+
+% add mass and specific heat for transient
+figure
+surf(R_6RTG,C_6RTG,T_orb_cold_RTG(:,:,15)'-273.15)
+title('T15')
+figure
+surf(R_6RTG,C_6RTG,T_orb_cold_RTG(:,:,2)'-273.15)
+title('T2')

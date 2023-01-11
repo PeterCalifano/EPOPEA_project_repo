@@ -583,7 +583,6 @@ fprintf(['15 ',num2str(T_orb_hot(15)-273),' Celsius\n'])
 
 % add mass and specific heat for transient
 
-
 %% Cold case
 % Power
 P_budget_cold = 258; % RW desaturation
@@ -695,6 +694,7 @@ fprintf(['ant ',num2str(T_orb_cold(7)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_orb_cold(8)-273),' Celsius\n'])
 fprintf(['15 ',num2str(T_orb_cold(15)-273),' Celsius\n'])
 
+%%
 % Conduction between surfaces
 % To do:
 % 2) change internal power

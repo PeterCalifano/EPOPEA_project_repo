@@ -44,7 +44,7 @@ stations = {'DSS-14','DSS-43','DSS-63'};
 Earth2Enc = zeros(6,length(et_vec));
 
 for ii = 1:length(et_vec)
-    Earth2Enc(:,ii) = cspice_spkezr('602', et_vec(ii), 'ECLIPJ2000', 'NONE', 'Earth');
+    Earth2Enc(:,ii) = cspice_spkezr('Sun', et_vec(ii), 'ECLIPJ2000', 'NONE', 'Earth');
 end
 
 %% Compute the elevations of Saturn System
@@ -71,8 +71,14 @@ end
 
 %% Plot the elevations for each station
 for id = 1:3
-    figure
-    plot(et_vec/cspice_spd(), elevations(id,:),'b')
+    figure;
+    elevations_nan = nan(length(elevations(id,:)), 1);
+    mask = elevations(id,:) > 5;
+    elevations_nan(mask) = elevations(id, mask);
+
+    plot(et_vec/cspice_spd(), elevations_nan, 'b', 'LineWidth', 1.05)
+    yline(0, '--', 'LineWidth', 1.05);
+    yline(5, '--', {'Mask: 5 deg'}, 'LineWidth', 1.05);
     grid minor
     hold on
     xlabel('Time since SOI [days]')

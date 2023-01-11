@@ -70,13 +70,15 @@ for id = 1:length(stations)
 end
 
 %% Plot the elevations for each station
+colors = turbo(length(stations));
+
 for id = 1:3
     figure;
     elevations_nan = nan(length(elevations(id,:)), 1);
     mask = elevations(id,:) > 5;
     elevations_nan(mask) = elevations(id, mask);
 
-    plot(et_vec/cspice_spd(), elevations_nan, 'b', 'LineWidth', 1.05)
+    plot(et_vec/cspice_spd(), elevations_nan, 'Color', colors(id, :), 'LineWidth', 1.05)
     yline(0, '--', 'LineWidth', 1.05);
     yline(5, '--', {'Mask: 5 deg'}, 'LineWidth', 1.05);
     grid minor

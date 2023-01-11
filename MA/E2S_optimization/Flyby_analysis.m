@@ -71,6 +71,7 @@ Sb_cell = cell(1, howmanyfb);
 SAA_cell = cell(1, howmanyfb);
 RelPos = cell(1, howmanyfb);
 Eclipse_index = cell(1, howmanyfb);
+time = cell(1, howmanyfb);
 for idfb = 1:howmanyfb
     % Determine Planet properties
     switch fbplanets(idfb)
@@ -158,13 +159,13 @@ for idfb = 1:howmanyfb
     i_tran = RelPos{idfb}(:,3);
     i_out = RelPos{idfb}(:,4);
     
-    time = [timegrids{idfb}(1:end); timegrids{idfb}(1:end-1) + timegrids{idfb}(end)];
-    time = time/3600; % hours
+    time{idfb} = [timegrids{idfb}(1:end); timegrids{idfb}(2:end) + timegrids{idfb}(end)];
+    time_plot = time{idfb}/3600; % hours
     figure;
     subplot(2,2,1)
-    plot(time, i_zen, 'b', 'Linewidth', 1.2)
+    plot(time_plot, i_zen, 'b', 'Linewidth', 1.2)
     hold on
-    plot(time(Eclipse_index{idfb}), i_zen(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    plot(time_plot(Eclipse_index{idfb}), i_zen(Eclipse_index{idfb}),  'Linewidth', 1.2)
     legend('$\theta_{Sun/Zenith}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Zenith}\ [deg]$')
     xlabel('$t\ [hours]$')
@@ -172,9 +173,9 @@ for idfb = 1:howmanyfb
     grid on; grid minor
 
     subplot(2,2,2)
-    plot(time, i_out, 'g', 'Linewidth', 1.2)
+    plot(time_plot, i_out, 'g', 'Linewidth', 1.2)
     hold on
-    plot(time(Eclipse_index{idfb}), i_out(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    plot(time_plot(Eclipse_index{idfb}), i_out(Eclipse_index{idfb}),  'Linewidth', 1.2)
     legend('$\theta_{Sun/Out-of-plane}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Out-of-plane}\ [deg]$')
     xlabel('$t\ [hours]$')
@@ -182,9 +183,9 @@ for idfb = 1:howmanyfb
     grid on; grid minor
 
     subplot(2,2,3)
-    plot(time, i_tan, 'g', 'Linewidth', 1.2)
+    plot(time_plot, i_tan, 'g', 'Linewidth', 1.2)
      hold on
-    plot(time(Eclipse_index{idfb}), i_tan(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    plot(time_plot(Eclipse_index{idfb}), i_tan(Eclipse_index{idfb}),  'Linewidth', 1.2)
     legend('$\theta_{Sun/Tan}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Tan}\ [deg]$')
     xlabel('$t\ [hours]$')
@@ -192,9 +193,9 @@ for idfb = 1:howmanyfb
     grid on; grid minor
 
     subplot(2,2,4)
-    plot(time, i_tran, 'g', 'Linewidth', 1.2)
+    plot(time_plot, i_tran, 'g', 'Linewidth', 1.2)
      hold on
-    plot(time(Eclipse_index{idfb}), i_tran(Eclipse_index{idfb}),  'Linewidth', 1.2)
+    plot(time_plot(Eclipse_index{idfb}), i_tran(Eclipse_index{idfb}),  'Linewidth', 1.2)
     legend('$\theta_{Sun/Transv}\ [deg]$','Eclipse')
     ylabel('$\theta_{Sun/Transv}\ [deg]$')
     xlabel('$t\ [hours]$')

@@ -255,14 +255,14 @@ m_fluence = m_fluence * 1e6 ; % [ mg/ m ^ 2 ]
 m_fluence_new = m_fluence_new * 1e6 ;
 scale = 0.1 ; % Scaling factor (account for percentage of ammonia in thruster plume) - from literature (Phoenix lander)
 
-% Plot the mass fluence as function of cutoff height (old method)
-figure()
-plot( h_vect, m_fluence, 'Linewidth', 2 )
-hold, grid on
-plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
-xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
-title( 'Exhaust plume deposition' )
-legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
+% % Plot the mass fluence as function of cutoff height (old method)
+% figure()
+% plot( h_vect, m_fluence, 'Linewidth', 2 )
+% hold, grid on
+% plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
+% xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
+% title( 'Exhaust plume deposition' )
+% legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
 % Plot the mass fluence as function of cutoff height (new method)
 figure()
@@ -273,14 +273,14 @@ xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
 title( 'Exhaust plume deposition' )
 legend( 'Exhaust plume deposition', '$NH_3$ deposition', 'location', 'best' )
 
-% Plot - comparison of different methods
-figure()
-plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
-hold on, grid on
-plot( h_vect, m_fluence_new * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
-xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
-title( 'Exhaust plume deposition' )
-legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
+% % Plot - comparison of different methods
+% figure()
+% plot( h_vect, m_fluence * scale, 'Linewidth', 2 )
+% hold on, grid on
+% plot( h_vect, m_fluence_new * scale, '--', 'Linewidth', 2 ) % mass fluence considering all 4 thrusters
+% xlabel( 'Cutoff height [m]' ), ylabel( 'Mass fluence [$mg/m^2$]' )
+% title( 'Exhaust plume deposition' )
+% legend( '$NH_3$ deposition', 'prova', 'location', 'best' )
 
 % %% Plot if we consider the actual variation of the velocity during landing phase and fixed cut-off altitude
 % h = 20 ;

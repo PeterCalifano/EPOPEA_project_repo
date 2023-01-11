@@ -87,7 +87,7 @@ eps_rad = eps_louv_open; % if open louvers
 alpha_louv_closed = 0.062; 
 alpha_louv_open = 0.269; % (worst case EOL)
 A_rad_one = 1 *530*390e-6; % area one radiator
-n_rad = 4; %% can be changed
+n_rad = 3.5; %% can be changed
 A_rad_tot = A_rad_one*n_rad;% total area of radiators
 k_rad = 1;
 
@@ -97,20 +97,20 @@ A1 = L1*L2;
 A2 = L1*L3;
 A3 = L2*L3;
 A4 = A2;
-A5_tot = A3;
-A5_int = A5_tot;
-A6 = A1;
+A5 = A3;
+A6_tot = A1;
+A6_int = A1;
 A8 = 912319e-6; % from CAD: base of pl
-A5_ext = A5_tot - A_rad_tot;
+A6_ext = A6_tot - A_rad_tot;
 
 % Mass budget
 rho_rad = 6; % [kg/m^2] --> can be reduced to 1.5
 m_louv = 1.07; % kg
 mass_rad = rho_rad*A_rad_tot;
 mass_louv = + m_louv * n_rad;
-
+mass_louv = 0.85 + m_louv * 3;
 rho_MLI = 0.870; % [kg/m^2]
-A_MLI = A1 + A2 + A3 + A4 + A5_ext + A6;
+A_MLI = A1 + A2 + A3 + A4 + A5 + A6_ext;
 mass_MLI = rho_MLI*A_MLI;
 
 % RHU or heaters
@@ -225,14 +225,14 @@ R.R_38 = sigma_SB * A3 * epsilon_3 * epsilon_8 * F38;
 R.R_45 = sigma_SB * A4 * epsilon_4 * epsilon_5 * F45;
 R.R_46 = sigma_SB * A4 * epsilon_4 * epsilon_6 * F46;
 R.R_48 = sigma_SB * A4 * epsilon_4 * epsilon_8 * F48;
-R.R_56 = sigma_SB * A5_int * epsilon_5 * epsilon_6 * F56;
-R.R_58 = sigma_SB * A5_int * epsilon_5 * epsilon_8 * F58;
+R.R_56 = sigma_SB * A5 * epsilon_5 * epsilon_6 * F56;
+R.R_58 = sigma_SB * A5 * epsilon_5 * epsilon_8 * F58;
 R.R_10 = sigma_SB * A1 * epsilon_MLI;
 R.R_20 = sigma_SB * A2 * epsilon_MLI;
 R.R_30 = sigma_SB * A3 * epsilon_MLI;
 R.R_40 = sigma_SB * A4 * epsilon_MLI;
-R.R_50 = sigma_SB * A5_ext * epsilon_MLI;
-R.R_60 = sigma_SB * A6 * epsilon_MLI;
+R.R_50 = sigma_SB * A5 * epsilon_MLI;
+R.R_60 = sigma_SB * A6_ext * epsilon_MLI;
 R.R_rad0 = sigma_SB * A_rad_tot * eps_rad;
 
 % Add MLI on surface 3
@@ -240,16 +240,16 @@ R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
 R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
 R.R_2int2ext = sigma_SB * A2 * epsilon_MLI;
 R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
-R.R_5int5ext = sigma_SB * A5_int * epsilon_MLI;
-R.R_6int6ext = sigma_SB * A6 * epsilon_MLI;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
+R.R_6int6ext = sigma_SB * A6_int * epsilon_MLI;
 
 
 C.C_1int1ext = k_honeycomb*(A1/(l_str_tot));
 C.C_2int2ext = k_honeycomb*(A2/(l_str_tot));
 C.C_3int3ext = k_honeycomb*(A3/(l_str_tot));
 C.C_4int4ext = k_honeycomb*(A4/(l_str_tot));
-C.C_5int5ext = k_honeycomb*(A5_ext/(l_str_tot));
-C.C_6int6ext = k_honeycomb*(A6/(l_str_tot));
+C.C_5int5ext = k_honeycomb*(A5/(l_str_tot));
+C.C_6int6ext = k_honeycomb*(A6_ext/(l_str_tot));
 
 % Conductive Coupling
 % Conductive Coupling
@@ -268,7 +268,7 @@ C_cont = nc*A4;
 C.C_14 = (1/C1 + 1/C4 + 1/C_cont)^(-1);
 C1 = k_str*l_str*L2/(L1/2);
 C5 = k_str*l_str*L2/(L3/2);
-C_cont = nc*A5_int;
+C_cont = nc*A5;
 C.C_15 = (1/C1 + 1/C5 + 1/C_cont)^(-1);
 C.C_16 = 0;
 C2 = k_str*l_str*L3/(L1/2);
@@ -277,7 +277,7 @@ C_cont = nc*A3;
 C.C_23 = (1/C2 + 1/C3 + 1/C_cont)^(-1);
 C2 = k_str*l_str*L3/(L1/2);
 C5 = k_str*l_str*L3/(L2/2);
-C_cont = nc*A5_int;
+C_cont = nc*A5;
 C.C_25 = (1/C2 + 1/C5 + 1/C_cont)^(-1);
 C.C_24 = 0;
 C.C_26 = C.C_12;
@@ -302,18 +302,17 @@ C_HP_max = 1/R_HP_min;
 C_HP_min = 1/R_HP_max;
 C_TS = 5;
 C.C_1rad = 0;
-C.C_2rad = 0;
+C.C_2rad = 10;
 C.C_3rad = 0;    % opposite surface
 C.C_4rad = 0;
-C.C_6rad = 0;
-C.C_8rad = 0;
-% C.C_5rad = C.C_5rad + 4*C_HP_max;
-C.C_8rad = 1*C_TS;
-C.C_2rad = 1*C_TS;
-C.C_3rad = 1*C_TS;
+C.C_6rad = 10;
+C.C_8rad = 10;
+C.C_5rad = 3;
+
 
 l_str_tot = 20e-3; % do sensitivity analysis
-C.C_5rad = k_honeycomb*(A_rad_tot/(l_str_tot));
+% C.C_6rad = k_honeycomb*(A_rad_tot/(l_str_tot));
+
 % C.C_6rad = 2*C_TS;
 % C.C_5rad = C.C_5rad + 4*C_HP_max;
 % C.C_8rad = 6*C_TS;
@@ -321,7 +320,8 @@ C.C_5rad = k_honeycomb*(A_rad_tot/(l_str_tot));
 q_Sun = q_sun_earth;
 q_alb = q_Sun*F_earth*a_earth;
 q_Earth = F_earth*sigma_SB*T_earth^4*epsilon_Earth;
-
+q_alb_enc = q_sun_enc * F_enc_min * a_enc;
+q_alb_sat = q_sun_enc * F_sat * a_sat;
 % Angles with external fluxes
 
 theta_6Sun = 24.7 * pi/180;
@@ -333,7 +333,8 @@ Q_ext_hot = zeros(9,1);
 % HOT CASE 3: HGA (1) towards Earth, RTGs (6) towards Sun
 % HOT CASE 4: FIRST FLYBY, PL towards Earth
 % HOT CASE 5: FIRST FLYBY, HGA towards Earth
-hot_case = 4;
+% HOT CASE 6: second FLYBY  PERICENTER, cameras towards Earth, radiators on face 6
+hot_case = 6;
 
 switch hot_case
     case 1
@@ -368,6 +369,12 @@ switch hot_case
         Q_ext_hot(2) = q_Sun * A2 * alpha_MLI* cos(theta_S2);
         Q_ext_hot(5) = q_Sun * A5_ext * alpha_MLI* cos(theta_S5);
         % Q_ext_hot(7) = q_Sun * A_rad_tot * alpha_louv_open* cos(theta_S5);
+    case 6
+        theta_S5 = deg2rad(9);
+        theta_S1 = deg2rad(83.1);
+        Q_ext_hot(1) = q_Sun * A1 * alpha_MLI* cos(theta_S1);
+        Q_ext_hot(5) = q_Sun * A5 * alpha_MLI* cos(theta_S5);
+        Q_ext_hot(3) = q_Earth * epsilon_MLI * A3 + q_alb * A3 * alpha_MLI;
 end
 % Initial condition
 T0 = 293;
@@ -405,7 +412,7 @@ Wt = 1589;
 Q_cold = P_budget_cold-P_input_TMTC_cold+P_diss_TMTC_cold;
 
 Q_diss_cold = zeros(8,1);
-Q_diss_cold(5) = Q_cold;
+% Q_diss_cold(5) = Q_cold;
 
 % External fluxes
 % IR Heat fluxes for Saturn and Enceladus
@@ -423,33 +430,54 @@ theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
 cold_case = 1; % orbit / during landing
-%cold_case = 2; % on ground
+cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
-C.C_8rad = 0;
-C.C_2rad = 0*C_TS;
+
+
 switch cold_case
     case 1
-    theta_6Sat = 0; % CHANGE!
-    Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI * cos(theta_3Enc);
-    Q_ext_cold(6) = q_Sat * A6 * epsilon_MLI*cos(theta_6Sat); 
+    theta_3Enc =deg2rad(50);
+    theta_1Enc =deg2rad(40);
+    theta_1Sat = 0; % CHANGE!
+    Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI*cos(theta_3Enc) ;
+    Q_ext_cold(1) = q_Sat * A1 * epsilon_MLI*cos(theta_1Sat) + q_Enc_orbit * A1 * epsilon_MLI*cos(theta_1Sat) ;
     Clamped = 1;
     switch Clamped
         case 0
+            % during landing: peak load. no eclipse !!
+            C.C_2rad = 10;
+            C.C_8rad = 12;
+            theta_3Enc =deg2rad(10);
+    theta_6Enc =deg2rad(80);
+    theta_6Sat = 0; % CHANGE!
+    theta_1Sun = deg2rad(1);
+    Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI*cos(theta_3Enc) + q_alb_enc * A3 * alpha_MLI*cos(theta_3Enc) ;
+    Q_ext_cold(1) = q_sun_enc * A1 * alpha_MLI*cos(theta_1Sun) ;
+    Q_ext_cold(6) = q_Enc_orbit * A6_ext * epsilon_MLI*cos(theta_6Enc) + q_alb_enc * A6_ext * alpha_MLI*cos(theta_6Enc) + ...
+        q_Sat * A6_ext * epsilon_MLI*cos(theta_6Sat) + q_alb_sat * A6_ext * alpha_MLI*cos(theta_6Sat); 
+Q_ext_cold(8) = q_Enc_orbit * A_rad_tot * eps_rad*cos(theta_6Enc) + q_alb_enc * A_rad_tot * alpha_louv_closed*cos(theta_6Enc) + ...
+        q_Sat * A_rad_tot * eps_rad*cos(theta_6Sat) + q_alb_sat * A_rad_tot * alpha_louv_closed*cos(theta_6Sat); 
             % close louvers and compute again thermal couplings
-            perc_open_rad = 3/n_rad; % percentage of open radiators
+            perc_open_rad = 3.5/n_rad; % percentage of open radiators
             eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
             % eps_rad = eps_louv_closed;
             % radiative coupling
             R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-            Q_diss_cold(5) = 344; % during landing --> check batteries..
+            C.C_2rad = 40;
+            Q_diss_cold(6) = 344; % during landing --> check batteries..
         case 1
+            C.C_6rad = 0;
+            C.C_2rad = 3;
+            C.C_5rad= 0; 
+            C.C_8rad = 0;
+            % clamped but in eclipse
             perc_open_rad = 0; % percentage of open radiators
             eps_rad = perc_open_rad * eps_louv_open + (1-perc_open_rad) * eps_louv_closed;
             % eps_rad = eps_louv_closed;
             % radiative coupling
             R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
             Q_shunt = 0;
-            Q_diss_cold(5) = 120 + Q_shunt; % SAFE --> to change
+            Q_diss_cold(2) = 100 + Q_shunt; % SAFE --> to change
     end
     case 2
         perc_open_rad = 2.1/n_rad; % percentage of open radiators
@@ -457,17 +485,19 @@ switch cold_case
         % eps_rad = eps_louv_closed;
         % radiative coupling
         Q_heaters = 0;
+        C.C_2rad = 10;
         % Q_diss_cold(2) = 4;
         Q_diss_cold(8) = Q_heaters; % --> heaters
         Q_diss_cold(5) = Q_cold/2;
         Q_diss_cold(2) = Q_cold/2;
         R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
-        theta_3Enc = deg2rad(20);
+        theta_4Sat = deg2rad(20);
+        theta_6Sat = deg2rad(20);
         theta_2Enc = 0;
         Clamped = 0;
         Q_ext_cold(2) = q_Enc_ground * A2 * epsilon_MLI * cos(theta_2Enc);
         Q_ext_cold(4) = q_Sat * A4*epsilon_MLI*cos(theta_4Sat);
-        Q_ext_cold(6) = q_Sat * A6*epsilon_MLI*cos(theta_6Sat);
+        Q_ext_cold(1) = q_Sat * A1 *epsilon_MLI*cos(theta_6Sat);
 end
 
 %%% SOLVE THE SYSTEM 

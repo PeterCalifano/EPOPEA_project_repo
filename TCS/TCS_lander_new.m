@@ -430,7 +430,7 @@ theta_6Sat = deg2rad(20); % CHANGE!
 theta_4Sat = deg2rad(70); % CHANGE!
 
 cold_case = 1; % orbit / during landing
-cold_case = 2; % on ground
+% cold_case = 2; % on ground
 Q_ext_cold = zeros(7,1);
 
 
@@ -513,6 +513,167 @@ fprintf(['5 ',num2str(T_land_cold(5)-273),' Celsius\n'])
 fprintf(['6 ',num2str(T_land_cold(6)-273),' Celsius\n'])
 fprintf(['rad ',num2str(T_land_cold(7)-273),' Celsius\n'])
 fprintf(['8 ',num2str(T_land_cold(8)-273),' Celsius\n'])
+
+%%
+% sensitivity analysis : alpha MLI and epsilon MLI
+epsilon_MLI_vec =  linspace(0.005,0.05,20);
+% epsilon_MLI_vec =  ones(3,1)*epsilon_MLI;
+alpha_MLI_vec =  linspace(0.06,0.13,20);
+
+Arad = zeros(length(epsilon_MLI_vec),1);
+% C3rad = zeros(length(epsilon_MLI_vec),1);
+eps_rad = eps_louv_open;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+y_guess = [273;A_rad_tot;273*ones(12,1)];
+for k = 1:length(epsilon_MLI_vec)
+    eps_MLI = epsilon_MLI_vec(k);
+    epsilon_MLI = eps_MLI;
+    R.R_10 = sigma_SB * A1 * epsilon_MLI;
+R.R_20 = sigma_SB * A2 * epsilon_MLI;
+R.R_30 = sigma_SB * A3 * epsilon_MLI;
+R.R_40 = sigma_SB * A4 * epsilon_MLI;
+R.R_50 = sigma_SB * A5 * epsilon_MLI;
+R.R_60 = sigma_SB * A6_ext * epsilon_MLI;
+    % Add MLI on surface 3, 2, 6 
+    % Add MLI on surface 3
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
+R.R_2int2ext = sigma_SB * A2 * epsilon_MLI;
+R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
+R.R_6int6ext = sigma_SB * A6_int * epsilon_MLI;
+   
+        alp_MLI = alpha_MLI;
+       
+        theta_S5 = deg2rad(9);
+        theta_S1 = deg2rad(83.1);
+        Q_ext_hot(1) = q_Sun * A1 * alpha_MLI* cos(theta_S1);
+        Q_ext_hot(5) = q_Sun * A5 * alpha_MLI* cos(theta_S5);
+        Q_ext_hot(3) = q_Earth * epsilon_MLI * A3 + q_alb * A3 * alpha_MLI;
+        C.C_1rad = 0;
+        C.C_2rad = 10;
+        C.C_3rad = 0;    % opposite surface
+        C.C_4rad = 0;
+        C.C_6rad = 10;
+        C.C_8rad = 10;
+        C.C_5rad = 3;
+        options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+        y_cold_land = fsolve(@(y) LanderAreaRad(y, R, C, Q_ext_hot , Q_diss_hot, 1, A6_tot, sigma_SB, eps_MLI, eps_rad), y_guess, options);
+        Arad(k) = y_cold_land(2);
+end
+
+figure
+plot(epsilon_MLI_vec, Arad)
+xlabel('epsilon')
+ylabel('Arad')
+
+%% alpha --> area rad
+Arad = zeros(length(alpha_MLI_vec),1);
+epsilon_MLI = 0.03;
+ R.R_10 = sigma_SB * A1 * epsilon_MLI;
+R.R_20 = sigma_SB * A2 * epsilon_MLI;
+R.R_30 = sigma_SB * A3 * epsilon_MLI;
+R.R_40 = sigma_SB * A4 * epsilon_MLI;
+R.R_50 = sigma_SB * A5 * epsilon_MLI;
+R.R_60 = sigma_SB * A6_ext * epsilon_MLI;
+    % Add MLI on surface 3, 2, 6 
+    % Add MLI on surface 3
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
+R.R_2int2ext = sigma_SB * A2 * epsilon_MLI;
+R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
+R.R_6int6ext = sigma_SB * A6_int * epsilon_MLI;
+
+eps_rad = eps_louv_open;
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+    for j = 1:20
+        alp_MLI = alpha_MLI_vec(j);
+        theta_S5 = deg2rad(9);
+        theta_S1 = deg2rad(83.1);
+        Q_ext_hot(1) = q_Sun * A1 * alp_MLI* cos(theta_S1);
+        Q_ext_hot(5) = q_Sun * A5 * alp_MLI* cos(theta_S5);
+        Q_ext_hot(3) = q_Earth * epsilon_MLI * A3 + q_alb * A3 * alp_MLI;
+        C.C_1rad = 0;
+        C.C_2rad = 10;
+        C.C_3rad = 0;    % opposite surface
+        C.C_4rad = 0;
+        C.C_6rad = 10;
+        C.C_8rad = 10;
+        C.C_5rad = 3;
+         options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+        y_cold_land = fsolve(@(y) LanderAreaRad(y, R, C, Q_ext_hot , Q_diss_hot, 1, A6_tot, sigma_SB, epsilon_MLI, eps_rad), y_guess, options);
+        Arad(j) = y_cold_land(2);
+    end
+
+
+figure
+plot(alpha_MLI_vec,Arad)
+xlabel('alpha')
+ylabel('Arad')
+
+
+%% Cold case --> change epsilon and see how much heat you need
+y_guess = [273;100;273*ones(5,1); 3; 273*ones(6,1) ];
+% epsilon
+Padded = zeros(length(epsilon_MLI_vec),1);
+C3rad = zeros(length(epsilon_MLI_vec),1);
+
+Q_diss_cold = zeros(8,1);
+Q_ext_cold = zeros(7,1);
+for k = 1:length(epsilon_MLI_vec)
+    eps_MLI = epsilon_MLI_vec(k);
+    epsilon_MLI = eps_MLI;
+     R.R_10 = sigma_SB * A1 * epsilon_MLI;
+R.R_20 = sigma_SB * A2 * epsilon_MLI;
+R.R_30 = sigma_SB * A3 * epsilon_MLI;
+R.R_40 = sigma_SB * A4 * epsilon_MLI;
+R.R_50 = sigma_SB * A5 * epsilon_MLI;
+R.R_60 = sigma_SB * A6_ext * epsilon_MLI;
+    % Add MLI on surface 3, 2, 6 
+    % Add MLI on surface 3
+R.R_3int3ext = sigma_SB * A3 * epsilon_MLI;
+R.R_1int1ext = sigma_SB * A1 * epsilon_MLI;
+R.R_2int2ext = sigma_SB * A2 * epsilon_MLI;
+R.R_4int4ext = sigma_SB * A4 * epsilon_MLI;
+R.R_5int5ext = sigma_SB * A5 * epsilon_MLI;
+R.R_6int6ext = sigma_SB * A6_int * epsilon_MLI;
+   
+        alp_MLI = alpha_MLI;
+   % close louvers and compute again thermal couplings
+eps_rad = eps_louv_closed;
+
+% radiative coupling
+
+R.R_rad0 = sigma_SB*A_rad_tot * eps_rad;
+C.C_6rad = 0;
+            C.C_5rad= 0; 
+            C.C_8rad = 0;
+
+ theta_3Enc =deg2rad(50);
+    theta_1Enc =deg2rad(40);
+    theta_1Sat = 0; % CHANGE!
+    Q_ext_cold(3) = q_Enc_orbit * A3 * epsilon_MLI*cos(theta_3Enc) ;
+    Q_ext_cold(1) = q_Sat * A1 * epsilon_MLI*cos(theta_1Sat) + q_Enc_orbit * A1 * epsilon_MLI*cos(theta_1Sat) ;
+ 
+%%% SOLVE THE SYSTEM 
+Clamped = 1;
+
+       options = optimoptions('fsolve','MaxFunctionEvaluations',50000,'Maxiterations',50000);
+        y_cold_land = fsolve(@(y) LanderHeaters(y, R,C, Q_ext_cold , Q_diss_cold, Clamped, sigma_SB, epsilon_MLI, eps_rad, A6_ext), y_guess, options);
+        Padded(k) = y_cold_land(2);
+        C3rad(k) = y_cold_land(8);
+
+end
+
+figure
+plot(epsilon_MLI_vec, Padded)
+xlabel('epsilon')
+ylabel('Wadded')
+figure
+plot(epsilon_MLI_vec,C3rad)
+xlabel('epsilon')
+ylabel('C3rad')
 
 % compute the temperature of surface 2 external (where cameras are):
 % C.C_2int2ext = k_str*A2/l_str;

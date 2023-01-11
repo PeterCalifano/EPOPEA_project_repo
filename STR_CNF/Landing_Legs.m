@@ -1,5 +1,5 @@
 clear,clc;close all
-%Script for the landing legs  study
+%Script for the landing legs buckling analysis
 
 %DATA
 g_Enc=0.113; %[m/s^2] Enceladus gravitational acceleration

@@ -219,13 +219,14 @@ R2_tot = (1/Rl.R_2int2ext + 1/R2_cond )^(-1);
 Q_2int2ext = R2_tot*(T2l^4 - T2extl^4);
 if Clamped ==1
     Q_20 = 0;
-    Q_4l2o = -Q_4o2l;
+    Q_4l2o = - Q_4o2l;
 else
     if Clamped == 0
     Q_20 = Rl.R_20*(T2extl^4 - 0);
     Q_4l2o = 0;
     end
 end
+
 balancesl(11) = Q_20  - Q_extl(2) - Q_2int2ext;
 balancesl(2) =+ Q_21 + Q_23 + Q_24  + Q_25  + Q_26 +...
       + Q_2rad  + Q_28 - Q_dissl(2) + Q_2int2ext + Q_4l2o;

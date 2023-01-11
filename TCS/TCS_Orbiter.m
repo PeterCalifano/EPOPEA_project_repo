@@ -638,8 +638,8 @@ switch eclipse
     theta_1Enc =deg2rad(40);
     theta_1Sat = 0; % CHANGE!
     Q_ext_cold(3) = q_Enc * A3 * epsilon_MLI*cos(theta_3Enc) ;
-    Q_ext_cold(1) = q_Sat * A1_ext * epsilon_MLI*cos(theta_1Sat) + q_Enc * A1_ext * epsilon_MLI*cos(theta_1Sat) ;
-    Q_ext_cold(7) = q_Sat * A_ant * epsilon_ant*cos(theta_1Sat) + q_Enc * A_ant * epsilon_ant*cos(theta_1Sat);
+    Q_ext_cold(1) = q_Sat * A1_ext * epsilon_MLI*cos(theta_1Sat) + q_Enc * A1_ext * epsilon_MLI*cos(theta_1Enc) ;
+    Q_ext_cold(7) = q_Sat * A_ant * epsilon_ant*cos(theta_1Sat) + q_Enc * A_ant * epsilon_ant*cos(theta_1Enc);
     case 0
     theta_3Enc =deg2rad(10);
     theta_6Enc =deg2rad(80);
@@ -680,7 +680,6 @@ else
     end
 end
 theta_Sun_enc = deg2rad(1); % Ask Antoine: min angle Sun-Earth during communications
-Q_ext_cold(7) = q_sun_enc*A_ant*alpha_ant*cos(theta_Sun_enc);
 
 T_guess = 273*ones(15,1);
 options = optimoptions('fsolve','display','iter','MaxFunctionEvaluations',50000,'Maxiterations',50000);

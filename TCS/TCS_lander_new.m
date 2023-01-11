@@ -103,15 +103,6 @@ A6_int = A1;
 A8 = 912319e-6; % from CAD: base of pl
 A6_ext = A6_tot - A_rad_tot;
 
-% Mass budget
-rho_rad = 6; % [kg/m^2] --> can be reduced to 1.5
-m_louv = 1.07; % kg
-mass_rad = rho_rad*A_rad_tot;
-mass_louv = + m_louv * n_rad;
-mass_louv = 0.85 + m_louv * 3;
-rho_MLI = 0.870; % [kg/m^2]
-A_MLI = A1 + A2 + A3 + A4 + A5 + A6_ext;
-mass_MLI = rho_MLI*A_MLI;
 
 % RHU or heaters
 n_RHU = 0; % can be changed ! 

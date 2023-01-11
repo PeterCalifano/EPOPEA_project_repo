@@ -120,7 +120,7 @@ m_prop_int = mf * ( exp( dV_int / ( Isp_main_orb * g0 ) ) - 1 ) ; % [kg] - prope
  
 m_prop_main = m_prop_int + m_prop_cap + m_prop_EOI + m_prop_disp ;
 
-m_prop_orb = m_prop_att + m_prop_sk + m_prop_EOI + m_prop_cap + m_prop_int + m_prop_att_dsm_cl + m_prop_att_moon ; % [kg] - total propellant mass needed on the orbiter
+m_prop_orb = m_prop_att + m_prop_sk + m_prop_main + m_prop_att_dsm_cl + m_prop_att_moon ; % [kg] - total propellant mass needed on the orbiter
 
 %% INCLUDE MARGINS:
 m_prop_orb = m_prop_orb * 1.025 ;
@@ -128,7 +128,7 @@ m_prop_lan = m_prop_lan * 1.025 ;
 
 m_prop_main = m_prop_main * 1.025 ;
 m_prop_sk = m_prop_sk * 1.025 ;
-m_prop_att = m_prop_att + m_prop_att_dsm_cl + m_prop_att_moon * 1.025 ;
+m_prop_att = ( m_prop_att + m_prop_att_dsm_cl + m_prop_att_moon ) * 1.025 ;
 m_prop_main_lan = (m_prop_des + m_hazard ) * 1.025 ;
 m_prop_att_lan = m_prop_att_lan * 1.025 ;
 

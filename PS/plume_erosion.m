@@ -225,7 +225,7 @@ v_profile = [-0.007988147680938865	-0.11986869004426229	-0.07409176854309067;
 -0.0049577738594667	0.010380376398286975	-0.025809423902661093;
 -2.3149662714979196E-4	4.962667798053581E-4	-8.367963236296999E-4]*1e3;
 
-h_vect = linspace( 1, 30, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
+h_vect = linspace( 2, 30, size(v_profile,1) ) ; % [ m ] - Height from ground at which we turn off the thrusters
 
 t_landing = linspace( 0, 2000, length(v_profile) ) ; 
 

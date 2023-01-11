@@ -187,7 +187,7 @@ sk_thruster.B = 4 ;% [ - ] - Blowdown ratio
 
 % Attitude thruster
 att_thruster.Pc_mean = 16.2e5 ; % [ Pa ] - Mean combustion chamber pressure
-att_thruster.B = 4 ;% [ - ] - Blowdown ratio
+att_thruster.B = 6 ;% [ - ] - Blowdown ratio
 
 % Tanks - Titanium
 tank.rho = 2780 ; % [kg/m3] - Material density
@@ -240,6 +240,45 @@ fprintf( '---------------------- Lander tank sizing ---------------------- \n' )
 mdot_main_orb = 180e-3 ; % [kg/s] - Maximum flow rate
 t_firing_main_orb = m_prop_main_orb / mdot_main_orb  % [s] - Total firing time of primary propulsion
 
+mdot_sk_orb = 10e-3 ; % [kg/s] - Maximum flow rate
+t_firing_sk_orb = m_prop_sk_orb / mdot_sk_orb  % [s] - Total firing time of primary propulsion
+
+
 % LANDER
 mdot_main_lan = 63.5e-3 ; % [kg/s] - Maximum flow rate
 t_firing_main_lan = m_prop_main_lan / mdot_main_lan  % [s] - Total firing time of primary propulsion
+
+%% MISALIGNMENT ANGLES
+
+% ORBITER
+% Interplanetary
+dV_mis = 10 ; % [m/s] - Maximum misalignment loss
+Tmax_main_orb = 645 ; % [N] - Maximum thrust given by main thruster of orbiter
+m_total_main_o = m_prop_orb + m_prop_lan + orbiter.dry + lander.dry ; % [kg] - Mass of orbiter during main engine firings
+
+alpha_SOSL_main = rad2deg( acos( 1 - ( dV_mis * m_total_main_o ) / ( t_firing_main_orb * Tmax_main_orb ) ) )    % [ deg ] - Misalignment angle during capture at Saturn
+
+
+% SK
+dV_mis = 1 ; % [m/s] - Maximum misalignment loss
+Tmax_main_orb = 22 ; % [N] - Maximum thrust given by main thruster of orbiter
+m_total_sk_o = m_prop_sk_orb + m_prop_lan + orbiter.dry + lander.dry ; % [kg] - Mass of orbiter during main engine firings
+
+alpha_SOSL_SK = rad2deg( acos( 1 - ( dV_mis * m_total_sk_o ) / ( t_firing_sk_orb * Tmax_main_orb ) ) )    % [ deg ] - Misalignment angle during capture at Saturn
+
+
+
+
+% LANDER
+% Descending phase
+dV_mis = 1 ; % [m/s] - Maximum misalignment loss
+Tmax_main_lan = 142 ; % [N] - Maximum thrust given by main thruster of orbiter
+m_total_main_lan = m_prop_lan + lander.dry ; % [kg] - Mass of orbiter during main engine firings
+
+alpha_SL_main = rad2deg( acos( 1 - ( dV_mis * m_total_main_lan ) / ( t_firing_main_lan * Tmax_main_lan ) ) )    % [ deg ] - Misalignment angle during capture at Saturn
+
+
+
+
+
+

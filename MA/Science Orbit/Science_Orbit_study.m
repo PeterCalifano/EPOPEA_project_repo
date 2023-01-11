@@ -65,7 +65,7 @@ vz0_Halo=0;
 state0_Halo=[x0_Halo,y0_Halo,z0_Halo,vx0_Halo,vy0_Halo,vz0_Halo]';
 
 t0=0;
-FlightDays=0.5; %days of prapagation
+FlightDays=0.5; %days of propagation
 tf=FlightDays*24*3600/TU; %final time of propagation
  
 
@@ -90,8 +90,8 @@ end
 %dimension recovery
 state_vec_Halo(1:3,:)=state_vec_Halo(1:3,:)*DU;
 state_vec_Halo(4:6,:)=state_vec_Halo(4:6,:)*DU/TU;
-r_vec_Halo_in=r_vec_Halo_in*DU;
-pos_Halo_Enc=pos_Halo_Enc*DU;
+r_vec_Halo_in=r_vec_Halo_in*DU; %ANTOINE - THIS IS IN THE INERTIAL FRAME 
+pos_Halo_Enc=pos_Halo_Enc*DU;%ANTOINE - THIS IS IN THE ROTATING REF FRAME
 
 %periodic resonant 3BP orbit N=9 M=35
 %initial conditions
